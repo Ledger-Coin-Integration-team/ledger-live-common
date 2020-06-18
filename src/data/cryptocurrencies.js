@@ -156,6 +156,34 @@ const cryptocurrenciesById: { [name: string]: CryptoCurrency } = {
       },
     ],
   },
+  algorand: {
+    type: "CryptoCurrency",
+    id: "algorand",
+    coinType: 148,
+    name: "Algorand",
+    managerAppName: "Algorand",
+    ticker: "ALGO",
+    scheme: "algorand",
+    color: "#000000",
+    family: "algorand",
+    units: [
+      {
+        name: "uALGO",
+        code: "uALGO",
+        magnitude: 0,
+      },
+      {
+        name: "ALGO",
+        code: "uALGO",
+        magnitude: 6,
+      },
+    ],
+    explorerViews: [
+      {
+        tx: "https://stellar.expert/explorer/public/tx/$hash",
+      },
+    ],
+  },
   ark: {
     type: "CryptoCurrency",
     id: "ark",
