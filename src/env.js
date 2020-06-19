@@ -32,6 +32,11 @@ const stringParser = (v: mixed): ?string =>
   typeof v === "string" ? v : undefined;
 
 const envDefinitions = {
+  API_ALGORAND_BLOCKCHAIN_EXPLORER_API_ENDPOINT: {
+    def: "https://mainnet-algorand.api.purestake.io/ps1/v1/",
+    parser: stringParser,
+    desc: "node API for algorand",
+  },
   API_COSMOS_BLOCKCHAIN_EXPLORER_API_ENDPOINT: {
     def: "https://cosmos.coin.ledger.com/",
     parser: stringParser,

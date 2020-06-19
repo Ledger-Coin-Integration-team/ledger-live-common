@@ -38,6 +38,10 @@ const extraConfigPerCurrency: { [_: string]: LibcoreConfig } = {
     BLOCKCHAIN_EXPLORER_API_ENDPOINT: () =>
       getEnv("API_COSMOS_BLOCKCHAIN_EXPLORER_API_ENDPOINT"),
   },
+  algorand: {
+    BLOCKCHAIN_EXPLORER_API_ENDPOINT: () =>
+      getEnv("API_ALGORAND_BLOCKCHAIN_EXPLORER_API_ENDPOINT"),
+  },
 };
 
 const modes = Object.freeze({

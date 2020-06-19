@@ -16,9 +16,22 @@ export type CoreAccountSpecifics = {
 };
 
 export type CoreOperationSpecifics = {
+  asAlgorandOperation(): Promise<CoreAlgorandLikeOperation>
 };
 
+declare class CoreAlgorandLikeTransaction {
+  getId(): Promise<string>
+}
+
+declare class CoreAlgorandLikeOperation {
+  getTransaction(): Promise<CoreAlgorandLikeTransaction>;
+}
+
 export type CoreCurrencySpecifics = {};
+
+export type {
+  CoreAlgorandLikeOperation,
+}
 
 export type NetworkInfo = {|
   family: "algorand",
@@ -46,9 +59,25 @@ export type TransactionRaw = {|
 
 
 export const reflect = (declare: (string, Spec) => void) => {
+  declare("AlgorandOperation", {
+    methods: {
+      getTransaction: {
+        returns: "AlgorandTransaction"
+      }
+    }
+  });
+
+  declare("AlgorandTransaction", {
+    methods: {
+      getId: {}
+    }
+  });
 
   return {
     OperationMethods: {
+      asAlgorandOperation: {
+        returns: "AlgorandOperation"
+      }
     },
     AccountMethods: {
     },

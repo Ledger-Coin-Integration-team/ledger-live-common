@@ -159,7 +159,7 @@ const cryptocurrenciesById: { [name: string]: CryptoCurrency } = {
   algorand: {
     type: "CryptoCurrency",
     id: "algorand",
-    coinType: 148,
+    coinType: 283,
     name: "Algorand",
     managerAppName: "Algorand",
     ticker: "ALGO",
@@ -168,19 +168,19 @@ const cryptocurrenciesById: { [name: string]: CryptoCurrency } = {
     family: "algorand",
     units: [
       {
+        name: "ALGO",
+        code: "ALGO",
+        magnitude: 6,
+      },
+      {
         name: "uALGO",
         code: "uALGO",
         magnitude: 0,
       },
-      {
-        name: "ALGO",
-        code: "uALGO",
-        magnitude: 6,
-      },
     ],
     explorerViews: [
       {
-        tx: "https://stellar.expert/explorer/public/tx/$hash",
+        tx: "https://algorand.expert/explorer/public/tx/$hash",
       },
     ],
   },

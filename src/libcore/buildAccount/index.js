@@ -94,6 +94,10 @@ export async function buildAccount({
   const derivations = await coreAccountCreationInfo.getDerivations();
   const accountPath = last(derivations);
 
+  if (accountPath !== "44'/283'/0'/0/0") {
+    throw new Error("Algo protect from infinite loop");
+  }
+
   const coreBlock = await coreAccount.getLastBlock();
   const blockHeight = await coreBlock.getHeight();
 

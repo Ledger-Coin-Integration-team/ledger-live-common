@@ -20,7 +20,6 @@ import type Transport from "@ledgerhq/hw-transport";
 import BIPPath from "bip32-path";
 import { UserRefusedOnDevice } from "@ledgerhq/errors";
 const CHUNK_SIZE = 250;
-const CLA = 0x55;
 const INS_GET_VERSION = 0x00;
 const INS_SIGN_SECP256K1 = 0x02;
 const INS_GET_ADDR_SECP256K1 = 0x04;
@@ -31,6 +30,10 @@ const PAYLOAD_TYPE_LAST = 0x02;
 
 const SW_OK = 0x9000;
 const SW_CANCEL = 0x6986;
+
+// algo spec
+const CLA = 0x80;
+const INS_GET_PUBLIC_KEY = 0x03;
 
 /**
  * Cosmos API
@@ -63,30 +66,6 @@ export default class Algorand {
     });
   }
 
-  serializePath(path: Buffer) {
-    const buf = Buffer.alloc(20);
-    // HACK : without the >>>,
-    // the bitwise implicitly casts the result to be a signed int32,
-    // which fails the internal type check of Buffer in case of overload.
-    buf.writeUInt32LE((0x80000000 | path[0]) >>> 0, 0);
-    buf.writeUInt32LE((0x80000000 | path[1]) >>> 0, 4);
-    buf.writeUInt32LE((0x80000000 | path[2]) >>> 0, 8);
-    buf.writeUInt32LE(path[3], 12);
-    buf.writeUInt32LE(path[4], 16);
-
-    return buf;
-  }
-
-  serializeHRP(hrp: string) {
-    if (hrp == null || hrp.length < 3 || hrp.length > 83) {
-      throw new Error("Invalid HRP");
-    }
-    const buf = Buffer.alloc(1 + hrp.length);
-    buf.writeUInt8(hrp.length, 0);
-    buf.write(hrp, 1);
-    return buf;
-  }
-
   /**
    * get Cosmos address for a given BIP 32 path.
    * @param path a path in BIP 32 format
@@ -101,17 +80,24 @@ export default class Algorand {
     boolDisplay?: boolean
   ): Promise<{ publicKey: string, address: string }> {
     const bipPath = BIPPath.fromString(path).toPathArray();
-    const serializedPath = this.serializePath(bipPath);
-    const data = Buffer.concat([this.serializeHRP(hrp), serializedPath]);
+
+    console.log(bipPath);
+    if (bipPath[2] && bipPath[2] > 0) {
+      throw new Error("Protect from infinite loop");
+    }
+
+    let buffer = Buffer.alloc(1 + bipPath.length * 4);
+    buffer[0] = bipPath.length;
+    bipPath.forEach((element, index) => {
+      buffer.writeUInt32BE(element, 1 + 4 * index);
+    });
 
     return this.transport
-      .send(CLA, INS_GET_ADDR_SECP256K1, boolDisplay ? 1 : 0, 0, data, [SW_OK])
+      .send(CLA, INS_GET_PUBLIC_KEY, boolDisplay ? 1 : 0, 0, buffer, [SW_OK])
       .then((response) => {
-        const address = Buffer.from(response.slice(33, -2)).toString();
-        const publicKey = Buffer.from(response.slice(0, 33)).toString("hex");
+        const publicKey = Buffer.from(response.slice(0, 32)).toString("hex");
 
         return {
-          address,
           publicKey,
         };
       });
