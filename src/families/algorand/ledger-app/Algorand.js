@@ -80,7 +80,7 @@ export default class Algorand {
     boolDisplay?: boolean
   ): Promise<{ publicKey: string, address: string }> {
     const bipPath = BIPPath.fromString(path).toPathArray();
-    
+
     let buffer = Buffer.alloc(1 + bipPath.length * 4);
     buffer[0] = bipPath.length;
     bipPath.forEach((element, index) => {
