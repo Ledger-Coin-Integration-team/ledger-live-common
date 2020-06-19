@@ -80,12 +80,7 @@ export default class Algorand {
     boolDisplay?: boolean
   ): Promise<{ publicKey: string, address: string }> {
     const bipPath = BIPPath.fromString(path).toPathArray();
-
-    console.log(bipPath);
-    if (bipPath[2] && bipPath[2] > 0) {
-      throw new Error("Protect from infinite loop");
-    }
-
+    
     let buffer = Buffer.alloc(1 + bipPath.length * 4);
     buffer[0] = bipPath.length;
     bipPath.forEach((element, index) => {
