@@ -66,10 +66,11 @@ export default class Algorand {
     });
   }
 
+
+
   /**
-   * get Cosmos address for a given BIP 32 path.
+   * get Algorajt address for a given BIP 32 path.
    * @param path a path in BIP 32 format
-   * @param hrp usually cosmos
    * @option boolDisplay optionally enable or not the display
    * @return an object with a publicKey, address and (optionally) chainCode
    * @example
@@ -80,15 +81,16 @@ export default class Algorand {
     boolDisplay?: boolean
   ): Promise<{ publicKey: string, address: string }> {
     const bipPath = BIPPath.fromString(path).toPathArray();
+    console.log(bipPath);
+    console.log(path);
 
-    let buffer = Buffer.alloc(1 + bipPath.length * 4);
-    buffer[0] = bipPath.length;
-    bipPath.forEach((element, index) => {
-      buffer.writeUInt32BE(element, 1 + 4 * index);
-    });
+    const buf = Buffer.alloc(4);
+    buf.writeUInt32LE(bipPath[2] >>> 0, 0);
+
+    console.log(buf);
 
     return this.transport
-      .send(CLA, INS_GET_PUBLIC_KEY, boolDisplay ? 1 : 0, 0, buffer, [SW_OK])
+      .send(CLA, INS_GET_PUBLIC_KEY, boolDisplay ? 1 : 0, 0, buf, [SW_OK])
       .then((response) => {
         const publicKey = Buffer.from(response.slice(0, 32)).toString("hex");
 
