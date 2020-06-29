@@ -85,7 +85,9 @@ export default class Algorand {
     console.log(path);
 
     const buf = Buffer.alloc(4);
-    buf.writeUInt32LE(bipPath[2] >>> 0, 0);
+    // FIXME Temporary possible workaround
+    //buf.writeUInt32LE(bipPath[2] >>> 0, 0);
+    buf.writeUInt32LE(0, 0);
 
     console.log(buf);
 
