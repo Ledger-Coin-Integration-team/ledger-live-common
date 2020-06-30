@@ -10,24 +10,31 @@ import type { Operation, OperationRaw } from "../../types/operation";
 import type { CoreAmount, CoreBigInt, Spec } from "../../libcore/types";
 
 export type CoreStatics = {
-  AlgorandPaymentInfo: Class<AlgorandPaymentInfo>;
-  AlgorandAssetTransferInfo: Class<AlgorandAssetTransferInfo>;
+  AlgorandPaymentInfo: Class<AlgorandPaymentInfo>,
+  AlgorandAssetTransferInfo: Class<AlgorandAssetTransferInfo>,
 };
 
 export type CoreAccountSpecifics = {
-  asAlgorandAccount(): Promise<CoreAlgorandAccount>
+  asAlgorandAccount(): Promise<CoreAlgorandAccount>,
 };
 
 export type CoreOperationSpecifics = {
-  asAlgorandOperation(): Promise<CoreAlgorandOperation>
+  asAlgorandOperation(): Promise<CoreAlgorandOperation>,
 };
 
 declare class AlgorandPaymentInfo {
-  static init(amount: string, recipientAddress: string): Promise<AlgorandPaymentInfo>;
+  static init(
+    amount: string,
+    recipientAddress: string
+  ): Promise<AlgorandPaymentInfo>;
 }
 
 declare class AlgorandAssetTransferInfo {
-  static init(assetId: string, amount: string, recipientAddress: string): Promise<AlgorandAssetTransferInfo>;
+  static init(
+    assetId: string,
+    amount: string,
+    recipientAddress: string
+  ): Promise<AlgorandAssetTransferInfo>;
 }
 
 declare class CoreAlgorandTransaction {
@@ -37,7 +44,7 @@ declare class CoreAlgorandTransaction {
   getFee(): Promise<string>;
   getNote(): Promise<string>;
   getRound(): Promise<string>;
-  
+
   setSender(sender: string): void;
   setFee(fee: string): void;
   setNote(note: string): void;
@@ -48,7 +55,7 @@ declare class CoreAlgorandTransaction {
 
 declare class CoreAlgorandAccount {
   createEmptyTransaction(): CoreAlgorandTransaction;
-  getFeeEstimate(transaction: CoreAlgorandTransaction): Promise<CoreAmount>
+  getFeeEstimate(transaction: CoreAlgorandTransaction): Promise<CoreAmount>;
 }
 
 declare class CoreAlgorandOperation {
@@ -57,11 +64,23 @@ declare class CoreAlgorandOperation {
 
 export type CoreCurrencySpecifics = {};
 
+export type AlgorandResources = {|
+  rewards: BigNumber,
+  rewardsAccumulated: BigNumber,
+|};
+
+export type AlgorandResourcesRaw = {|
+  rewards: BigNumber,
+  rewardsAccumulated: BigNumber,
+|};
+
+export type AlgorandOperationMode = "send" | "optIn" | "optOut";
+
 export type {
   CoreAlgorandOperation,
   CoreAlgorandAccount,
-  CoreAlgorandTransaction
-}
+  CoreAlgorandTransaction,
+};
 
 export type NetworkInfo = {|
   family: "algorand",
@@ -76,33 +95,54 @@ export type NetworkInfoRaw = {|
 export type Transaction = {|
   ...TransactionCommon,
   family: "algorand",
+  mode: AlgorandOperationMode,
   networkInfo: ?NetworkInfo,
   fees: ?BigNumber,
+  assetId?: string,
+  memo: ?string,
 |};
 
 export type TransactionRaw = {|
   ...TransactionCommonRaw,
   family: "algorand",
+  mode: AlgorandOperationMode,
   networkInfo: ?NetworkInfoRaw,
   fees: ?string,
+  assetId?: string,
+  memo: ?string,
 |};
 
+export type AlgorandOperation = {|
+  ...Operation,
+  extra: AlgorandExtraTxInfo,
+|};
+
+export type AlgorandOperationRaw = {|
+  ...OperationRaw,
+  extra: AlgorandExtraTxInfo,
+|};
+
+export type AlgorandExtraTxInfo = {
+  rewards?: BigNumber,
+  memo?: string,
+  assetId?: string,
+};
 
 export const reflect = (declare: (string, Spec) => void) => {
   declare("AlgorandAccount", {
     methods: {
       createEmptyTransaction: {
-        returns: "AlgorandTransaction"
-      }
-    }
+        returns: "AlgorandTransaction",
+      },
+    },
   });
 
   declare("AlgorandOperation", {
     methods: {
       getTransaction: {
-        returns: "AlgorandTransaction"
-      }
-    }
+        returns: "AlgorandTransaction",
+      },
+    },
   });
 
   declare("AlgorandTransaction", {
@@ -112,12 +152,12 @@ export const reflect = (declare: (string, Spec) => void) => {
       setFee: {},
       setNote: {},
       setPaymentInfo: {
-        params: ["AlgorandPaymentInfo"]
+        params: ["AlgorandPaymentInfo"],
       },
       setAssetTransferInfo: {
-        params: ["AlgorandAssetTransferInfo"]
-      }
-    }
+        params: ["AlgorandAssetTransferInfo"],
+      },
+    },
   });
 
   declare("AlgorandPaymentInfo", {
@@ -151,18 +191,18 @@ export const reflect = (declare: (string, Spec) => void) => {
         ],
       },
     },
-  })
+  });
 
   return {
     OperationMethods: {
       asAlgorandOperation: {
-        returns: "AlgorandOperation"
-      }
+        returns: "AlgorandOperation",
+      },
     },
     AccountMethods: {
       asAlgorandAccount: {
-        returns: "AlgorandAccount"
-      }
+        returns: "AlgorandAccount",
+      },
     },
   };
 };
