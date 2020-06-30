@@ -28,6 +28,12 @@ const PAYLOAD_TYPE_INIT = 0x00;
 const PAYLOAD_TYPE_ADD = 0x01;
 const PAYLOAD_TYPE_LAST = 0x02;
 
+const P1_FIRST = 0x00
+const P1_MORE  = 0x80
+const P1_WITH_ACCOUNT_ID  = 0x01
+const P2_LAST  = 0x00
+const P2_MORE  = 0x80
+
 const SW_OK = 0x9000;
 const SW_CANCEL = 0x6986;
 
@@ -81,13 +87,9 @@ export default class Algorand {
     boolDisplay?: boolean
   ): Promise<{ publicKey: string, address: string }> {
     const bipPath = BIPPath.fromString(path).toPathArray();
-    console.log(bipPath);
-    console.log(path);
 
     const buf = Buffer.alloc(4);
-    buf.writeUInt32LE(bipPath[2] >>> 0, 0);
-
-    console.log(buf);
+    buf.writeUInt32LE(bipPath[2] & ~0x80000000, 0);
 
     return this.transport
       .send(CLA, INS_GET_PUBLIC_KEY, boolDisplay ? 1 : 0, 0, buf, [SW_OK])
@@ -140,10 +142,8 @@ export default class Algorand {
           CLA,
           INS_SIGN_SECP256K1,
           j === 0
-            ? PAYLOAD_TYPE_INIT
-            : j + 1 === chunks.length
-            ? PAYLOAD_TYPE_LAST
-            : PAYLOAD_TYPE_ADD,
+            ? P1_FIRST & P1_WITH_ACCOUNT_ID
+            : P1_MORE,
           0,
           data,
           [SW_OK, SW_CANCEL]
