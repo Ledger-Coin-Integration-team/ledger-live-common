@@ -10,6 +10,10 @@ import type {
   CosmosResourcesRaw,
 } from "../families/cosmos/types";
 import type {
+  AlgorandResources,
+  AlgorandResourcesRaw,
+} from "../families/algorand/types";
+import type {
   BalanceHistory,
   BalanceHistoryRaw,
   PortfolioRange,
@@ -169,6 +173,7 @@ export type Account = {
   // On some blockchain, an account can have resources (gained, delegated, ...)
   tronResources?: TronResources,
   cosmosResources?: CosmosResources,
+  algorandResources?: AlgorandResources,
 };
 
 export type SubAccount = TokenAccount | ChildAccount;
@@ -236,6 +241,7 @@ export type AccountRaw = {
   balanceHistory?: BalanceHistoryRawMap,
   tronResources?: TronResourcesRaw,
   cosmosResources?: CosmosResourcesRaw,
+  algorandResources?: AlgorandResourcesRaw,
 };
 
 export type SubAccountRaw = TokenAccountRaw | ChildAccountRaw;
