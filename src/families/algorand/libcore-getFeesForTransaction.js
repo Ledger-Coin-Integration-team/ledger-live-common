@@ -18,7 +18,9 @@ async function cosmos(args: {
   console.log(args.transaction);
   const builded = await buildTransaction({ ...args, isPartial: true });
   if (!builded) return;
-  const estimatedFees = BigNumber(await builded.getFee());
+  const fees = await builded.getFee();
+
+  const estimatedFees = BigNumber(fees);
   return { estimatedFees };
 }
 

@@ -90,7 +90,7 @@ const prepareTransaction = async (a, t) => {
         t,
       });
 
-      t.fees = res.estimatedFees
+      fees = res.estimatedFees
     }
   }
 

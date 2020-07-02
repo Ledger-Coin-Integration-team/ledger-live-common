@@ -69,7 +69,7 @@ export default class Algorand {
     const bipPath = BIPPath.fromString(path).toPathArray();
 
     const buf = Buffer.alloc(4);
-    buf.writeUInt32LE(bipPath[2] & ~0x80000000, 0);
+    buf.writeUInt32BE(bipPath[2], 0);
 
     return this.transport
       .send(CLA, INS_GET_PUBLIC_KEY, boolDisplay ? 1 : 0, 0, buf, [SW_OK])
@@ -102,13 +102,10 @@ export default class Algorand {
    const bipPath = BIPPath.fromString(path).toPathArray();
 
     const buf = Buffer.alloc(4);
-    buf.writeUInt32LE(bipPath[2] & ~0x80000000, 0);
+    buf.writeUInt32BE(bipPath[2], 0);
 
     const chunks = [];
     const buffer = Buffer.concat([buf , Buffer.from(message, "hex")]);
-
-    console.log(buf);
-    console.log(message);
 
     for (let i = 0; i < buffer.length; i += CHUNK_SIZE) {
       let end = i + CHUNK_SIZE;

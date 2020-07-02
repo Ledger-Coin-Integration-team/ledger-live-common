@@ -164,6 +164,9 @@ export const reflect = (declare: (string, Spec) => void) => {
       },
       setSignature: {
         params: ["hex"]
+      },
+      getFee: {
+        returns: "string"
       }
     }
   });

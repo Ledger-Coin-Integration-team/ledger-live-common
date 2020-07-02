@@ -35,6 +35,7 @@ export async function algorandBuildTransaction({
   isCancelled: () => boolean,
 }): Promise<?CoreAlgorandTransaction> {
   const { recipient, amount, fees, memo } = transaction;
+
   if (isPartial === false && !fees) {
     throw new FeeNotLoaded();
   }
@@ -54,8 +55,10 @@ export async function algorandBuildTransaction({
 
   // TODO : Note
   if (memo) {
-    buildedTransaction.setNote(memo);
+    await buildedTransaction.setNote(memo);
   }
+
+  console.log(buildedTransaction);
 
   // if Partial getEstimateFees here
   let feesToSet = isPartial
