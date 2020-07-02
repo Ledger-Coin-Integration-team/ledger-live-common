@@ -40,6 +40,8 @@ const fromTransactionRaw = (tr: TransactionRaw): Transaction => {
     ...common,
     family: tr.family,
     fees: tr.fees ? BigNumber(tr.fees) : null,
+    memo: tr.memo,
+    mode: tr.mode,
     networkInfo: networkInfo
       ? {
           family: networkInfo.family,
@@ -56,6 +58,8 @@ const toTransactionRaw = (t: Transaction): TransactionRaw => {
     ...common,
     family: t.family,
     fees: t.fees ? t.fees.toString() : null,
+    memo: t.memo,
+    mode: t.mode,
     networkInfo: networkInfo
       ? {
           family: networkInfo.family,

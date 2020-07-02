@@ -10,11 +10,10 @@ async function broadcast({
   coreAccount,
   signedOperation: { operation, signature },
 }): Promise<Operation> {
-  const stellarLikeAccount = await coreAccount.asStellarLikeAccount();
+  const algorandAccount = await coreAccount.asAlgorandAccount();
   let hash = ""; 
-  // broadcast and get the transaction hash from signature 
-  let startTime = Date.now();
-
+  hash = await algorandAccount.broadcastRawTransaction(signature);
+  
   return patchOperationWithHash(operation, hash);
 }
 

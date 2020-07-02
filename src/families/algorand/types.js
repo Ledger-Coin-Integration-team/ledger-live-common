@@ -10,31 +10,24 @@ import type { Operation, OperationRaw } from "../../types/operation";
 import type { CoreAmount, CoreBigInt, Spec } from "../../libcore/types";
 
 export type CoreStatics = {
-  AlgorandPaymentInfo: Class<AlgorandPaymentInfo>,
-  AlgorandAssetTransferInfo: Class<AlgorandAssetTransferInfo>,
+  AlgorandPaymentInfo: Class<AlgorandPaymentInfo>;
+  AlgorandAssetTransferInfo: Class<AlgorandAssetTransferInfo>;
 };
 
 export type CoreAccountSpecifics = {
-  asAlgorandAccount(): Promise<CoreAlgorandAccount>,
+  asAlgorandAccount(): Promise<CoreAlgorandAccount>
 };
 
 export type CoreOperationSpecifics = {
-  asAlgorandOperation(): Promise<CoreAlgorandOperation>,
+  asAlgorandOperation(): Promise<CoreAlgorandOperation>
 };
 
 declare class AlgorandPaymentInfo {
-  static init(
-    amount: string,
-    recipientAddress: string
-  ): Promise<AlgorandPaymentInfo>;
+  static init(amount: string, recipientAddress: string): Promise<AlgorandPaymentInfo>;
 }
 
 declare class AlgorandAssetTransferInfo {
-  static init(
-    assetId: string,
-    amount: string,
-    recipientAddress: string
-  ): Promise<AlgorandAssetTransferInfo>;
+  static init(assetId: string, amount: string, recipientAddress: string): Promise<AlgorandAssetTransferInfo>;
 }
 
 declare class CoreAlgorandTransaction {
@@ -44,18 +37,21 @@ declare class CoreAlgorandTransaction {
   getFee(): Promise<string>;
   getNote(): Promise<string>;
   getRound(): Promise<string>;
-
+  
   setSender(sender: string): void;
   setFee(fee: string): void;
   setNote(note: string): void;
 
   setPaymentInfo(info: AlgorandPaymentInfo): void;
   setAssetTransferInfo(info: AlgorandAssetTransferInfo): void;
+  serialize(): Promise<string>;
+  setSignature(signature: string): void;
 }
 
 declare class CoreAlgorandAccount {
-  createEmptyTransaction(): CoreAlgorandTransaction;
+  createTransaction(): Promise<CoreAlgorandTransaction>;
   getFeeEstimate(transaction: CoreAlgorandTransaction): Promise<CoreAmount>;
+  broadcastRawTransaction(transaction: string): Promise<string>;
 }
 
 declare class CoreAlgorandOperation {
@@ -79,8 +75,8 @@ export type AlgorandOperationMode = "send" | "optIn" | "optOut";
 export type {
   CoreAlgorandOperation,
   CoreAlgorandAccount,
-  CoreAlgorandTransaction,
-};
+  CoreAlgorandTransaction
+}
 
 export type NetworkInfo = {|
   family: "algorand",
@@ -131,18 +127,24 @@ export type AlgorandExtraTxInfo = {
 export const reflect = (declare: (string, Spec) => void) => {
   declare("AlgorandAccount", {
     methods: {
-      createEmptyTransaction: {
-        returns: "AlgorandTransaction",
+      createTransaction: {
+        returns: "AlgorandTransaction"
       },
-    },
+      broadcastRawTransaction: {
+        params: ["hex"],
+      },
+      getFeeEstimate: {
+        params: ["AlgorandTransaction"]
+      }
+    }
   });
 
   declare("AlgorandOperation", {
     methods: {
       getTransaction: {
-        returns: "AlgorandTransaction",
-      },
-    },
+        returns: "AlgorandTransaction"
+      }
+    }
   });
 
   declare("AlgorandTransaction", {
@@ -152,12 +154,18 @@ export const reflect = (declare: (string, Spec) => void) => {
       setFee: {},
       setNote: {},
       setPaymentInfo: {
-        params: ["AlgorandPaymentInfo"],
+        params: ["AlgorandPaymentInfo"]
       },
       setAssetTransferInfo: {
-        params: ["AlgorandAssetTransferInfo"],
+        params: ["AlgorandAssetTransferInfo"]
       },
-    },
+      serialize: {
+        returns: "hex"
+      },
+      setSignature: {
+        params: ["hex"]
+      }
+    }
   });
 
   declare("AlgorandPaymentInfo", {
@@ -191,18 +199,18 @@ export const reflect = (declare: (string, Spec) => void) => {
         ],
       },
     },
-  });
+  })
 
   return {
     OperationMethods: {
       asAlgorandOperation: {
-        returns: "AlgorandOperation",
-      },
+        returns: "AlgorandOperation"
+      }
     },
     AccountMethods: {
       asAlgorandAccount: {
-        returns: "AlgorandAccount",
-      },
+        returns: "AlgorandAccount"
+      }
     },
   };
 };

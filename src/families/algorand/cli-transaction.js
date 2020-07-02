@@ -1,5 +1,6 @@
 // @flow
 import invariant from "invariant";
+import flatMap from "lodash/flatMap";
 import type { Transaction, AccountLike } from "../../types";
 
 const options = [
@@ -22,14 +23,18 @@ const options = [
 
 function inferTransactions(
   transactions: Array<{ account: AccountLike, transaction: Transaction }>,
-  opts: Object
+  opts: Object,
+  { inferAmount }: *
 ): Transaction[] {
-  return transactions.map(({ transaction }) => {
+  return flatMap(transactions, ({ transaction, account }) => {
     invariant(transaction.family === "algorand", "algorand family");
     return {
       ...transaction,
+      family: "algorand",
+      fees: opts.fees ? inferAmount(account, opts.fees) : null,
+      note: opts.note,
     };
-  });
+  })
 }
 
 export default {

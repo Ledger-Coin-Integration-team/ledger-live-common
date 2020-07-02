@@ -2,9 +2,10 @@
 
 import { makeSignOperation } from "../../libcore/signOperation";
 import buildTransaction from "./libcore-buildTransaction";
-import type { Transaction } from "./types";
+import type { Transaction, CoreAlgorandTransaction } from "./types";
 import { libcoreAmountToBigNumber } from "../../libcore/buildBigNumber";
 import Algorand from "./ledger-app/Algorand";
+import { BigNumber } from "bignumber.js";
 
 async function signTransaction({
   account: { freshAddressPath, spendableBalance, id, freshAddress },
@@ -16,25 +17,36 @@ async function signTransaction({
   onDeviceSignatureRequested,
 }) {
   const hwApp = new Algorand(transport);
-  const serialized = await coreTransaction.serializeForSignature();
+  const serialized = await coreTransaction.serialize(); 
+  console.log(serialized);
 
   onDeviceSignatureRequested();
   // Call the hw-app signature
   // Note: That wont work until we dont change the code with the right call for Algorand
   // the code = ./ledger-app/Algorand
+  const { signature } = await hwApp.sign(freshAddressPath, serialized);
   onDeviceSignatureGranted();
 
+  if (!signature) {
+    throw new Error("No signature")
+  }
+
   // Set signature here
+  console.log(signature);
+  await coreTransaction.setSignature(signature.toString("hex"));
   if (isCancelled()) return;
 
   // Get the serialization after signature to send it to broadcast
-  // const hex = await coreTransaction.serializeForBroadcast("sync");
+  const hex = await coreTransaction.serialize(); 
+ 
 
   if (isCancelled()) return;
   
   const type = "OUT";
   // Add fees, senders (= account.freshAddress) and recipients.
-  
+  const senders = [];
+  const recipients = [];
+  const fee = BigNumber(0);
 
   const op = {
     id: `${id}--OUT`,
@@ -56,11 +68,11 @@ async function signTransaction({
   return {
     operation: op,
     expirationDate: null,
-    signature: hex,
+    signature: hex
   };
 }
 
-export default makeSignOperation<Transaction, CoreCosmosLikeTransaction>({
+export default makeSignOperation<Transaction, CoreAlgorandTransaction>({
   buildTransaction,
   signTransaction,
 });

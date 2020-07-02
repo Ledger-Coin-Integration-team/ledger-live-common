@@ -20,13 +20,6 @@ import type Transport from "@ledgerhq/hw-transport";
 import BIPPath from "bip32-path";
 import { UserRefusedOnDevice } from "@ledgerhq/errors";
 const CHUNK_SIZE = 250;
-const INS_GET_VERSION = 0x00;
-const INS_SIGN_SECP256K1 = 0x02;
-const INS_GET_ADDR_SECP256K1 = 0x04;
-
-const PAYLOAD_TYPE_INIT = 0x00;
-const PAYLOAD_TYPE_ADD = 0x01;
-const PAYLOAD_TYPE_LAST = 0x02;
 
 const P1_FIRST = 0x00
 const P1_MORE  = 0x80
@@ -40,6 +33,7 @@ const SW_CANCEL = 0x6986;
 // algo spec
 const CLA = 0x80;
 const INS_GET_PUBLIC_KEY = 0x03;
+const INS_SIGN_MSGPACK = 0x08;
 
 /**
  * Cosmos API
@@ -55,24 +49,10 @@ export default class Algorand {
     this.transport = transport;
     transport.decorateAppAPIMethods(
       this,
-      ["getAddress", "sign", "getAppConfiguration"],
+      ["getAddress", "sign"],
       "ALGO"
     );
   }
-
-  getAppConfiguration() {
-    return this.transport.send(CLA, INS_GET_VERSION, 0, 0).then((response) => {
-      console.log(response);
-      return {
-        test_mode: response[0] !== 0,
-        version: "" + response[1] + "." + response[2] + "." + response[3],
-        device_locked: response[4] === 1,
-        major: response[1],
-      };
-    });
-  }
-
-
 
   /**
    * get Algorajt address for a given BIP 32 path.
@@ -119,12 +99,16 @@ export default class Algorand {
     path: string,
     message: string
   ): Promise<{ signature: null | Buffer, return_code: number }> {
-    const bipPath = BIPPath.fromString(path).toPathArray();
-    const serializedPath = this.serializePath(bipPath);
+   const bipPath = BIPPath.fromString(path).toPathArray();
+
+    const buf = Buffer.alloc(4);
+    buf.writeUInt32LE(bipPath[2] & ~0x80000000, 0);
 
     const chunks = [];
-    chunks.push(serializedPath);
-    const buffer = Buffer.from(message);
+    const buffer = Buffer.concat([buf , Buffer.from(message, "hex")]);
+
+    console.log(buf);
+    console.log(message);
 
     for (let i = 0; i < buffer.length; i += CHUNK_SIZE) {
       let end = i + CHUNK_SIZE;
@@ -140,31 +124,31 @@ export default class Algorand {
       this.transport
         .send(
           CLA,
-          INS_SIGN_SECP256K1,
+          INS_SIGN_MSGPACK,
           j === 0
-            ? P1_FIRST & P1_WITH_ACCOUNT_ID
+            ? P1_WITH_ACCOUNT_ID
             : P1_MORE,
-          0,
+          j + 1 === chunks.length ? P2_LAST : P2_MORE,
           data,
           [SW_OK, SW_CANCEL]
         )
         .then((apduResponse) => (response = apduResponse))
     ).then(() => {
-      const errorCodeData = response.slice(-2);
-      const returnCode = errorCodeData[0] * 256 + errorCodeData[1];
+      // const errorCodeData = response.slice(-64);
+      // const returnCode = errorCodeData[0] * 256 + errorCodeData[1];
 
-      let signature = null;
-      if (response.length > 2) {
-        signature = response.slice(0, response.length - 2);
-      }
+      // let signature = null;
+      // if (response.length > 2) {
+      //   signature = response.slice(0, response.length);
+      // }
 
-      if (returnCode === 0x6986) {
-        throw new UserRefusedOnDevice();
-      }
+      // if (returnCode === 0x6986) {
+      //   throw new UserRefusedOnDevice();
+      // }
 
       return {
-        signature: signature,
-        return_code: returnCode,
+        signature: response && response.length > 0 ? response : null,
+        // return_code: returnCode,
       };
     });
   }

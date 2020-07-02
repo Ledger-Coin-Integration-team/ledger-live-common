@@ -4,7 +4,6 @@ import { BigNumber } from "bignumber.js";
 import {
   AmountRequired,
   NotEnoughBalance,
-  FeeNotLoaded,
   InvalidAddressBecauseDestinationIsAlsoSource,
   NotEnoughSpendableBalance,
   NotEnoughBalanceBecauseDestinationNotCreated,
@@ -23,9 +22,29 @@ import { getOrCreateWallet } from "../../../libcore/getOrCreateWallet";
 import { getCoreAccount } from "../../../libcore/getCoreAccount";
 import { getMainAccount } from "../../../account";
 import { formatCurrencyUnit } from "../../../currencies";
+import broadcast from "../libcore-broadcast";
+import signOperation from "../libcore-signOperation";
+import { getFeesForTransaction } from "../../../libcore/getFeesForTransaction";
 
-// To be removed
-import { signOperation, broadcast } from "../../../bridge/mockHelpers";
+
+export const calculateFees: CacheRes<
+  Array<{ a: Account, t: Transaction }>,
+  { estimatedFees: BigNumber, estimatedGas: ?BigNumber }
+> = makeLRUCache(
+  async ({
+    a,
+    t,
+  }): Promise<{ estimatedFees: BigNumber, estimatedGas: ?BigNumber }> => {
+    return await getFeesForTransaction({
+      account: a,
+      transaction: t,
+    });
+  },
+  ({ a, t }) =>
+    `${a.id}_${t.amount.toString()}_${t.recipient}_${String(t.useAllAmount)}_${
+      t.memo ? t.memo.toString() : ""
+    }`
+);
 
 const createTransaction = () => ({
   family: "algorand",
@@ -34,6 +53,8 @@ const createTransaction = () => ({
   fees: null,
   recipient: "",
   useAllAmount: false,
+  memo: null,
+  mode: "send"
 });
 
 const updateTransaction = (t, patch) => {
@@ -56,7 +77,27 @@ const getTransactionStatus = async (a: Account, t) => {
   });
 };
 
+const sameFees = (a, b) => (!a || !b ? a === b : a.eq(b));
+
 const prepareTransaction = async (a, t) => {
+  let fees = t.fees;
+
+  if (t.recipient && t.amount.gt(0)) {
+    const errors = (await validateRecipient(a.currency, t.recipient)).recipientError;
+    if (!errors) {
+      const res = await calculateFees({
+        a,
+        t,
+      });
+
+      t.fees = res.estimatedFees
+    }
+  }
+
+  if (!sameFees(t.fees, fees)) {
+    return { ...t, fees }
+  }
+
   return t;
 };
 

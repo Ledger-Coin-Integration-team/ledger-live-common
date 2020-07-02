@@ -34,14 +34,15 @@ export async function algorandBuildTransaction({
   isPartial: boolean,
   isCancelled: () => boolean,
 }): Promise<?CoreAlgorandTransaction> {
-  const { recipient, amount, fees } = transaction;
-  if (!fees) {
+  const { recipient, amount, fees, memo } = transaction;
+  if (isPartial === false && !fees) {
     throw new FeeNotLoaded();
   }
+
   const algorandAccount = await coreAccount.asAlgorandAccount();
   if (isCancelled()) return;
 
-  const buildedTransaction = await algorandAccount.createEmptyTransaction();
+  const buildedTransaction = await algorandAccount.createTransaction();
   if (isCancelled()) return;
 
   // set Payment or Asset if token
@@ -51,7 +52,10 @@ export async function algorandBuildTransaction({
   );
   await buildedTransaction.setPaymentInfo(paymentinfo);
 
-  // TODO : part with token here
+  // TODO : Note
+  if (memo) {
+    buildedTransaction.setNote(memo);
+  }
 
   // if Partial getEstimateFees here
   let feesToSet = isPartial
@@ -61,7 +65,9 @@ export async function algorandBuildTransaction({
     : fees;
 
   // then setFees here in any case
-  buildedTransaction.setFee(feesToSet);
+  if (feesToSet) {
+    buildedTransaction.setFee(feesToSet.toString());
+  }
 
   // return transaction
   return buildedTransaction;
