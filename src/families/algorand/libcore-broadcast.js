@@ -11,9 +11,9 @@ async function broadcast({
   signedOperation: { operation, signature },
 }): Promise<Operation> {
   const algorandAccount = await coreAccount.asAlgorandAccount();
-  let hash = ""; 
+  let hash = "";
   hash = await algorandAccount.broadcastRawTransaction(signature);
-  
+
   return patchOperationWithHash(operation, hash);
 }
 

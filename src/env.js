@@ -33,7 +33,7 @@ const stringParser = (v: mixed): ?string =>
 
 const envDefinitions = {
   API_ALGORAND_BLOCKCHAIN_EXPLORER_API_ENDPOINT: {
-    def: "https://mainnet-algorand.api.purestake.io/ps1/v1/",
+    def: "https://testnet-algorand.api.purestake.io/ps1/v1/",
     parser: stringParser,
     desc: "node API for algorand",
   },

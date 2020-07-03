@@ -21,11 +21,11 @@ import BIPPath from "bip32-path";
 import { UserRefusedOnDevice } from "@ledgerhq/errors";
 const CHUNK_SIZE = 250;
 
-const P1_FIRST = 0x00
-const P1_MORE  = 0x80
-const P1_WITH_ACCOUNT_ID  = 0x01
-const P2_LAST  = 0x00
-const P2_MORE  = 0x80
+const P1_FIRST = 0x00;
+const P1_MORE = 0x80;
+const P1_WITH_ACCOUNT_ID = 0x01;
+const P2_LAST = 0x00;
+const P2_MORE = 0x80;
 
 const SW_OK = 0x9000;
 const SW_CANCEL = 0x6986;
@@ -47,11 +47,7 @@ export default class Algorand {
 
   constructor(transport: Transport<*>) {
     this.transport = transport;
-    transport.decorateAppAPIMethods(
-      this,
-      ["getAddress", "sign"],
-      "ALGO"
-    );
+    transport.decorateAppAPIMethods(this, ["getAddress", "sign"], "ALGO");
   }
 
   /**
@@ -98,14 +94,14 @@ export default class Algorand {
   async sign(
     path: string,
     message: string
-  ): Promise<{ signature: null | Buffer, return_code: number }> {
-   const bipPath = BIPPath.fromString(path).toPathArray();
+  ): Promise<{ signature: null | Buffer }> {
+    const bipPath = BIPPath.fromString(path).toPathArray();
 
     const buf = Buffer.alloc(4);
     buf.writeUInt32BE(bipPath[2], 0);
 
     const chunks = [];
-    const buffer = Buffer.concat([buf , Buffer.from(message, "hex")]);
+    const buffer = Buffer.concat([buf, Buffer.from(message, "hex")]);
 
     for (let i = 0; i < buffer.length; i += CHUNK_SIZE) {
       let end = i + CHUNK_SIZE;
@@ -122,30 +118,20 @@ export default class Algorand {
         .send(
           CLA,
           INS_SIGN_MSGPACK,
-          j === 0
-            ? P1_WITH_ACCOUNT_ID
-            : P1_MORE,
+          j === 0 ? P1_WITH_ACCOUNT_ID : P1_MORE,
           j + 1 === chunks.length ? P2_LAST : P2_MORE,
           data,
           [SW_OK, SW_CANCEL]
         )
         .then((apduResponse) => (response = apduResponse))
     ).then(() => {
-      // const errorCodeData = response.slice(-64);
-      // const returnCode = errorCodeData[0] * 256 + errorCodeData[1];
-
-      // let signature = null;
-      // if (response.length > 2) {
-      //   signature = response.slice(0, response.length);
-      // }
-
-      // if (returnCode === 0x6986) {
-      //   throw new UserRefusedOnDevice();
-      // }
+      let signature = null;
+      if (response.length > 0) {
+        signature = response.slice(0, response.length);
+      }
 
       return {
-        signature: response && response.length > 0 ? response : null,
-        // return_code: returnCode,
+        signature: signature,
       };
     });
   }

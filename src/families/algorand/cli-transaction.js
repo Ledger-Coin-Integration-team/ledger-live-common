@@ -34,7 +34,7 @@ function inferTransactions(
       fees: opts.fees ? inferAmount(account, opts.fees) : null,
       note: opts.note,
     };
-  })
+  });
 }
 
 export default {

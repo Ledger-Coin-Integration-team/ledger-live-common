@@ -58,8 +58,6 @@ export async function algorandBuildTransaction({
     await buildedTransaction.setNote(memo);
   }
 
-  console.log(buildedTransaction);
-
   // if Partial getEstimateFees here
   let feesToSet = isPartial
     ? await libcoreAmountToBigNumber(
@@ -69,7 +67,7 @@ export async function algorandBuildTransaction({
 
   // then setFees here in any case
   if (feesToSet) {
-    buildedTransaction.setFee(feesToSet.toString());
+    await buildedTransaction.setFee(feesToSet.toString());
   }
 
   // return transaction

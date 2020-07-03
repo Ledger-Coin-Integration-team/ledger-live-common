@@ -17,7 +17,7 @@ async function signTransaction({
   onDeviceSignatureRequested,
 }) {
   const hwApp = new Algorand(transport);
-  const serialized = await coreTransaction.serialize(); 
+  const serialized = await coreTransaction.serialize();
   console.log(serialized);
 
   onDeviceSignatureRequested();
@@ -28,7 +28,7 @@ async function signTransaction({
   onDeviceSignatureGranted();
 
   if (!signature) {
-    throw new Error("No signature")
+    throw new Error("No signature");
   }
 
   // Set signature here
@@ -37,15 +37,14 @@ async function signTransaction({
   if (isCancelled()) return;
 
   // Get the serialization after signature to send it to broadcast
-  const hex = await coreTransaction.serialize(); 
- 
+  const hex = await coreTransaction.serialize();
 
   if (isCancelled()) return;
-  
+
   const type = "OUT";
   // Add fees, senders (= account.freshAddress) and recipients.
-  const senders = [];
-  const recipients = [];
+  const senders = [freshAddress];
+  const recipients = [transaction.recipient];
   const fee = BigNumber(0);
 
   const op = {
@@ -68,7 +67,7 @@ async function signTransaction({
   return {
     operation: op,
     expirationDate: null,
-    signature: hex
+    signature: hex,
   };
 }
 

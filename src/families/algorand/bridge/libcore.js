@@ -26,7 +26,6 @@ import broadcast from "../libcore-broadcast";
 import signOperation from "../libcore-signOperation";
 import { getFeesForTransaction } from "../../../libcore/getFeesForTransaction";
 
-
 export const calculateFees: CacheRes<
   Array<{ a: Account, t: Transaction }>,
   { estimatedFees: BigNumber, estimatedGas: ?BigNumber }
@@ -54,7 +53,7 @@ const createTransaction = () => ({
   recipient: "",
   useAllAmount: false,
   memo: null,
-  mode: "send"
+  mode: "send",
 });
 
 const updateTransaction = (t, patch) => {
@@ -83,19 +82,20 @@ const prepareTransaction = async (a, t) => {
   let fees = t.fees;
 
   if (t.recipient && t.amount.gt(0)) {
-    const errors = (await validateRecipient(a.currency, t.recipient)).recipientError;
+    const errors = (await validateRecipient(a.currency, t.recipient))
+      .recipientError;
     if (!errors) {
       const res = await calculateFees({
         a,
         t,
       });
 
-      fees = res.estimatedFees
+      fees = res.estimatedFees;
     }
   }
 
   if (!sameFees(t.fees, fees)) {
-    return { ...t, fees }
+    return { ...t, fees };
   }
 
   return t;

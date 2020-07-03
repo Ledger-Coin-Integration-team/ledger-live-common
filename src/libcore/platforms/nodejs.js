@@ -158,7 +158,6 @@ export default (arg: {
           // the default would parse the request, we want to preserve the string
           transformResponse: (data) => data,
         };
-
         if (isUsingArrayOfBytes) {
           if (Array.isArray(data)) {
             if (data.length === 0) {
@@ -168,7 +167,9 @@ export default (arg: {
               data = bytesArrayToString(data);
             }
           }
-        } else {
+        } else if (headers["Content-Type"] && headers["Content-Type"] === "application/x-binary")  {
+            data = Buffer.from(unprefixHex0x(data), "hex");
+        }  else {
           if (typeof data === "string" && data) {
             data = Buffer.from(unprefixHex0x(data), "hex").toString();
           }
