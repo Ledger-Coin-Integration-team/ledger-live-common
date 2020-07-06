@@ -12,17 +12,61 @@ import type {
   Spec,
 } from "../../libcore/types";
 
+export type BitcoinInput = {
+  address: ?string,
+  value: ?BigNumber,
+  previousTxHash: ?string,
+  previousOutputIndex: number,
+};
+
+export type BitcoinInputRaw = [?string, ?string, ?string, number];
+
+export type BitcoinOutput = {
+  hash: string,
+  outputIndex: number,
+  blockHeight: ?number,
+  address: ?string,
+  path: ?string,
+  value: BigNumber,
+  rbf: boolean,
+};
+
+export type BitcoinOutputRaw = [
+  string,
+  number,
+  ?number,
+  ?string,
+  ?string,
+  string,
+  number // rbf 0/1 for compression
+];
+
+export type BitcoinResources = {
+  utxos: BitcoinOutput[],
+};
+
+export type BitcoinResourcesRaw = {
+  utxos: BitcoinOutputRaw[],
+};
+
 declare class CoreBitcoinLikeInput {
   getPreviousTransaction(): Promise<string>;
+  getPreviousTxHash(): Promise<?string>;
   getPreviousOutputIndex(): Promise<number>;
+  getValue(): Promise<?CoreAmount>;
   getSequence(): Promise<number>;
   getDerivationPath(): Promise<CoreDerivationPath[]>;
   getAddress(): Promise<?string>;
 }
 
 declare class CoreBitcoinLikeOutput {
+  getTransactionHash(): Promise<string>;
+  getOutputIndex(): Promise<number>;
+  getValue(): Promise<CoreAmount>;
+  getBlockHeight(): Promise<?number>;
   getDerivationPath(): Promise<?CoreDerivationPath>;
   getAddress(): Promise<?string>;
+  isReplaceable(): Promise<boolean>;
 }
 
 declare class CoreBitcoinLikeTransaction {
@@ -41,12 +85,15 @@ declare class CoreBitcoinLikeOperation {
 declare class CoreBitcoinLikeTransactionBuilder {
   wipeToAddress(address: string): Promise<void>;
   sendToAddress(amount: CoreAmount, recipient: string): Promise<void>;
+  excludeUtxo(transactionHash: string, outputIndex: number): Promise<void>;
   pickInputs(number, number): Promise<void>;
   setFeesPerByte(feesPerByte: CoreAmount): Promise<void>;
   build(): Promise<CoreBitcoinLikeTransaction>;
 }
 
 declare class CoreBitcoinLikeAccount {
+  getUTXO(from: number, to: number): Promise<CoreBitcoinLikeOutput[]>;
+  getUTXOCount(): Promise<number>;
   buildTransaction(
     isPartial: boolean
   ): Promise<CoreBitcoinLikeTransactionBuilder>;
@@ -123,9 +170,29 @@ export type NetworkInfoRaw = {|
   feeItems: FeeItemsRaw,
 |};
 
+export const bitcoinPickingStrategy = {
+  DEEP_OUTPUTS_FIRST: 0,
+  OPTIMIZE_SIZE: 1,
+  MERGE_OUTPUTS: 2,
+};
+
+export type BitcoinPickingStrategy = $Values<typeof bitcoinPickingStrategy>;
+
+// FIXME the UtxoStrategy level should be flattened back in Transaction
+export type UtxoStrategy = {
+  strategy: BitcoinPickingStrategy,
+  pickUnconfirmedRBF: boolean,
+  excludeUTXOs: Array<{
+    hash: string,
+    outputIndex: number,
+  }>,
+};
+
 export type Transaction = {|
   ...TransactionCommon,
   family: "bitcoin",
+  utxoStrategy: UtxoStrategy,
+  rbf: boolean,
   feePerByte: ?BigNumber,
   networkInfo: ?NetworkInfo,
 |};
@@ -133,6 +200,8 @@ export type Transaction = {|
 export type TransactionRaw = {|
   ...TransactionCommonRaw,
   family: "bitcoin",
+  utxoStrategy: UtxoStrategy,
+  rbf: boolean,
   feePerByte: ?string,
   networkInfo: ?NetworkInfoRaw,
 |};
@@ -143,6 +212,8 @@ export const reflect = (declare: (string, Spec) => void) => {
       getPreviousTransaction: {
         returns: "hex",
       },
+      getPreviousTxHash: {},
+      getValue: { returns: "Amount" },
       getPreviousOutputIndex: {},
       getSequence: {},
       getDerivationPath: { returns: ["DerivationPath"] },
@@ -152,10 +223,15 @@ export const reflect = (declare: (string, Spec) => void) => {
 
   declare("BitcoinLikeOutput", {
     methods: {
+      getTransactionHash: {},
+      getOutputIndex: {},
+      getValue: { returns: "Amount" },
+      getBlockHeight: {},
       getDerivationPath: {
         returns: "DerivationPath",
       },
       getAddress: {},
+      isReplaceable: {},
     },
   });
 
@@ -192,6 +268,7 @@ export const reflect = (declare: (string, Spec) => void) => {
       sendToAddress: {
         params: ["Amount"],
       },
+      excludeUtxo: {},
       pickInputs: {},
       setFeesPerByte: {
         params: ["Amount"],
@@ -202,6 +279,8 @@ export const reflect = (declare: (string, Spec) => void) => {
 
   declare("BitcoinLikeAccount", {
     methods: {
+      getUTXO: { returns: ["BitcoinLikeOutput"] },
+      getUTXOCount: {},
       buildTransaction: {
         returns: "BitcoinLikeTransactionBuilder",
       },

@@ -49,14 +49,18 @@ const cosmos: AppSpec<Transaction> = {
   },
   mutations: [
     {
-      name: "send some to another account",
-      maxRun: 5,
+      name: "send some",
+      maxRun: 2,
       transaction: ({ account, siblings, bridge, maxSpendable }) => {
         return {
           transaction: bridge.createTransaction(account),
           updates: [
             { recipient: pickSiblings(siblings, 30).freshAddress },
-            { amount: maxSpendable.div(2).integerValue() },
+            {
+              amount: maxSpendable
+                .times(0.3 + 0.4 * Math.random())
+                .integerValue(),
+            },
             Math.random() < 0.5 ? { memo: "LedgerLiveBot" } : null,
           ],
         };
@@ -84,7 +88,7 @@ const cosmos: AppSpec<Transaction> = {
     },
 
     {
-      name: "send max to another account",
+      name: "send max",
       maxRun: 1,
       transaction: ({ account, siblings, bridge }) => {
         return {
@@ -104,7 +108,7 @@ const cosmos: AppSpec<Transaction> = {
 
     {
       name: "delegate new validators",
-      maxRun: 3,
+      maxRun: 2,
       transaction: ({ account, bridge }) => {
         invariant(
           account.index % 10 > 0,
@@ -166,10 +170,11 @@ const cosmos: AppSpec<Transaction> = {
           invariant(d, "delegated %s must be found in account", v.address);
           expect({
             address: v.address,
-            amount: v.amount.toString(),
+            // we round last digit
+            amount: "~" + v.amount.div(10).integerValue().times(10).toString(),
           }).toMatchObject({
             address: d.validatorAddress,
-            amount: d.amount.toString(),
+            amount: "~" + d.amount.div(10).integerValue().times(10).toString(),
           });
         });
       },
@@ -177,7 +182,7 @@ const cosmos: AppSpec<Transaction> = {
 
     {
       name: "undelegate",
-      maxRun: 2,
+      maxRun: 4,
       transaction: ({ account, bridge }) => {
         invariant(canUndelegate(account), "can undelegate");
         const { cosmosResources } = account;
@@ -231,10 +236,11 @@ const cosmos: AppSpec<Transaction> = {
           invariant(d, "undelegated %s must be found in account", v.address);
           expect({
             address: v.address,
-            amount: v.amount.toString(),
+            // we round last digit
+            amount: "~" + v.amount.div(10).integerValue().times(10).toString(),
           }).toMatchObject({
             address: d.validatorAddress,
-            amount: d.amount.toString(),
+            amount: "~" + d.amount.div(10).integerValue().times(10).toString(),
           });
         });
       },
@@ -242,7 +248,7 @@ const cosmos: AppSpec<Transaction> = {
 
     {
       name: "redelegate",
-      maxRun: 2,
+      maxRun: 1,
       transaction: ({ account, bridge }) => {
         const { cosmosResources } = account;
         invariant(cosmosResources, "cosmos");
@@ -281,16 +287,24 @@ const cosmos: AppSpec<Transaction> = {
         const { cosmosResources } = account;
         invariant(cosmosResources, "cosmos");
         transaction.validators.forEach((v) => {
-          const d = cosmosResources.redelegations.find(
-            (d) => d.validatorDstAddress === v.address
-          );
+          const d = cosmosResources.redelegations
+            .slice(0)
+            // recent first
+            .sort((a, b) => b.completionDate - a.completionDate)
+            // find the related redelegation
+            .find(
+              (d) =>
+                d.validatorDstAddress === v.address &&
+                d.validatorSrcAddress === transaction.cosmosSourceValidator
+            );
           invariant(d, "redelegated %s must be found in account", v.address);
           expect({
             address: v.address,
-            amount: v.amount.toString(),
+            // we round last digit
+            amount: "~" + v.amount.div(10).integerValue().times(10).toString(),
           }).toMatchObject({
             address: d.validatorDstAddress,
-            amount: d.amount.toString(),
+            amount: "~" + d.amount.div(10).integerValue().times(10).toString(),
           });
         });
       },
@@ -298,7 +312,7 @@ const cosmos: AppSpec<Transaction> = {
 
     {
       name: "claim rewards",
-      maxRun: 2,
+      maxRun: 1,
       transaction: ({ account, bridge }) => {
         const { cosmosResources } = account;
         invariant(cosmosResources, "cosmos");
