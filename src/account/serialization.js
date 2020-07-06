@@ -24,12 +24,17 @@ import {
   fromCosmosResourcesRaw,
 } from "../families/cosmos/serialization";
 import {
+  toAlgorandResourcesRaw,
+  fromAlgorandResourcesRaw,
+} from "../families/algorand/serialization";
+import {
   getCryptoCurrencyById,
   getTokenById,
   findTokenById,
 } from "../currencies";
 
 export { toCosmosResourcesRaw, fromCosmosResourcesRaw };
+export { toAlgorandResourcesRaw, fromAlgorandResourcesRaw };
 
 export function toBalanceHistoryRaw(b: BalanceHistory): BalanceHistoryRaw {
   return b.map(({ date, value }) => [date.toISOString(), value.toString()]);
@@ -477,6 +482,7 @@ export function fromAccountRaw(rawAccount: AccountRaw): Account {
     subAccounts: subAccountsRaw,
     tronResources,
     cosmosResources,
+    algorandResources,
   } = rawAccount;
 
   const subAccounts =
@@ -548,6 +554,10 @@ export function fromAccountRaw(rawAccount: AccountRaw): Account {
     res.cosmosResources = fromCosmosResourcesRaw(cosmosResources);
   }
 
+  if (algorandResources) {
+    res.algorandResources = fromAlgorandResourcesRaw(algorandResources);
+  }
+
   return res;
 }
 
@@ -577,6 +587,7 @@ export function toAccountRaw({
   endpointConfig,
   tronResources,
   cosmosResources,
+  algorandResources,
 }: Account): AccountRaw {
   const res: $Exact<AccountRaw> = {
     id,
@@ -616,6 +627,9 @@ export function toAccountRaw({
   }
   if (cosmosResources) {
     res.cosmosResources = toCosmosResourcesRaw(cosmosResources);
+  }
+  if (algorandResources) {
+    res.algorandResources = toAlgorandResourcesRaw(algorandResources);
   }
   return res;
 }

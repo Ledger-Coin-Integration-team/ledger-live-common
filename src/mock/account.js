@@ -371,6 +371,13 @@ export function genAccount(
     };
   }
 
+  if (currency.family === "algorand") {
+    account.algorandResources = {
+      rewards: BigNumber(0),
+      rewardsAccumulated: BigNumber(0),
+    };
+  }
+
   if (["ethereum", "ethereum_ropsten", "tron"].includes(currency.id)) {
     const tokenCount =
       typeof opts.subAccountsCount === "number"

@@ -132,6 +132,7 @@ export function sync(
           shouldRetainPendingOperation(syncedAccount, op)
         ),
         cosmosResources: syncedAccount.cosmosResources,
+        algorandResources: syncedAccount.algorandResources,
       })
     )
   );
