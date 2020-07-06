@@ -142,6 +142,7 @@ function postScanAccount(
       rewardsAccumulated: BigNumber(0),
     };
     account.operations = [];
+    account.subAccounts = [];
   }
 
   return account;

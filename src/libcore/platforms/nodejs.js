@@ -167,9 +167,12 @@ export default (arg: {
               data = bytesArrayToString(data);
             }
           }
-        } else if (headers["Content-Type"] && headers["Content-Type"] === "application/x-binary")  {
-            data = Buffer.from(unprefixHex0x(data), "hex");
-        }  else {
+        } else if (
+          headers["Content-Type"] &&
+          headers["Content-Type"] === "application/x-binary"
+        ) {
+          data = Buffer.from(unprefixHex0x(data), "hex");
+        } else {
           if (typeof data === "string" && data) {
             data = Buffer.from(unprefixHex0x(data), "hex").toString();
           }
