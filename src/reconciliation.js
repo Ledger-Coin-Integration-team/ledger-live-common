@@ -20,6 +20,7 @@ import {
   fromTronResourcesRaw,
   fromCosmosResourcesRaw,
   fromBalanceHistoryRawMap,
+  fromAlgorandResourcesRaw,
 } from "./account";
 
 const sameOp = (a: Operation, b: Operation) =>
@@ -302,6 +303,16 @@ export function patchAccount(
     account.cosmosResources !== updatedRaw.cosmosResources
   ) {
     next.cosmosResources = fromCosmosResourcesRaw(updatedRaw.cosmosResources);
+    changed = true;
+  }
+
+  if (
+    updatedRaw.algorandResources &&
+    account.algorandResources !== updatedRaw.algorandResources
+  ) {
+    next.algorandResources = fromAlgorandResourcesRaw(
+      updatedRaw.algorandResources
+    );
     changed = true;
   }
 
