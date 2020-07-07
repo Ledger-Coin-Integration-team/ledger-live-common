@@ -73,8 +73,8 @@ export type AlgorandResources = {|
 |};
 
 export type AlgorandResourcesRaw = {|
-  rewards: BigNumber,
-  rewardsAccumulated: BigNumber,
+  rewards: string,
+  rewardsAccumulated: string,
 |};
 
 export type AlgorandOperationMode = "send" | "optIn" | "optOut";

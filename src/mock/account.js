@@ -382,6 +382,12 @@ export function genAccount(
     };
   }
 
+  if (currency.family === "bitcoin") {
+    account.bitcoinResources = {
+      utxos: [],
+    };
+  }
+
   if (currency.family === "algorand") {
     account.algorandResources = {
       rewards: BigNumber(0),

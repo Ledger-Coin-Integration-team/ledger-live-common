@@ -8,8 +8,8 @@ export function toAlgorandResourcesRaw(
 ): AlgorandResourcesRaw {
   const { rewards, rewardsAccumulated } = r;
   return {
-    rewards,
-    rewardsAccumulated,
+    rewards: rewards.toString(),
+    rewardsAccumulated: rewardsAccumulated.toString(),
   };
 }
 
@@ -18,7 +18,7 @@ export function fromAlgorandResourcesRaw(
 ): AlgorandResources {
   const { rewards, rewardsAccumulated } = r;
   return {
-    rewards,
-    rewardsAccumulated,
+    rewards: BigNumber(rewards),
+    rewardsAccumulated: BigNumber(rewardsAccumulated),
   };
 }

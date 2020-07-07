@@ -1,32 +1,36 @@
 // @flow
+import invariant from "invariant";
 import { BigNumber } from "bignumber.js";
 import { LedgerAPINotAvailable } from "@ledgerhq/errors";
+import JSONBigNumber from "../JSONBigNumber";
 import type { CryptoCurrency } from "../types";
+import type { EthereumGasLimitRequest } from "../families/ethereum/types";
 import network from "../network";
 import { blockchainBaseURL, getCurrencyExplorer } from "./Ledger";
+import { FeeEstimationFailed } from "../errors";
 
-export type Block = { height: number }; // TODO more fields actually
+export type Block = { height: BigNumber }; // TODO more fields actually
 
 export type Tx = {
   hash: string,
   received_at: string,
   nonce: string,
-  value: number,
-  gas: number,
-  gas_price: number,
-  cumulative_gas_used: number,
-  gas_used: number,
+  value: BigNumber,
+  gas: BigNumber,
+  gas_price: BigNumber,
+  cumulative_gas_used: BigNumber,
+  gas_used: BigNumber,
   from: string,
   to: string,
   input: string,
-  index: number,
+  index: BigNumber,
   block?: {
     hash: string,
-    height: number,
+    height: BigNumber,
     time: string,
   },
-  confirmations: number,
-  status: number,
+  confirmations: BigNumber,
+  status: BigNumber,
 };
 
 export type API = {
@@ -41,7 +45,11 @@ export type API = {
   getAccountNonce: (address: string) => Promise<number>,
   broadcastTransaction: (signedTransaction: string) => Promise<string>,
   getAccountBalance: (address: string) => Promise<BigNumber>,
-  estimateGasLimitForERC20: (address: string) => Promise<number>,
+  roughlyEstimateGasLimit: (address: string) => Promise<BigNumber>,
+  getDryRunGasLimit: (
+    address: string,
+    request: EthereumGasLimitRequest
+  ) => Promise<BigNumber>,
 };
 
 export const apiForCurrency = (currency: CryptoCurrency): API => {
@@ -56,6 +64,7 @@ export const apiForCurrency = (currency: CryptoCurrency): API => {
       let { data } = await network({
         method: "GET",
         url: `${baseURL}/addresses/${address}/transactions`,
+        transformResponse: JSONBigNumber.parse,
         params:
           getCurrencyExplorer(currency).version === "v2"
             ? {
@@ -85,6 +94,7 @@ export const apiForCurrency = (currency: CryptoCurrency): API => {
       const { data } = await network({
         method: "GET",
         url: `${baseURL}/blocks/current`,
+        transformResponse: JSONBigNumber.parse,
       });
       return data;
     },
@@ -95,16 +105,6 @@ export const apiForCurrency = (currency: CryptoCurrency): API => {
         url: `${baseURL}/addresses/${address}/nonce`,
       });
       return data[0].nonce;
-    },
-
-    async estimateGasLimitForERC20(address) {
-      if (getCurrencyExplorer(currency).version === "v2") return 21000;
-
-      const { data } = await network({
-        method: "GET",
-        url: `${baseURL}/addresses/${address}/estimate-gas-limit`,
-      });
-      return data.estimated_gas_limit;
     },
 
     async broadcastTransaction(tx) {
@@ -120,9 +120,39 @@ export const apiForCurrency = (currency: CryptoCurrency): API => {
       const { data } = await network({
         method: "GET",
         url: `${baseURL}/addresses/${address}/balance`,
+        transformResponse: JSONBigNumber.parse,
       });
-      // FIXME precision lost here. nothing we can do easily
       return BigNumber(data[0].balance);
+    },
+
+    async roughlyEstimateGasLimit(address) {
+      if (getCurrencyExplorer(currency).version === "v2") {
+        return BigNumber(21000);
+      }
+      const { data } = await network({
+        method: "GET",
+        url: `${baseURL}/addresses/${address}/estimate-gas-limit`,
+        transformResponse: JSONBigNumber.parse,
+      });
+      return BigNumber(data.estimated_gas_limit);
+    },
+
+    async getDryRunGasLimit(address, request) {
+      if (getCurrencyExplorer(currency).version === "v2") {
+        return BigNumber(21000);
+      }
+      const { data } = await network({
+        method: "POST",
+        url: `${baseURL}/addresses/${address}/estimate-gas-limit`,
+        data: request,
+        transformResponse: JSONBigNumber.parse,
+      });
+      if (data.error_message) {
+        throw new FeeEstimationFailed(data.error_message);
+      }
+      const value = BigNumber(data.estimated_gas_limit);
+      invariant(!value.isNaN(), "invalid server data");
+      return value;
     },
   };
 };

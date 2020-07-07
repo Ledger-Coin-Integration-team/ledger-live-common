@@ -4,6 +4,10 @@ import type { BigNumber } from "bignumber.js";
 import type { CryptoCurrency, TokenCurrency, Unit } from "./currencies";
 import type { OperationRaw, Operation } from "./operation";
 import type { DerivationMode } from "../derivation";
+import type {
+  BitcoinResources,
+  BitcoinResourcesRaw,
+} from "../families/bitcoin/types";
 import type { TronResources, TronResourcesRaw } from "../families/tron/types";
 import type {
   CosmosResources,
@@ -171,6 +175,7 @@ export type Account = {
   balanceHistory?: BalanceHistoryMap,
 
   // On some blockchain, an account can have resources (gained, delegated, ...)
+  bitcoinResources?: BitcoinResources,
   tronResources?: TronResources,
   cosmosResources?: CosmosResources,
   algorandResources?: AlgorandResources,
@@ -239,6 +244,7 @@ export type AccountRaw = {
   endpointConfig?: ?string,
   subAccounts?: SubAccountRaw[],
   balanceHistory?: BalanceHistoryRawMap,
+  bitcoinResources?: BitcoinResourcesRaw,
   tronResources?: TronResourcesRaw,
   cosmosResources?: CosmosResourcesRaw,
   algorandResources?: AlgorandResourcesRaw,
