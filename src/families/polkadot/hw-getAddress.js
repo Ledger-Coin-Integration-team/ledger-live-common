@@ -9,8 +9,9 @@ const resolver: Resolver = async (transport, { path, verify }) => {
   const polkadot =  Polkadot.newPolkadotApp(transport);
 
   console.log("polkadotPath", path);
-  // const bipPath = BIPPath.fromString("44'/354'/1'/0/0").toPathArray();
   const bipPath = BIPPath.fromString(path).toPathArray();
+
+  console.log(bipPath);
 
   const r = await polkadot.getAddress(bipPath[2], bipPath[3], bipPath[4], verify);
 
