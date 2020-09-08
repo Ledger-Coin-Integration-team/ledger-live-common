@@ -42,6 +42,15 @@ import type { Transaction as neoTransaction } from "../families/neo/types";
 import type { TransactionRaw as neoTransactionRaw } from "../families/neo/types";
 import type { NetworkInfo as neoNetworkInfo } from "../families/neo/types";
 import type { NetworkInfoRaw as neoNetworkInfoRaw } from "../families/neo/types";
+import { reflect as polkadotReflect } from "../families/polkadot/types";
+import type { CoreStatics as CoreStatics_polkadot } from "../families/polkadot/types";
+import type { CoreAccountSpecifics as CoreAccountSpecifics_polkadot } from "../families/polkadot/types";
+import type { CoreOperationSpecifics as CoreOperationSpecifics_polkadot } from "../families/polkadot/types";
+import type { CoreCurrencySpecifics as CoreCurrencySpecifics_polkadot } from "../families/polkadot/types";
+import type { Transaction as polkadotTransaction } from "../families/polkadot/types";
+import type { TransactionRaw as polkadotTransactionRaw } from "../families/polkadot/types";
+import type { NetworkInfo as polkadotNetworkInfo } from "../families/polkadot/types";
+import type { NetworkInfoRaw as polkadotNetworkInfoRaw } from "../families/polkadot/types";
 import { reflect as rippleReflect } from "../families/ripple/types";
 import type { CoreStatics as CoreStatics_ripple } from "../families/ripple/types";
 import type { CoreAccountSpecifics as CoreAccountSpecifics_ripple } from "../families/ripple/types";
@@ -85,6 +94,7 @@ export type SpecificStatics = {}
 & CoreStatics_cosmos
 & CoreStatics_ethereum
 & CoreStatics_neo
+& CoreStatics_polkadot
 & CoreStatics_ripple
 & CoreStatics_stellar
 & CoreStatics_tezos
@@ -95,6 +105,7 @@ export type CoreAccountSpecifics = {}
 & CoreAccountSpecifics_cosmos
 & CoreAccountSpecifics_ethereum
 & CoreAccountSpecifics_neo
+& CoreAccountSpecifics_polkadot
 & CoreAccountSpecifics_ripple
 & CoreAccountSpecifics_stellar
 & CoreAccountSpecifics_tezos
@@ -105,6 +116,7 @@ export type CoreOperationSpecifics = {}
 & CoreOperationSpecifics_cosmos
 & CoreOperationSpecifics_ethereum
 & CoreOperationSpecifics_neo
+& CoreOperationSpecifics_polkadot
 & CoreOperationSpecifics_ripple
 & CoreOperationSpecifics_stellar
 & CoreOperationSpecifics_tezos
@@ -115,6 +127,7 @@ export type CoreCurrencySpecifics = {}
 & CoreCurrencySpecifics_cosmos
 & CoreCurrencySpecifics_ethereum
 & CoreCurrencySpecifics_neo
+& CoreCurrencySpecifics_polkadot
 & CoreCurrencySpecifics_ripple
 & CoreCurrencySpecifics_stellar
 & CoreCurrencySpecifics_tezos
@@ -125,6 +138,7 @@ export type Transaction =
   | cosmosTransaction
   | ethereumTransaction
   | neoTransaction
+  | polkadotTransaction
   | rippleTransaction
   | stellarTransaction
   | tezosTransaction
@@ -135,6 +149,7 @@ export type TransactionRaw =
   | cosmosTransactionRaw
   | ethereumTransactionRaw
   | neoTransactionRaw
+  | polkadotTransactionRaw
   | rippleTransactionRaw
   | stellarTransactionRaw
   | tezosTransactionRaw
@@ -144,6 +159,7 @@ export type NetworkInfo =
   | cosmosNetworkInfo
   | ethereumNetworkInfo
   | neoNetworkInfo
+  | polkadotNetworkInfo
   | rippleNetworkInfo
   | stellarNetworkInfo
   | tezosNetworkInfo
@@ -153,6 +169,7 @@ export type NetworkInfoRaw =
   | cosmosNetworkInfoRaw
   | ethereumNetworkInfoRaw
   | neoNetworkInfoRaw
+  | polkadotNetworkInfoRaw
   | rippleNetworkInfoRaw
   | stellarNetworkInfoRaw
   | tezosNetworkInfoRaw
@@ -163,6 +180,7 @@ export const reflectSpecifics = (declare: *) => [
   cosmosReflect(declare),
   ethereumReflect(declare),
   neoReflect(declare),
+  polkadotReflect(declare),
   rippleReflect(declare),
   stellarReflect(declare),
   tezosReflect(declare),
