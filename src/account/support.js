@@ -25,6 +25,7 @@ export const libcoreNoGo = [
   "ethereum_classic", // LLC-308
   "tron",
   "neo",
+  "polkadot",
 ];
 
 export const libcoreNoGoBalanceHistory = () =>
