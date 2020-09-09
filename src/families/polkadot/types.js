@@ -24,6 +24,7 @@ export type NetworkInfoRaw = {|
 
 export type Transaction = {|
   ...TransactionCommon,
+  mode: string,
   family: "polkadot",
   networkInfo: ?NetworkInfo,
 |};
@@ -31,6 +32,7 @@ export type Transaction = {|
 export type TransactionRaw = {|
   ...TransactionCommonRaw,
   family: "polkadot",
+  mode: string,
   networkInfo: ?NetworkInfoRaw,
 |};
 
