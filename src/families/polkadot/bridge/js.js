@@ -12,10 +12,10 @@ import {
   signOperation,
   broadcast,
   isInvalidRecipient,
-  sync
 } from "../../../bridge/mockHelpers";
 import { getMainAccount } from "../../../account";
 import { makeSync, makeScanAccounts, makeAccountBridgeReceive } from "../../../bridge/jsHelpers";
+import { ApiPromise, WsProvider } from '@polkadot/api';
 
 const receive = makeAccountBridgeReceive();
 
@@ -24,7 +24,8 @@ const createTransaction = (): Transaction => ({
   mode: "send",
   amount: BigNumber(0),
   recipient: "",
-  fees: null,
+  useAllAmount: false,
+  networkInfo: null,
 });
 
 const updateTransaction = (t, patch) => ({ ...t, ...patch });
@@ -82,7 +83,11 @@ const prepareTransaction = async (a, t) => {
 };
 
 const getAccountShape =  async(info, syncConfig) => {
-    console.log(info);
+    const wsProvider = new WsProvider('wss://localhost:9933');
+    const api = await ApiPromise.create({ provider: wsProvider });
+
+    console.log(api.genesisHash.toHex());
+
     return {
     balance: BigNumber(0),
     spendableBalance: BigNumber(0),
@@ -91,6 +96,12 @@ const getAccountShape =  async(info, syncConfig) => {
     blockHeight: 1,
   };
 }
+
+const postSync = (parent) => {
+  return parent;
+};
+
+const sync = makeSync(getAccountShape, postSync);
 
 const scanAccounts = makeScanAccounts(getAccountShape);
 
