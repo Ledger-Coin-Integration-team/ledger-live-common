@@ -2,7 +2,7 @@
 import { BigNumber } from "bignumber.js";
 import { Observable } from "rxjs";
 import BIPPath from "bip32-path";
-import Polkadot from "../ledger-app/Polkadot";
+import { Polkadot } from "../ledger-app/Polkadot";
 
 import {
   NotEnoughBalance,
@@ -118,20 +118,12 @@ const signOperation = ({ account, transaction, deviceId }) =>
         o.next({ type: "device-signature-requested" });
 
         // Sign by device
-        const polkadot = Polkadot.newPolkadotApp(transport);
-        const bipPath = BIPPath.fromString(
-          account.freshAddressPath
-        ).toPathArray();
+        const polkadot = new Polkadot(transport);
 
         const payload = await signPayload({ a: account, t: transaction });
         console.log("payload", payload);
 
-        const r = await polkadot.sign(
-          bipPath[2],
-          bipPath[3],
-          bipPath[4],
-          payload
-        );
+        const r = await polkadot.sign(account.freshAddressPath, payload);
 
         console.log("signed: ", r);
 
