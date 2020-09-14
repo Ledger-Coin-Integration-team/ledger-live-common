@@ -15,6 +15,8 @@
  *  limitations under the License.
  ******************************************************************************* */
 
+import BIPPath from "bip32-path";
+
 const CHUNK_SIZE = 250;
 
 const PAYLOAD_TYPE = {
@@ -55,6 +57,29 @@ const ERROR_DESCRIPTION = {
   0x6e00: "App does not seem to be open",
   0x6f00: "Unknown error",
   0x6f01: "Sign/verify error",
+};
+
+const CLA = {
+  KUSAMA: 0x99,
+  POLKADOT: 0x90,
+};
+
+// https://github.com/satoshilabs/slips/blob/master/slip-0044.md
+const SLIP0044 = {
+  KUSAMA: 0x800001b2,
+  POLKADOT: 0x80000162,
+};
+
+const INS = {
+  GET_VERSION: 0x00,
+  GET_ADDR_ED25519: 0x01,
+  SIGN_ED25519: 0x02,
+
+  // Allow list related commands
+  ALLOWLIST_GET_PUBKEY: 0x90,
+  ALLOWLIST_SET_PUBKEY: 0x91,
+  ALLOWLIST_GET_HASH: 0x92,
+  ALLOWLIST_UPLOAD: 0x93,
 };
 
 function errorCodeToString(statusCode) {
@@ -138,50 +163,29 @@ async function getVersion(transport, cla) {
   }, processErrorResponse);
 }
 
-const CLA = {
-  KUSAMA: 0x99,
-  POLKADOT: 0x90,
-};
-
-// https://github.com/satoshilabs/slips/blob/master/slip-0044.md
-const SLIP0044 = {
-  KUSAMA: 0x800001b2,
-  POLKADOT: 0x80000162,
-};
-
-const INS = {
-  GET_VERSION: 0x00,
-  GET_ADDR_ED25519: 0x01,
-  SIGN_ED25519: 0x02,
-
-  // Allow list related commands
-  ALLOWLIST_GET_PUBKEY: 0x90,
-  ALLOWLIST_SET_PUBKEY: 0x91,
-  ALLOWLIST_GET_HASH: 0x92,
-  ALLOWLIST_UPLOAD: 0x93,
-};
-
 class SubstrateApp {
-  constructor(transport, cla, slip0044) {
+  constructor(cla, transport) {
     if (!transport) {
       throw new Error("Transport has not been defined");
     }
+
     this.transport = transport;
     this.cla = cla;
-    this.slip0044 = slip0044;
   }
 
-  static serializePath(slip0044, account, change, addressIndex) {
+  static serializePath(path) {
+    const bipPath = BIPPath.fromString(path).toPathArray();
+
     const buf = Buffer.alloc(20);
-    buf.writeUInt32LE(0x8000002c, 0);
-    buf.writeUInt32LE(slip0044, 4);
-    buf.writeUInt32LE(account, 8);
-    buf.writeUInt32LE(change, 12);
-    buf.writeUInt32LE(addressIndex, 16);
+    buf.writeUInt32LE(bipPath[0], 0);
+    buf.writeUInt32LE(bipPath[1], 4);
+    buf.writeUInt32LE(bipPath[2], 8);
+    buf.writeUInt32LE(bipPath[3], 12);
+    buf.writeUInt32LE(bipPath[4], 16);
 
     return buf;
   }
-
+  
   static GetChunks(message) {
     const chunks = [];
     const buffer = Buffer.from(message);
@@ -197,14 +201,9 @@ class SubstrateApp {
     return chunks;
   }
 
-  static signGetChunks(slip0044, account, change, addressIndex, message) {
+  static signGetChunks(path, message) {
     const chunks = [];
-    const bip44Path = SubstrateApp.serializePath(
-      slip0044,
-      account,
-      change,
-      addressIndex
-    );
+    const bip44Path = SubstrateApp.serializePath(path);
     chunks.push(bip44Path);
     chunks.push(...SubstrateApp.GetChunks(message));
     return chunks;
@@ -268,13 +267,10 @@ class SubstrateApp {
     }, processErrorResponse);
   }
 
-  async getAddress(account, change, addressIndex, requireConfirmation = false) {
-    const bip44Path = SubstrateApp.serializePath(
-      this.slip0044,
-      account,
-      change,
-      addressIndex
-    );
+  async getAddress(path, requireConfirmation = false) {
+    const bip44Path = SubstrateApp.serializePath(path);
+
+    console.log('bip44', bip44Path);
 
     let p1 = 0;
     if (requireConfirmation) p1 = 1;
@@ -331,14 +327,9 @@ class SubstrateApp {
       }, processErrorResponse);
   }
 
-  async sign(account, change, addressIndex, message) {
-    const chunks = SubstrateApp.signGetChunks(
-      this.slip0044,
-      account,
-      change,
-      addressIndex,
-      message
-    );
+  async sign(path, message) {
+    const chunks = SubstrateApp.signGetChunks(path, message);
+
     return this.signSendChunk(1, chunks.length, chunks[0]).then(
       async (result) => {
         for (let i = 1; i < chunks.length; i += 1) {
@@ -484,15 +475,5 @@ class SubstrateApp {
   }
 }
 
-function newKusamaApp(transport) {
-  return new SubstrateApp(transport, CLA.KUSAMA, SLIP0044.KUSAMA);
-}
-
-function newPolkadotApp(transport) {
-  return new SubstrateApp(transport, CLA.POLKADOT, SLIP0044.POLKADOT);
-}
-
-module.exports = {
-  newKusamaApp,
-  newPolkadotApp,
-};
+export const Polkadot = SubstrateApp.bind(null, CLA.POLKADOT);
+export const Kusama = SubstrateApp.bind(null, CLA.KUSAMA);

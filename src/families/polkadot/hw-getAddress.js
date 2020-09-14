@@ -1,19 +1,15 @@
 // @flow
 
 import type { Resolver } from "../../hw/getAddress/types";
-import Polkadot from "./ledger-app/Polkadot";
-import BIPPath from "bip32-path";
+import { Polkadot } from "./ledger-app/Polkadot";
 
 const resolver: Resolver = async (transport, { path, verify }) => {
-  const polkadot = Polkadot.newPolkadotApp(transport);
+  const polkadot = new Polkadot(transport);
 
-  const bipPath = BIPPath.fromString(path).toPathArray();
-  const r = await polkadot.getAddress(
-    bipPath[2],
-    bipPath[3],
-    bipPath[4],
-    verify
-  );
+  console.log("polkadotPath", path);
+
+  const r = await polkadot.getAddress(path, verify);
+  console.log(r);
 
   return {
     address: r.address,
