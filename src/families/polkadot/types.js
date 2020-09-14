@@ -22,6 +22,14 @@ export type NetworkInfoRaw = {|
   family: "polkadot",
 |};
 
+export type PolkadotResources = {|
+  nonce: number,
+|};
+
+export type PolkadotResourcesRaw = {|
+  nonce: number,
+|};
+
 export type Transaction = {|
   ...TransactionCommon,
   mode: string,
