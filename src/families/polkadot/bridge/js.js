@@ -4,6 +4,11 @@ import { Observable } from "rxjs";
 import BIPPath from "bip32-path";
 import { Polkadot } from "../ledger-app/Polkadot";
 
+import type {
+  Account,
+  Operation,
+  TransactionStatus,
+} from "../../../types";
 import {
   NotEnoughBalance,
   RecipientRequired,
@@ -13,7 +18,7 @@ import {
 import type { Transaction } from "../types";
 import { open, close } from "../../../hw";
 import type { AccountBridge, CurrencyBridge } from "../../../types";
-import { broadcast, isInvalidRecipient } from "../../../bridge/mockHelpers";
+import { isInvalidRecipient } from "../../../bridge/mockHelpers";
 import { getMainAccount } from "../../../account";
 import {
   makeSync,
@@ -21,8 +26,8 @@ import {
   makeAccountBridgeReceive,
 } from "../../../bridge/jsHelpers";
 import { ApiPromise, WsProvider } from "@polkadot/api";
-import { getBalances, getTransfers } from "../../../api/Polkadot";
-import { signPayload } from "../sign";
+import { getBalances, getTransfers, nodeBroadcastTx } from "../../../api/Polkadot";
+import { hwSign } from "../hw-sign";
 
 const receive = makeAccountBridgeReceive();
 
@@ -106,6 +111,10 @@ const postSync = (parent) => {
   return parent;
 };
 
+const getEstimatedFees = async () => {
+  return BigNumber(0);
+}
+
 const sync = makeSync(getAccountShape, postSync);
 
 const scanAccounts = makeScanAccounts(getAccountShape);
@@ -118,26 +127,63 @@ const signOperation = ({ account, transaction, deviceId }) =>
         o.next({ type: "device-signature-requested" });
 
         // Sign by device
-        const polkadot = new Polkadot(transport);
 
-        const payload = await signPayload({ a: account, t: transaction });
-        console.log("payload", payload);
-
-        const r = await polkadot.sign(account.freshAddressPath, payload);
-
-        console.log("signed: ", r);
+        const signature = await hwSign(transport, { a: account, t: transaction });
 
         o.next({ type: "device-signature-granted" });
+
+        const getValue = (): BigNumber => {
+          return BigNumber(transaction.amount)
+        }
+
+        const fee = await getEstimatedFees(); // TODO: calculate fees
+
+        const value = getValue();
+        const extra = {};
+
+        const operationType = "OUT";
+
+        const operation: $Exact<Operation> = {
+          id: `${account.id}-""-${operationType}`,
+          hash: "",
+          // if it's a token op and there is no fee, this operation does not exist and is a "NONE"
+          type: value.eq(0) ? "NONE" : operationType,
+          value,
+          fee,
+          blockHash: null,
+          blockHeight: null,
+          senders: [account.freshAddress],
+          recipients: [transaction.recipient],
+          accountId: account.id,
+          date: new Date(),
+          extra,
+        };
+              
+        o.next({
+          type: "signed",
+          signedOperation: {
+            operation,
+            signature,
+            expirationDate: null,
+          },
+        });
       } finally {
         close(transport, deviceId);
       }
     }
-
     main().then(
       () => o.complete(),
       (e) => o.error(e)
     );
   });
+
+const broadcast = async ({
+  signedOperation: { signature, operation, signatureRaw },
+}) => {
+  await nodeBroadcastTx(signature);
+
+  return operation;
+}
 
 const accountBridge: AccountBridge<Transaction> = {
   estimateMaxSpendable,
