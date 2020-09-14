@@ -1,39 +1,18 @@
 // @flow
 
-import { methods, getRegistry } from "@substrate/txwrapper";
+import type Transport from "@ledgerhq/hw-transport";
 import type { Transaction } from "./types";
-import type { Account } from "../../types";
+import type { Account, } from "../../types";
 
-const rpcToNode = (method: string, params: any[] = []): Promise<any> => {
-  return fetch("http://localhost:9933", {
-    body: JSON.stringify({
-      id: 1,
-      jsonrpc: "2.0",
-      method,
-      params,
-    }),
-    headers: {
-      "Content-Type": "application/json",
-    },
-    method: "POST",
-  })
-    .then((response) => response.json())
-    .then(({ error, result }) => {
-      if (error) {
-        throw new Error(
-          `${error.code} ${error.message}: ${JSON.stringify(error.data)}`
-        );
-      }
-
-      return result;
-    });
-};
+import { methods, getRegistry, createSignedTx, decode } from "@substrate/txwrapper";
+import { Polkadot } from "./ledger-app/Polkadot";
+import { rpcToNode } from "../../api/Polkadot";
 
 const getNonce = (a: Account) => {
   return (a.polkadotResources?.nonce || 0) + a.pendingOperations.length;
 };
 
-export const signPayload = async ({ a, t }: { a: Account, t: Transaction }) => {
+export const hwSign = async (transport: Transport<*>, { a, t }: { a: Account, t: Transaction }) => {
   const { block } = await rpcToNode("chain_getBlock");
   const blockHash = await rpcToNode("chain_getBlockHash");
   const genesisHash = await rpcToNode("chain_getBlockHash", [0]);
@@ -69,9 +48,18 @@ export const signPayload = async ({ a, t }: { a: Account, t: Transaction }) => {
     }
   );
 
-  const extrinsicPayload = registry.createType("ExtrinsicPayload", unsigned, {
+  const payload = registry.createType("ExtrinsicPayload", unsigned, {
     version: unsigned.version,
   });
 
-  return extrinsicPayload.toU8a({ method: true });
+  const polkadot = new Polkadot(transport);
+  const r = await polkadot.sign(a.freshAddressPath, payload.toU8a({ method: true }));
+
+  console.log("hw signed", r);
+
+  const signedTx = createSignedTx(unsigned, r.signature, { metadataRpc, registry });
+
+  console.log("signedTx", signedTx);
+
+  return signedTx;
 };
