@@ -13,15 +13,16 @@ import {
 import type { Transaction } from "../types";
 import { open, close } from "../../../hw";
 import type { AccountBridge, CurrencyBridge } from "../../../types";
-import {
-  broadcast,
-  isInvalidRecipient,
-} from "../../../bridge/mockHelpers";
+import { broadcast, isInvalidRecipient } from "../../../bridge/mockHelpers";
 import { getMainAccount } from "../../../account";
-import { makeSync, makeScanAccounts, makeAccountBridgeReceive } from "../../../bridge/jsHelpers";
-import { ApiPromise, WsProvider } from '@polkadot/api';
-import { getBalances, getTransfers } from "../../../api/Polkadot"
-
+import {
+  makeSync,
+  makeScanAccounts,
+  makeAccountBridgeReceive,
+} from "../../../bridge/jsHelpers";
+import { ApiPromise, WsProvider } from "@polkadot/api";
+import { getBalances, getTransfers } from "../../../api/Polkadot";
+import { signPayload } from "../sign";
 
 const receive = makeAccountBridgeReceive();
 
@@ -88,18 +89,18 @@ const prepareTransaction = async (a, t) => {
   return t;
 };
 
-const getAccountShape =  async(info, syncConfig) => {
-    const balances = await getBalances(info.address);
-    const operations = await getTransfers(info.id, info.address);
+const getAccountShape = async (info, syncConfig) => {
+  const balances = await getBalances(info.address);
+  const operations = await getTransfers(info.id, info.address);
 
-    return {
-      id: info.id,
-      ...balances,
-      operationsCount: operations.length,
-      operations,
-      blockHeight: operations.length,
+  return {
+    id: info.id,
+    ...balances,
+    operationsCount: operations.length,
+    operations,
+    blockHeight: operations.length,
   };
-}
+};
 
 const postSync = (parent) => {
   return parent;
@@ -111,33 +112,40 @@ const scanAccounts = makeScanAccounts(getAccountShape);
 
 const signOperation = ({ account, transaction, deviceId }) =>
   Observable.create((o) => {
-        async function main() {
-          console.log("transaction", transaction);
+    async function main() {
+      const transport = await open(deviceId);
+      try {
+        o.next({ type: "device-signature-requested" });
 
-          const transport = await open(deviceId);
-          try {
-            o.next({ type: "device-signature-requested" });
+        // Sign by device
+        const polkadot = Polkadot.newPolkadotApp(transport);
+        const bipPath = BIPPath.fromString(
+          account.freshAddressPath
+        ).toPathArray();
 
-            // Sign by device
-            const polkadot =  Polkadot.newPolkadotApp(transport);
-            const bipPath = BIPPath.fromString(account.freshAddressPath).toPathArray();
-            
-            const r = await polkadot.sign(bipPath[2], bipPath[3], bipPath[4], blob);
+        const payload = await signPayload({ a: account, t: transaction });
+        console.log("payload", payload);
 
-
-            o.next({ type: "device-signature-granted" });
-          } finally {
-              close(transport, deviceId);
-          }
-        }
-
-        main().then(
-          () => o.complete(),
-          (e) => o.error(e)
+        const r = await polkadot.sign(
+          bipPath[2],
+          bipPath[3],
+          bipPath[4],
+          payload
         );
+
+        console.log("signed: ", r);
+
+        o.next({ type: "device-signature-granted" });
+      } finally {
+        close(transport, deviceId);
+      }
+    }
+
+    main().then(
+      () => o.complete(),
+      (e) => o.error(e)
+    );
   });
-
-
 
 const accountBridge: AccountBridge<Transaction> = {
   estimateMaxSpendable,
