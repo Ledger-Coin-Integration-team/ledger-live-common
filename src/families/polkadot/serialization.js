@@ -1,6 +1,5 @@
 // @flow
 
-import { BigNumber } from "bignumber.js";
 import type { PolkadotResourcesRaw, PolkadotResources } from "./types";
 
 export function toPolkadotResourcesRaw(
