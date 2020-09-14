@@ -1,13 +1,7 @@
 // @flow
 import invariant from "invariant";
 import flatMap from "lodash/flatMap";
-import type {
-  Transaction,
-  Account,
-  AccountLike,
-  AccountLikeArray,
-} from "../../types";
-import { getAccountCurrency } from "../../account";
+import type { Transaction, AccountLike } from "../../types";
 
 const options = [
   {
