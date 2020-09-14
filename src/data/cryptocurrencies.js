@@ -1782,7 +1782,7 @@ const cryptocurrenciesById: { [name: string]: CryptoCurrency } = {
         tx: "https://polkascan.io/polkadot/extrinsic/$hash", // TODO
       },
     ],
-  },  
+  },
   poswallet: {
     type: "CryptoCurrency",
     id: "poswallet",

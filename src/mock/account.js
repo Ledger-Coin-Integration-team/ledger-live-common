@@ -410,6 +410,12 @@ export function genAccount(
     };
   }
 
+  if (currency.family === "polkadot") {
+    account.polkadotResources = {
+      nonce: 0,
+    };
+  }
+
   if (
     ["ethereum", "ethereum_ropsten", "tron", "algorand"].includes(currency.id)
   ) {
