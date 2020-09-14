@@ -47,6 +47,11 @@ const envDefinitions = {
     parser: stringParser,
     desc: "Node API for cosmos",
   },
+  API_POLKADOT_INDEXER: {
+    parser: stringParser,
+    def: "https://explorer-31.polkascan.io/",
+    desc: "explorer API for polkadot",
+  },
   API_TEZOS_BAKER: {
     parser: stringParser,
     def: "https://tezos-bakers.api.live.ledger.com",
@@ -61,12 +66,6 @@ const envDefinitions = {
     def: "https://xtz-node.api.live.ledger.com",
     parser: stringParser,
     desc: "node API for tezos (for broadcast only)",
-  },
-  API_STELLAR_MEMO: {
-    def: "https://api.stellar.expert/",
-    parser: stringParser,
-    desc:
-      "Stellar Foundation recommended us to use this api to know if the recipient have a Memo type",
   },
   API_TRONGRID_PROXY: {
     parser: stringParser,
