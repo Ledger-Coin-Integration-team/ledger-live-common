@@ -127,6 +127,7 @@ export const inferManagerApp = (keyword: string): string => {
 
 const implTypePerFamily = {
   tron: "js",
+  polkadot: "js"
 };
 
 export const inferCurrency = <
@@ -251,6 +252,7 @@ export function scan(arg: ScanCommonOpts): Observable<Account> {
               operationsCount: 0,
               operations: [],
               pendingOperations: [],
+              swapHistory: []
             };
             return account;
           })
