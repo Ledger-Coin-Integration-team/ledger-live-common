@@ -63,7 +63,12 @@ function errorCodeToString(statusCode) {
 }
 
 function isDict(v) {
-  return typeof v === "object" && v !== null && !(v instanceof Array) && !(v instanceof Date);
+  return (
+    typeof v === "object" &&
+    v !== null &&
+    !(v instanceof Array) &&
+    !(v instanceof Date)
+  );
 }
 
 function processErrorResponse(response) {
@@ -113,7 +118,11 @@ async function getVersion(transport, cla) {
     const patch = response[5] * 256 + response[6];
     const deviceLocked = response[7] === 1;
     // eslint-disable-next-line no-bitwise
-    const targetId = (response[8] << 24) + (response[9] << 16) + (response[10] << 8) + (response[11] << 0);
+    const targetId =
+      (response[8] << 24) +
+      (response[9] << 16) +
+      (response[10] << 8) +
+      (response[11] << 0);
 
     return {
       return_code: returnCode,
@@ -169,7 +178,7 @@ class SubstrateApp {
     buf.writeUInt32LE(account, 8);
     buf.writeUInt32LE(change, 12);
     buf.writeUInt32LE(addressIndex, 16);
-    
+
     return buf;
   }
 
@@ -190,7 +199,12 @@ class SubstrateApp {
 
   static signGetChunks(slip0044, account, change, addressIndex, message) {
     const chunks = [];
-    const bip44Path = SubstrateApp.serializePath(slip0044, account, change, addressIndex);
+    const bip44Path = SubstrateApp.serializePath(
+      slip0044,
+      account,
+      change,
+      addressIndex
+    );
     chunks.push(bip44Path);
     chunks.push(...SubstrateApp.GetChunks(message));
     return chunks;
@@ -255,22 +269,29 @@ class SubstrateApp {
   }
 
   async getAddress(account, change, addressIndex, requireConfirmation = false) {
-    const bip44Path = SubstrateApp.serializePath(this.slip0044, account, change, addressIndex);
+    const bip44Path = SubstrateApp.serializePath(
+      this.slip0044,
+      account,
+      change,
+      addressIndex
+    );
 
     let p1 = 0;
     if (requireConfirmation) p1 = 1;
 
-    return this.transport.send(this.cla, INS.GET_ADDR_ED25519, p1, 0, bip44Path).then((response) => {
-      const errorCodeData = response.slice(-2);
-      const errorCode = errorCodeData[0] * 256 + errorCodeData[1];
+    return this.transport
+      .send(this.cla, INS.GET_ADDR_ED25519, p1, 0, bip44Path)
+      .then((response) => {
+        const errorCodeData = response.slice(-2);
+        const errorCode = errorCodeData[0] * 256 + errorCodeData[1];
 
-      return {
-        pubKey: response.slice(0, 32).toString("hex"),
-        address: response.slice(32, response.length - 2).toString("ascii"),
-        return_code: errorCode,
-        error_message: errorCodeToString(errorCode),
-      };
-    }, processErrorResponse);
+        return {
+          pubKey: response.slice(0, 32).toString("hex"),
+          address: response.slice(32, response.length - 2).toString("ascii"),
+          return_code: errorCode,
+          error_message: errorCodeToString(errorCode),
+        };
+      }, processErrorResponse);
   }
 
   async signSendChunk(chunkIdx, chunkNum, chunk) {
@@ -283,7 +304,11 @@ class SubstrateApp {
     }
 
     return this.transport
-      .send(this.cla, INS.SIGN_ED25519, payloadType, 0, chunk, [ERROR_CODE.NoError, 0x6984, 0x6a80])
+      .send(this.cla, INS.SIGN_ED25519, payloadType, 0, chunk, [
+        ERROR_CODE.NoError,
+        0x6984,
+        0x6a80,
+      ])
       .then((response) => {
         const errorCodeData = response.slice(-2);
         const returnCode = errorCodeData[0] * 256 + errorCodeData[1];
@@ -291,7 +316,9 @@ class SubstrateApp {
         let signature = null;
 
         if (returnCode === 0x6a80 || returnCode === 0x6984) {
-          errorMessage = response.slice(0, response.length - 2).toString("ascii");
+          errorMessage = response
+            .slice(0, response.length - 2)
+            .toString("ascii");
         } else if (response.length > 2) {
           signature = response.slice(0, response.length - 2);
         }
@@ -305,84 +332,99 @@ class SubstrateApp {
   }
 
   async sign(account, change, addressIndex, message) {
-    const chunks = SubstrateApp.signGetChunks(this.slip0044, account, change, addressIndex, message);
-    return this.signSendChunk(1, chunks.length, chunks[0]).then(async (result) => {
-      for (let i = 1; i < chunks.length; i += 1) {
-        // eslint-disable-next-line no-await-in-loop,no-param-reassign
-        result = await this.signSendChunk(1 + i, chunks.length, chunks[i]);
-        if (result.return_code !== ERROR_CODE.NoError) {
-          break;
+    const chunks = SubstrateApp.signGetChunks(
+      this.slip0044,
+      account,
+      change,
+      addressIndex,
+      message
+    );
+    return this.signSendChunk(1, chunks.length, chunks[0]).then(
+      async (result) => {
+        for (let i = 1; i < chunks.length; i += 1) {
+          // eslint-disable-next-line no-await-in-loop,no-param-reassign
+          result = await this.signSendChunk(1 + i, chunks.length, chunks[i]);
+          if (result.return_code !== ERROR_CODE.NoError) {
+            break;
+          }
         }
-      }
 
-      return {
-        return_code: result.return_code,
-        error_message: result.error_message,
-        signature: result.signature,
-      };
-    }, processErrorResponse);
+        return {
+          return_code: result.return_code,
+          error_message: result.error_message,
+          signature: result.signature,
+        };
+      },
+      processErrorResponse
+    );
   }
 
   /// Allow list related commands. They are NOT available on all apps
 
   async getAllowlistPubKey() {
-    return this.transport.send(this.cla, INS.ALLOWLIST_GET_PUBKEY, 0, 0).then((response) => {
-      const errorCodeData = response.slice(-2);
-      const returnCode = errorCodeData[0] * 256 + errorCodeData[1];
+    return this.transport
+      .send(this.cla, INS.ALLOWLIST_GET_PUBKEY, 0, 0)
+      .then((response) => {
+        const errorCodeData = response.slice(-2);
+        const returnCode = errorCodeData[0] * 256 + errorCodeData[1];
 
-      console.log(response);
+        console.log(response);
 
-      const pubkey = response.slice(0, 32);
-      // 32 bytes + 2 error code
-      if (response.length !== 34) {
+        const pubkey = response.slice(0, 32);
+        // 32 bytes + 2 error code
+        if (response.length !== 34) {
+          return {
+            return_code: 0x6984,
+            error_message: errorCodeToString(0x6984),
+          };
+        }
+
         return {
-          return_code: 0x6984,
-          error_message: errorCodeToString(0x6984),
+          return_code: returnCode,
+          error_message: errorCodeToString(returnCode),
+          pubkey,
         };
-      }
-
-      return {
-        return_code: returnCode,
-        error_message: errorCodeToString(returnCode),
-        pubkey,
-      };
-    }, processErrorResponse);
+      }, processErrorResponse);
   }
 
   async setAllowlistPubKey(pk) {
-    return this.transport.send(this.cla, INS.ALLOWLIST_SET_PUBKEY, 0, 0, pk).then((response) => {
-      const errorCodeData = response.slice(-2);
-      const returnCode = errorCodeData[0] * 256 + errorCodeData[1];
+    return this.transport
+      .send(this.cla, INS.ALLOWLIST_SET_PUBKEY, 0, 0, pk)
+      .then((response) => {
+        const errorCodeData = response.slice(-2);
+        const returnCode = errorCodeData[0] * 256 + errorCodeData[1];
 
-      return {
-        return_code: returnCode,
-        error_message: errorCodeToString(returnCode),
-      };
-    }, processErrorResponse);
+        return {
+          return_code: returnCode,
+          error_message: errorCodeToString(returnCode),
+        };
+      }, processErrorResponse);
   }
 
   async getAllowlistHash() {
-    return this.transport.send(this.cla, INS.ALLOWLIST_GET_HASH, 0, 0).then((response) => {
-      const errorCodeData = response.slice(-2);
-      const returnCode = errorCodeData[0] * 256 + errorCodeData[1];
+    return this.transport
+      .send(this.cla, INS.ALLOWLIST_GET_HASH, 0, 0)
+      .then((response) => {
+        const errorCodeData = response.slice(-2);
+        const returnCode = errorCodeData[0] * 256 + errorCodeData[1];
 
-      console.log(response);
+        console.log(response);
 
-      const hash = response.slice(0, 32);
-      // 32 bytes + 2 error code
-      if (response.length !== 34) {
+        const hash = response.slice(0, 32);
+        // 32 bytes + 2 error code
+        if (response.length !== 34) {
+          return {
+            return_code: 0x6984,
+            error_message: errorCodeToString(0x6984),
+          };
+        }
+
         return {
-          return_code: 0x6984,
-          error_message: errorCodeToString(0x6984),
+          return_code: returnCode,
+          error_message: errorCodeToString(returnCode),
+          hash,
         };
-      }
-
-      return {
-        return_code: returnCode,
-        error_message: errorCodeToString(returnCode),
-        hash,
-      };
-    }, processErrorResponse);
+      }, processErrorResponse);
   }
 
   async uploadSendChunk(chunkIdx, chunkNum, chunk) {
@@ -395,7 +437,9 @@ class SubstrateApp {
     }
 
     return this.transport
-      .send(this.cla, INS.ALLOWLIST_UPLOAD, payloadType, 0, chunk, [ERROR_CODE.NoError])
+      .send(this.cla, INS.ALLOWLIST_UPLOAD, payloadType, 0, chunk, [
+        ERROR_CODE.NoError,
+      ])
       .then((response) => {
         const errorCodeData = response.slice(-2);
         const returnCode = errorCodeData[0] * 256 + errorCodeData[1];
@@ -413,7 +457,8 @@ class SubstrateApp {
     chunks.push(Buffer.from([0]));
     chunks.push(...SubstrateApp.GetChunks(message));
 
-    return this.uploadSendChunk(1, chunks.length, chunks[0]).then(async (result) => {
+    return this.uploadSendChunk(1, chunks.length, chunks[0]).then(
+      async (result) => {
         if (result.return_code !== ERROR_CODE.NoError) {
           return {
             return_code: result.return_code,
@@ -421,19 +466,21 @@ class SubstrateApp {
           };
         }
 
-      for (let i = 1; i < chunks.length; i += 1) {
-        // eslint-disable-next-line no-await-in-loop,no-param-reassign
-        result = await this.uploadSendChunk(1 + i, chunks.length, chunks[i]);
-        if (result.return_code !== ERROR_CODE.NoError) {
-          break;
+        for (let i = 1; i < chunks.length; i += 1) {
+          // eslint-disable-next-line no-await-in-loop,no-param-reassign
+          result = await this.uploadSendChunk(1 + i, chunks.length, chunks[i]);
+          if (result.return_code !== ERROR_CODE.NoError) {
+            break;
+          }
         }
-      }
 
-      return {
-        return_code: result.return_code,
-        error_message: result.error_message,
-      };
-    }, processErrorResponse);
+        return {
+          return_code: result.return_code,
+          error_message: result.error_message,
+        };
+      },
+      processErrorResponse
+    );
   }
 }
 
