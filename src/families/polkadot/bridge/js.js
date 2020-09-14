@@ -1,5 +1,9 @@
 // @flow
 import { BigNumber } from "bignumber.js";
+import { Observable } from "rxjs";
+import BIPPath from "bip32-path";
+import Polkadot from "../ledger-app/Polkadot";
+
 import {
   NotEnoughBalance,
   RecipientRequired,
@@ -7,15 +11,17 @@ import {
   FeeTooHigh,
 } from "@ledgerhq/errors";
 import type { Transaction } from "../types";
+import { open, close } from "../../../hw";
 import type { AccountBridge, CurrencyBridge } from "../../../types";
 import {
-  signOperation,
   broadcast,
   isInvalidRecipient,
 } from "../../../bridge/mockHelpers";
 import { getMainAccount } from "../../../account";
 import { makeSync, makeScanAccounts, makeAccountBridgeReceive } from "../../../bridge/jsHelpers";
 import { ApiPromise, WsProvider } from '@polkadot/api';
+import { getBalances, getTransfers } from "../../../api/Polkadot"
+
 
 const receive = makeAccountBridgeReceive();
 
@@ -83,17 +89,15 @@ const prepareTransaction = async (a, t) => {
 };
 
 const getAccountShape =  async(info, syncConfig) => {
-    const wsProvider = new WsProvider('wss://localhost:9933');
-    const api = await ApiPromise.create({ provider: wsProvider });
-
-    console.log(api.genesisHash.toHex());
+    const balances = await getBalances(info.address);
+    const operations = await getTransfers(info.id, info.address);
 
     return {
-    balance: BigNumber(0),
-    spendableBalance: BigNumber(0),
-    operationsCount: 0,
-    operations: [],
-    blockHeight: 1,
+      id: info.id,
+      ...balances,
+      operationsCount: operations.length,
+      operations,
+      blockHeight: operations.length,
   };
 }
 
@@ -104,6 +108,35 @@ const postSync = (parent) => {
 const sync = makeSync(getAccountShape, postSync);
 
 const scanAccounts = makeScanAccounts(getAccountShape);
+
+const signOperation = ({ account, transaction, deviceId }) =>
+  Observable.create((o) => {
+        async function main() {
+          console.log("transaction", transaction);
+
+          const transport = await open(deviceId);
+          try {
+            o.next({ type: "device-signature-requested" });
+
+            // Sign by device
+            const polkadot =  Polkadot.newPolkadotApp(transport);
+            const bipPath = BIPPath.fromString(account.freshAddressPath).toPathArray();
+            
+            const r = await polkadot.sign(bipPath[2], bipPath[3], bipPath[4], blob);
+
+
+            o.next({ type: "device-signature-granted" });
+          } finally {
+              close(transport, deviceId);
+          }
+        }
+
+        main().then(
+          () => o.complete(),
+          (e) => o.error(e)
+        );
+  });
+
 
 
 const accountBridge: AccountBridge<Transaction> = {
