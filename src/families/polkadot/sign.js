@@ -1,14 +1,8 @@
 // @flow
 
-import {
-  methods,
-  getRegistry,
-  decode,
-  createSigningPayload,
-} from "@substrate/txwrapper";
+import { methods, getRegistry } from "@substrate/txwrapper";
 import type { Transaction } from "./types";
 import type { Account } from "../../types";
-import Polkadot from "./ledger-app/Polkadot";
 
 const rpcToNode = (method: string, params: any[] = []): Promise<any> => {
   return fetch("http://localhost:9933", {
@@ -50,12 +44,6 @@ export const signPayload = async ({ a, t }: { a: Account, t: Transaction }) => {
 
   const registry = getRegistry("Polkadot", "polkadot", specVersion);
 
-  console.log(t);
-  console.log(a);
-  console.log("nonce", getNonce(a));
-  console.log(blockHash);
-  console.log(specVersion, transactionVersion);
-
   const unsigned = methods.balances.transferKeepAlive(
     {
       dest: t.recipient,
@@ -80,8 +68,6 @@ export const signPayload = async ({ a, t }: { a: Account, t: Transaction }) => {
       registry, // Type registry
     }
   );
-
-  const payload = createSigningPayload(unsigned, { registry });
 
   const extrinsicPayload = registry.createType("ExtrinsicPayload", unsigned, {
     version: unsigned.version,

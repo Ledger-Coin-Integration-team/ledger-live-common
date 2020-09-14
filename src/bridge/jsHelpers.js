@@ -152,7 +152,7 @@ export const makeScanAccounts = (
 
       if (isAccountEmpty) {
         // this is an empty account
-        if (derivationMode === "") {
+        if (derivationMode === "" || derivationMode === "polkadotbip44") {
           // is standard derivation
           if (newAccountCount === 0) {
             // first zero account will emit one account as opportunity to create a new account..
