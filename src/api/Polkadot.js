@@ -6,7 +6,7 @@ import { getEnv } from "../env";
 
 const getBaseApiUrl = () => getEnv("API_POLKADOT_INDEXER");
 
-async function fetch(url: string) {
+async function networkFetch(url: string) {
   const { data } = await network({
     method: "GET",
     url,
@@ -15,11 +15,36 @@ async function fetch(url: string) {
   return data;
 }
 
+export const rpcToNode = (method: string, params: any[] = []): Promise<any> => {
+  return fetch("http://localhost:9933", {
+    body: JSON.stringify({
+      id: 1,
+      jsonrpc: "2.0",
+      method,
+      params,
+    }),
+    headers: {
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+  })
+    .then((response) => response.json())
+    .then(({ error, result }) => {
+      if (error) {
+        throw new Error(
+          `${error.code} ${error.message}: ${JSON.stringify(error.data)}`
+        );
+      }
+
+      return result;
+    });
+};
+
 export const getBalances = async (addr: string) => {
   const url = `${getBaseApiUrl()}/polkadot/api/v1/account/${addr}`;
 
   try {
-    const { data } = await fetch(url);
+    const { data } = await networkFetch(url);
 
     return {
       balance: BigNumber(data.attributes.balance_total),
@@ -45,7 +70,7 @@ export const getTransfers = async (accountId: string, addr: string) => {
 
   let url = `${getBaseApiUrl()}/polkadot/api/v1/balances/transfer?filter[address]=${addr}&page[number]=${page}&page[size]=100`;
   try {
-    let data = await fetch(url);
+    let data = await networkFetch(url);
 
     operations = data.data.map((op) => {
       const type =
@@ -74,3 +99,11 @@ export const getTransfers = async (accountId: string, addr: string) => {
 
   return operations;
 };
+
+export const nodeBroadcastTx = async (signature: string) => {
+  const res = await rpcToNode('author_submitExtrinsic', [signature]);
+
+  console.log("broadcast", res);
+
+  return res;
+}
