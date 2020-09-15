@@ -101,9 +101,9 @@ export const getTransfers = async (accountId: string, addr: string) => {
 };
 
 export const nodeBroadcastTx = async (signature: string) => {
-  const res = await rpcToNode('author_submitExtrinsic', [signature]);
+  const res = await rpcToNode("author_submitExtrinsic", [signature]);
 
   console.log("broadcast", res);
 
   return res;
-}
+};
