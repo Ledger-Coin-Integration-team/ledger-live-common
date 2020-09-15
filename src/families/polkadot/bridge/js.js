@@ -4,11 +4,7 @@ import { Observable } from "rxjs";
 import BIPPath from "bip32-path";
 import { Polkadot } from "../ledger-app/Polkadot";
 
-import type {
-  Account,
-  Operation,
-  TransactionStatus,
-} from "../../../types";
+import type { Account, Operation, TransactionStatus } from "../../../types";
 import {
   NotEnoughBalance,
   RecipientRequired,
@@ -26,7 +22,11 @@ import {
   makeAccountBridgeReceive,
 } from "../../../bridge/jsHelpers";
 import { ApiPromise, WsProvider } from "@polkadot/api";
-import { getBalances, getTransfers, nodeBroadcastTx } from "../../../api/Polkadot";
+import {
+  getBalances,
+  getTransfers,
+  nodeBroadcastTx,
+} from "../../../api/Polkadot";
 import { hwSign } from "../hw-sign";
 
 const receive = makeAccountBridgeReceive();
@@ -113,7 +113,7 @@ const postSync = (parent) => {
 
 const getEstimatedFees = async () => {
   return BigNumber(0);
-}
+};
 
 const sync = makeSync(getAccountShape, postSync);
 
@@ -128,13 +128,16 @@ const signOperation = ({ account, transaction, deviceId }) =>
 
         // Sign by device
 
-        const signature = await hwSign(transport, { a: account, t: transaction });
+        const signature = await hwSign(transport, {
+          a: account,
+          t: transaction,
+        });
 
         o.next({ type: "device-signature-granted" });
 
         const getValue = (): BigNumber => {
-          return BigNumber(transaction.amount)
-        }
+          return BigNumber(transaction.amount);
+        };
 
         const fee = await getEstimatedFees(); // TODO: calculate fees
 
@@ -158,7 +161,7 @@ const signOperation = ({ account, transaction, deviceId }) =>
           date: new Date(),
           extra,
         };
-              
+
         o.next({
           type: "signed",
           signedOperation: {
@@ -183,7 +186,7 @@ const broadcast = async ({
   await nodeBroadcastTx(signature);
 
   return operation;
-}
+};
 
 const accountBridge: AccountBridge<Transaction> = {
   estimateMaxSpendable,

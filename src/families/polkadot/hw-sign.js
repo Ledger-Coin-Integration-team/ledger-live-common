@@ -2,9 +2,14 @@
 
 import type Transport from "@ledgerhq/hw-transport";
 import type { Transaction } from "./types";
-import type { Account, } from "../../types";
+import type { Account } from "../../types";
 
-import { methods, getRegistry, createSignedTx, decode } from "@substrate/txwrapper";
+import {
+  methods,
+  getRegistry,
+  createSignedTx,
+  decode,
+} from "@substrate/txwrapper";
 import { Polkadot } from "./ledger-app/Polkadot";
 import { rpcToNode } from "../../api/Polkadot";
 
@@ -12,7 +17,10 @@ const getNonce = (a: Account) => {
   return (a.polkadotResources?.nonce || 0) + a.pendingOperations.length;
 };
 
-export const hwSign = async (transport: Transport<*>, { a, t }: { a: Account, t: Transaction }) => {
+export const hwSign = async (
+  transport: Transport<*>,
+  { a, t }: { a: Account, t: Transaction }
+) => {
   const { block } = await rpcToNode("chain_getBlock");
   const blockHash = await rpcToNode("chain_getBlockHash");
   const genesisHash = await rpcToNode("chain_getBlockHash", [0]);
@@ -53,11 +61,17 @@ export const hwSign = async (transport: Transport<*>, { a, t }: { a: Account, t:
   });
 
   const polkadot = new Polkadot(transport);
-  const r = await polkadot.sign(a.freshAddressPath, payload.toU8a({ method: true }));
+  const r = await polkadot.sign(
+    a.freshAddressPath,
+    payload.toU8a({ method: true })
+  );
 
   console.log("hw signed", r);
 
-  const signedTx = createSignedTx(unsigned, r.signature, { metadataRpc, registry });
+  const signedTx = createSignedTx(unsigned, r.signature, {
+    metadataRpc,
+    registry,
+  });
 
   console.log("signedTx", signedTx);
 
