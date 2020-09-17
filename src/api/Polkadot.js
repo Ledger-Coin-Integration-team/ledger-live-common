@@ -5,8 +5,9 @@ import { BigNumber } from "bignumber.js";
 import { getEnv } from "../env";
 
 const getBaseApiUrl = () => getEnv("API_POLKADOT_INDEXER");
+const getRpcUrl = () => getEnv("API_POLKADOT_NODE");
 
-async function networkFetch(url: string) {
+async function fetch(url: string) {
   const { data } = await network({
     method: "GET",
     url,
@@ -15,9 +16,11 @@ async function networkFetch(url: string) {
   return data;
 }
 
-export const rpcToNode = (method: string, params: any[] = []): Promise<any> => {
-  return fetch("http://localhost:9933", {
-    body: JSON.stringify({
+const rpc = async (method: string, params: any[] = []): Promise<any> => {
+  const { data: { result, error} } = await network({
+    url: getRpcUrl(),
+    method: "POST",
+    data: JSON.stringify({
       id: 1,
       jsonrpc: "2.0",
       method,
@@ -26,25 +29,22 @@ export const rpcToNode = (method: string, params: any[] = []): Promise<any> => {
     headers: {
       "Content-Type": "application/json",
     },
-    method: "POST",
-  })
-    .then((response) => response.json())
-    .then(({ error, result }) => {
-      if (error) {
-        throw new Error(
-          `${error.code} ${error.message}: ${JSON.stringify(error.data)}`
-        );
-      }
+  });
+  
+  if (error) {
+    throw new Error(
+      `${error.code} ${error.message}: ${JSON.stringify(error.data)}`
+    );
+  }
 
-      return result;
-    });
+  return result;
 };
 
 export const getBalances = async (addr: string) => {
   const url = `${getBaseApiUrl()}/polkadot/api/v1/account/${addr}`;
 
   try {
-    const { data } = await networkFetch(url);
+    const { data } = await fetch(url);
 
     return {
       balance: BigNumber(data.attributes.balance_total),
@@ -70,7 +70,7 @@ export const getTransfers = async (accountId: string, addr: string) => {
 
   let url = `${getBaseApiUrl()}/polkadot/api/v1/balances/transfer?filter[address]=${addr}&page[number]=${page}&page[size]=100`;
   try {
-    let data = await networkFetch(url);
+    let data = await fetch(url);
 
     operations = data.data.map((op) => {
       const type =
@@ -100,8 +100,29 @@ export const getTransfers = async (accountId: string, addr: string) => {
   return operations;
 };
 
-export const nodeBroadcastTx = async (signature: string) => {
-  const res = await rpcToNode("author_submitExtrinsic", [signature]);
+/*
+ * RPC calls
+ */
+
+export const getTransactionParams = async () =>  {
+  const { block } = await rpc("chain_getBlock");
+  const blockHash = await rpc("chain_getBlockHash");
+  const genesisHash = await rpc("chain_getBlockHash", [0]);
+  const metadataRpc = await rpc("state_getMetadata");
+  const { specVersion, transactionVersion } = await rpc("state_getRuntimeVersion");
+
+  return {
+    blockHash,
+    blockNumber: block.header.number,
+    genesisHash,
+    metadataRpc,
+    specVersion,
+    transactionVersion,
+  }
+}
+
+export const submitExtrinsic = async (extrinsic: string) => {
+  const res = await rpc("author_submitExtrinsic", [extrinsic]);
 
   console.log("broadcast", res);
 

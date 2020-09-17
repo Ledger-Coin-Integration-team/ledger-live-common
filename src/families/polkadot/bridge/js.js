@@ -25,7 +25,7 @@ import { ApiPromise, WsProvider } from "@polkadot/api";
 import {
   getBalances,
   getTransfers,
-  nodeBroadcastTx,
+  submitExtrinsic,
 } from "../../../api/Polkadot";
 import { hwSign } from "../hw-sign";
 
@@ -183,7 +183,7 @@ const signOperation = ({ account, transaction, deviceId }) =>
 const broadcast = async ({
   signedOperation: { signature, operation, signatureRaw },
 }) => {
-  await nodeBroadcastTx(signature);
+  await submitExtrinsic(signature);
 
   return operation;
 };
