@@ -52,6 +52,11 @@ const envDefinitions = {
     def: "https://explorer-31.polkascan.io/",
     desc: "explorer API for polkadot",
   },
+  API_POLKADOT_NODE: {
+    parser: stringParser,
+    def: "http://localhost:9933",
+    desc: "Polkadot Node RPC url",
+  },
   API_TEZOS_BAKER: {
     parser: stringParser,
     def: "https://tezos-bakers.api.live.ledger.com",
