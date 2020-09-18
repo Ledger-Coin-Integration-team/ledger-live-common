@@ -1,5 +1,6 @@
 // @flow
 
+import { BigNumber } from "bignumber.js";
 import type { PolkadotResourcesRaw, PolkadotResources } from "./types";
 
 export function toPolkadotResourcesRaw(
@@ -8,6 +9,7 @@ export function toPolkadotResourcesRaw(
   const { nonce } = r;
   return {
     nonce,
+    bondedBalance: r.bondedBalance.toString(),
   };
 }
 
@@ -17,5 +19,6 @@ export function fromPolkadotResourcesRaw(
   const { nonce } = r;
   return {
     nonce,
+    bondedBalance: BigNumber(r.bondedBalance),
   };
 }
