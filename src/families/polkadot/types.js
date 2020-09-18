@@ -24,10 +24,12 @@ export type NetworkInfoRaw = {|
 
 export type PolkadotResources = {|
   nonce: number,
+  bondedBalance: BigNumber,
 |};
 
 export type PolkadotResourcesRaw = {|
   nonce: number,
+  bondedBalance: string,
 |};
 
 export type Transaction = {|
@@ -35,6 +37,7 @@ export type Transaction = {|
   mode: string,
   family: "polkadot",
   networkInfo: ?NetworkInfo,
+  validators?: string[];
 |};
 
 export type TransactionRaw = {|
@@ -42,6 +45,7 @@ export type TransactionRaw = {|
   family: "polkadot",
   mode: string,
   networkInfo: ?NetworkInfoRaw,
+  validators?: string[]
 |};
 
 export const reflect = (_declare: *) => {};
