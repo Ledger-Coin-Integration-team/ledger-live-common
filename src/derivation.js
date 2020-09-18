@@ -194,7 +194,7 @@ const modes = Object.freeze({
     tag: "unsplit",
   },
   polkadotbip44: {
-    overridesDerivation: "44'/354'/<account>'/0'/0'",
+    overridesDerivation: "44'/354'/<account>'/0'/<address>'",
   },
 });
 
