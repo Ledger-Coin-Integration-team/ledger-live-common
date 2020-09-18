@@ -47,10 +47,10 @@ export const getBalances = async (addr: string) => {
     const { data } = await fetch(url);
 
     return {
-      balance: BigNumber(data.attributes.balance_total),
-      spendableBalance: BigNumber(data.attributes.balance_free),
+      balance: BigNumber(data.attributes.balance_total || 0),
+      spendableBalance: BigNumber(data.attributes.balance_free || 0),
       // delegated: data.attributes.balance_reserved,
-      polkadotResources: { nonce: data.attributes.nonce },
+      polkadotResources: { nonce: data.attributes.nonce || 0 },
     };
   } catch (e) {
     return {
