@@ -124,17 +124,13 @@ export class Polkadot {
             : PAYLOAD_TYPE_ADD,
           0,
           data,
-          [SW_OK, SW_CANCEL]
+          [SW_OK, SW_CANCEL, 0x6984, 0x6a80]
         )
         .then((apduResponse) => (response = apduResponse))
     ).then(() => {
       const errorCodeData = response.slice(-2);
       const returnCode = errorCodeData[0] * 256 + errorCodeData[1];
       let signature = null;
-
-      if (response.length > 2) {
-        signature = response.slice(0, response.length - 2);
-      }
 
       if (response.length > 2) {
         signature = response.slice(0, response.length - 2);

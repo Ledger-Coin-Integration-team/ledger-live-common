@@ -1,8 +1,6 @@
 // @flow
 import { BigNumber } from "bignumber.js";
 import { Observable } from "rxjs";
-import BIPPath from "bip32-path";
-import { Polkadot } from "../ledger-app/Polkadot";
 
 import type { Account, Operation, TransactionStatus } from "../../../types";
 import {
@@ -21,13 +19,12 @@ import {
   makeScanAccounts,
   makeAccountBridgeReceive,
 } from "../../../bridge/jsHelpers";
-import { ApiPromise, WsProvider } from "@polkadot/api";
 import {
   getBalances,
   getTransfers,
   submitExtrinsic,
 } from "../../../api/Polkadot";
-import { hwSign } from "../hw-sign";
+import { hwSign, hwBond, hwUnbond, hwNominate } from "../hw-sign";
 
 const receive = makeAccountBridgeReceive();
 
@@ -128,10 +125,37 @@ const signOperation = ({ account, transaction, deviceId }) =>
 
         // Sign by device
 
-        const signature = await hwSign(transport, {
-          a: account,
-          t: transaction,
-        });
+        let signature;
+
+        switch (transaction.mode) {
+          case "bond":
+            signature = await hwBond(transport, {
+              a: account,
+              t: transaction,
+            });
+            break;
+
+          case "nominate":
+            signature = await hwNominate(transport, {
+              a: account,
+              t: transaction,
+            });
+            break;
+
+          case "unbond":
+            signature = await hwUnbond(transport, {
+              a: account,
+              t: transaction,
+            });
+            break;
+
+          default:
+            signature = await hwSign(transport, {
+              a: account,
+              t: transaction,
+            });
+            break;
+        }
 
         o.next({ type: "device-signature-granted" });
 
@@ -147,7 +171,7 @@ const signOperation = ({ account, transaction, deviceId }) =>
         const operationType = "OUT";
 
         const operation: $Exact<Operation> = {
-          id: `${account.id}-""-${operationType}`,
+          id: `${account.id}--${operationType}`,
           hash: "",
           // if it's a token op and there is no fee, this operation does not exist and is a "NONE"
           type: value.eq(0) ? "NONE" : operationType,
@@ -183,7 +207,7 @@ const signOperation = ({ account, transaction, deviceId }) =>
 const broadcast = async ({
   signedOperation: { signature, operation, signatureRaw },
 }) => {
-  await submitExtrinsic(signature);
+  const hash = await submitExtrinsic(signature);
 
   return operation;
 };

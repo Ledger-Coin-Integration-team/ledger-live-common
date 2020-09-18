@@ -189,7 +189,6 @@ class SubstrateApp {
   static GetChunks(message) {
     const chunks = [];
     const buffer = Buffer.from(message);
-    x;
     for (let i = 0; i < buffer.length; i += CHUNK_SIZE) {
       let end = i + CHUNK_SIZE;
       if (i > buffer.length) {
@@ -298,6 +297,7 @@ class SubstrateApp {
     if (chunkIdx === chunkNum) {
       payloadType = PAYLOAD_TYPE.LAST;
     }
+    console.log(chunkIdx);
 
     return this.transport
       .send(this.cla, INS.SIGN_ED25519, payloadType, 0, chunk, [
