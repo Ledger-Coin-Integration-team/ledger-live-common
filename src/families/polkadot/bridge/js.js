@@ -2,7 +2,12 @@
 import { BigNumber } from "bignumber.js";
 import { Observable } from "rxjs";
 
-import type { Account, Operation, TransactionStatus } from "../../../types";
+import type {
+  Account,
+  Operation,
+  TransactionStatus,
+  SignedOperation,
+} from "../../../types";
 import {
   NotEnoughBalance,
   RecipientRequired,
@@ -28,6 +33,39 @@ import { hwSign, hwBond, hwUnbond, hwNominate } from "../hw-sign";
 
 const receive = makeAccountBridgeReceive();
 
+const estimateMaxSpendable = ({ account, parentAccount, transaction }) => {
+  const mainAccount = getMainAccount(account, parentAccount);
+  const estimatedFees = BigNumber(5000);
+  return Promise.resolve(
+    BigNumber.max(0, account.balance.minus(estimatedFees))
+  );
+};
+
+const getAccountShape = async (info, syncConfig) => {
+  const balances = await getBalances(info.address);
+  const operations = await getTransfers(info.id, info.address);
+
+  return {
+    id: info.id,
+    ...balances,
+    operationsCount: operations.length,
+    operations,
+    blockHeight: operations.length,
+  };
+};
+
+const postSync = (parent) => {
+  return parent;
+};
+
+const getEstimatedFees = async () => {
+  return BigNumber(0);
+};
+
+const scanAccounts = makeScanAccounts(getAccountShape);
+
+const sync = makeSync(getAccountShape, postSync);
+
 const createTransaction = (): Transaction => ({
   family: "polkadot",
   mode: "send",
@@ -39,14 +77,11 @@ const createTransaction = (): Transaction => ({
 
 const updateTransaction = (t, patch) => ({ ...t, ...patch });
 
-const estimateMaxSpendable = ({ account, parentAccount, transaction }) => {
-  const mainAccount = getMainAccount(account, parentAccount);
-  const estimatedFees = BigNumber(5000);
-  return Promise.resolve(
-    BigNumber.max(0, account.balance.minus(estimatedFees))
-  );
+const prepareTransaction = async (a, t) => {
+  return t;
 };
 
+// Still WIP only mock here
 const getTransactionStatus = (account, t) => {
   const errors = {};
   const warnings = {};
@@ -86,35 +121,6 @@ const getTransactionStatus = (account, t) => {
     totalSpent,
   });
 };
-
-const prepareTransaction = async (a, t) => {
-  return t;
-};
-
-const getAccountShape = async (info, syncConfig) => {
-  const balances = await getBalances(info.address);
-  const operations = await getTransfers(info.id, info.address);
-
-  return {
-    id: info.id,
-    ...balances,
-    operationsCount: operations.length,
-    operations,
-    blockHeight: operations.length,
-  };
-};
-
-const postSync = (parent) => {
-  return parent;
-};
-
-const getEstimatedFees = async () => {
-  return BigNumber(0);
-};
-
-const sync = makeSync(getAccountShape, postSync);
-
-const scanAccounts = makeScanAccounts(getAccountShape);
 
 const signOperation = ({ account, transaction, deviceId }) =>
   Observable.create((o) => {
@@ -205,8 +211,10 @@ const signOperation = ({ account, transaction, deviceId }) =>
   });
 
 const broadcast = async ({
-  signedOperation: { signature, operation, signatureRaw },
-}) => {
+  signedOperation: { signature, operation },
+}: {
+  signedOperation: SignedOperation,
+}): Promise<Operation> => {
   const hash = await submitExtrinsic(signature);
 
   return operation;
