@@ -4,11 +4,7 @@ import type Transport from "@ledgerhq/hw-transport";
 import type { Transaction } from "./types";
 import type { Account } from "../../types";
 
-import {
-  methods,
-  getRegistry,
-  createSignedTx,
-} from "@substrate/txwrapper";
+import { methods, getRegistry, createSignedTx } from "@substrate/txwrapper";
 import { Polkadot } from "./ledger-app/Polkadot";
 import { getTransactionParams } from "../../api/Polkadot";
 
@@ -22,38 +18,17 @@ export const hwSign = async (
   transport: Transport<*>,
   { a, t }: { a: Account, t: Transaction }
 ) => {
-  const {
-    blockHash,
-    blockNumber,
-    genesisHash,
-    metadataRpc,
-    specVersion,
-    transactionVersion,
-  } = await getTransactionParams();
+  const { txBaseInfo, txOptions } = await getTxInfo(a);
 
-  const registry = getRegistry("Polkadot", "polkadot", specVersion);
+  const registry = getRegistry("Polkadot", "polkadot", txBaseInfo.specVersion);
 
   const unsigned = methods.balances.transferKeepAlive(
     {
       dest: t.recipient,
       value: t.amount.toString(),
     },
-    {
-      address: a.freshAddress,
-      blockHash,
-      blockNumber,
-      genesisHash,
-      metadataRpc, // must import from client RPC call state_getMetadata
-      nonce: getNonce(a),
-      specVersion,
-      tip: 0,
-      eraPeriod: ERA_PERIOD,
-      transactionVersion,
-    },
-    {
-      metadataRpc,
-      registry, // Type registry
-    }
+    txBaseInfo,
+    txOptions
   );
 
   const payload = registry.createType("ExtrinsicPayload", unsigned, {
@@ -68,10 +43,7 @@ export const hwSign = async (
 
   console.log("hw signed", r);
 
-  const signedTx = createSignedTx(unsigned, r.signature, {
-    metadataRpc,
-    registry,
-  });
+  const signedTx = createSignedTx(unsigned, r.signature, txOptions);
 
   console.log("signedTx", signedTx);
 
