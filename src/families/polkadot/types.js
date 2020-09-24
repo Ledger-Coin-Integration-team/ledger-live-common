@@ -26,19 +26,19 @@ export type NetworkInfoRaw = {|
   fees: string
 |};
 
-export type PolkadotValidator = {|
+export type PolkadotNomination = {|
   address: string,
-  rewards: BigNumber,
-  isElected: boolean,
+  pendingRewards: BigNumber,
+  status: PolkadotValidatorStatus,
 |}
 
-export type PolkadotValidatorRaw = {|
+export type PolkadotNominationRaw = {|
   address: string,
-  rewards: BigNumber,
-  isElected: boolean,
+  pendingRewards: BigNumber,
+  status: PolkadotValidatorStatus,
 |}
 
-export type PolkadotUnbondings = {|
+export type PolkadotUnbonding = {|
   amount: BigNumber,
   completionDate: Date
 |}
@@ -46,15 +46,18 @@ export type PolkadotUnbondings = {|
 export type PolkadotResources = {|
   nonce: number,
   bondedBalance: BigNumber,
-  unbondings: PolkadotUnbondings[],
-  validators: PolkadotValidator,
+  unbondings: PolkadotUnbonding[],
+  nominations: PolkadotNomination,
 |};
 
 export type PolkadotResourcesRaw = {|
   nonce: number,
   bondedBalance: string,
-  validators: ?PolkadotValidatorRaw;
+  unbondings: PolkadotUnbonding[],
+  nominations: ?PolkadotNominationRaw;
 |};
+
+export type PolkadotValidatorStatus = "active" | "inactive" | "waiting";
 
 export type Transaction = {|
   ...TransactionCommon,
@@ -72,19 +75,19 @@ export type TransactionRaw = {|
   validators?: string[]
 |};
 
-export type PolkadotValidatorItem = {|
+export type PolkadotValidator = {|
   validatorAddress: string,
   identity: string,
   isOversubscribed: boolean,
-  nominatorCount: number,
-  rewardsPoint: number,
+  nominatorsCounts: number,
+  rewardPoints: number,
   commission: number,
   totalBonded: BigNumber,
   selfBonded: BigNumber,
-  status: "active" | "inactive" | "waiting"
+  status: PolkadotValidatorStatus
 |};
 
-export type PolkadotValidatorItemRaw = {|
+export type PolkadotValidatorRaw = {|
   validatorAddress: string,
   identity: string,
   isOversubscribed: boolean,
@@ -93,7 +96,7 @@ export type PolkadotValidatorItemRaw = {|
   commission: number,
   totalBonded: string,
   selfBonded: string,
-  status: "active" | "inactive" | "waiting"
+  status: PolkadotValidatorStatus
 |};
 
 export const reflect = (_declare: *) => {};
