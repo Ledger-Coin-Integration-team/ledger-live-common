@@ -4,6 +4,8 @@ import network from "../network";
 import { BigNumber } from "bignumber.js";
 import { getEnv } from "../env";
 import { WsProvider, ApiPromise } from "@polkadot/api";
+import { getRegistry } from "@substrate/txwrapper";
+import type { Account } from "../types";
 
 const getBaseApiUrl = () => getEnv("API_POLKADOT_INDEXER");
 const getRpcUrl = () => getEnv("API_POLKADOT_NODE");
@@ -88,6 +90,8 @@ export const getBalances = async (addr: string) => {
     polkadotResources: {
       nonce: json.accountNonce,
       bondedBalance: BigNumber(json.lockedBalance),
+      unbondings: [], // TODO
+      nominations: [], // TODO
     },
   };
 };
@@ -185,4 +189,51 @@ export const submitExtrinsic = async (extrinsic: string) => {
   console.log("broadcast", res);
 
   return res;
+};
+
+export const paymentInfo = async (extrinsic: string) => {
+  const res = await rpc("payment_queryInfo", [extrinsic]);
+
+  console.log("broadcast", res);
+
+  return res;
+};
+
+const ERA_PERIOD = 64; // number of blocks from checkpoint that transaction is valid
+
+const getNonce = (a: Account) => {
+  return (a.polkadotResources?.nonce || 0) + a.pendingOperations.length;
+};
+
+export const getTxInfo = async (a: Account) => {
+  const {
+    blockHash,
+    blockNumber,
+    genesisHash,
+    metadataRpc,
+    specVersion,
+    transactionVersion,
+  } = await getTransactionParams();
+
+  const registry = getRegistry("Polkadot", "polkadot", specVersion);
+
+  const txBaseInfo = {
+    address: a.freshAddress,
+    blockHash,
+    blockNumber,
+    genesisHash,
+    metadataRpc,
+    nonce: getNonce(a),
+    specVersion,
+    tip: 0,
+    eraPeriod: ERA_PERIOD,
+    transactionVersion,
+  };
+
+  const txOptions = {
+    metadataRpc,
+    registry,
+  };
+
+  return { txBaseInfo, txOptions };
 };
