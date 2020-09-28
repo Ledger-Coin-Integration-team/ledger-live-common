@@ -1,6 +1,14 @@
 // @flow
 import { BigNumber } from "bignumber.js";
 import { Observable } from "rxjs";
+import { createSignedTx } from "@substrate/txwrapper";
+
+import {
+  NotEnoughBalance,
+  RecipientRequired,
+  InvalidAddress,
+  FeeTooHigh,
+} from "@ledgerhq/errors";
 
 import type {
   Account,
@@ -8,12 +16,6 @@ import type {
   TransactionStatus,
   SignedOperation,
 } from "../../../types";
-import {
-  NotEnoughBalance,
-  RecipientRequired,
-  InvalidAddress,
-  FeeTooHigh,
-} from "@ledgerhq/errors";
 import type { Transaction } from "../types";
 import { open, close } from "../../../hw";
 import type { AccountBridge, CurrencyBridge } from "../../../types";
@@ -28,8 +30,15 @@ import {
   getBalances,
   getTransfers,
   submitExtrinsic,
+  paymentInfo,
+  getTxInfo,
 } from "../../../api/Polkadot";
-import { hwSign, hwBond, hwUnbond, hwNominate } from "../hw-sign";
+import {
+  getEstimatedFees,
+  getEstimatedFeesFromUnsignedTx,
+} from "../js-getFeesForTransaction";
+import buildTransaction from "../js-buildTransaction";
+import { Polkadot } from "../ledger-app/Polkadot";
 
 const receive = makeAccountBridgeReceive();
 
@@ -58,10 +67,6 @@ const postSync = (parent) => {
   return parent;
 };
 
-const getEstimatedFees = async () => {
-  return BigNumber(0);
-};
-
 const scanAccounts = makeScanAccounts(getAccountShape);
 
 const sync = makeSync(getAccountShape, postSync);
@@ -73,6 +78,7 @@ const createTransaction = (): Transaction => ({
   recipient: "",
   useAllAmount: false,
   networkInfo: null,
+  validators: [],
 });
 
 const updateTransaction = (t, patch) => ({ ...t, ...patch });
@@ -82,12 +88,14 @@ const prepareTransaction = async (a, t) => {
 };
 
 // Still WIP only mock here
-const getTransactionStatus = (account, t) => {
+const getTransactionStatus = async (account, t) => {
   const errors = {};
   const warnings = {};
   const useAllAmount = !!t.useAllAmount;
 
-  const estimatedFees = BigNumber(5000);
+  const estimatedFees = await getEstimatedFees(account, t);
+
+  console.log(estimatedFees);
 
   const totalSpent = useAllAmount
     ? account.balance
@@ -131,37 +139,33 @@ const signOperation = ({ account, transaction, deviceId }) =>
 
         // Sign by device
 
-        let signature;
+        const txInfo = await getTxInfo(account);
 
-        switch (transaction.mode) {
-          case "bond":
-            signature = await hwBond(transport, {
-              a: account,
-              t: transaction,
-            });
-            break;
+        const unsignedTransaction = await buildTransaction(
+          account,
+          transaction,
+          txInfo
+        );
 
-          case "nominate":
-            signature = await hwNominate(transport, {
-              a: account,
-              t: transaction,
-            });
-            break;
+        const payload = txInfo.txOptions.registry.createType(
+          "ExtrinsicPayload",
+          unsignedTransaction,
+          {
+            version: unsignedTransaction.version,
+          }
+        );
 
-          case "unbond":
-            signature = await hwUnbond(transport, {
-              a: account,
-              t: transaction,
-            });
-            break;
+        const polkadot = new Polkadot(transport);
+        const r = await polkadot.sign(
+          account.freshAddressPath,
+          payload.toU8a({ method: true })
+        );
 
-          default:
-            signature = await hwSign(transport, {
-              a: account,
-              t: transaction,
-            });
-            break;
-        }
+        const signature = createSignedTx(
+          unsignedTransaction,
+          r.signature,
+          txInfo.txOptions
+        );
 
         o.next({ type: "device-signature-granted" });
 
@@ -169,7 +173,11 @@ const signOperation = ({ account, transaction, deviceId }) =>
           return BigNumber(transaction.amount);
         };
 
-        const fee = await getEstimatedFees(); // TODO: calculate fees
+        const fee = await getEstimatedFeesFromUnsignedTx(
+          account,
+          unsignedTransaction,
+          txInfo
+        );
 
         const value = getValue();
         const extra = {};
