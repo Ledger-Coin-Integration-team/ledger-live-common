@@ -18,53 +18,58 @@ export type CoreCurrencySpecifics = {};
 
 export type NetworkInfo = {|
   family: "polkadot",
-  fees: BigNumber
+  fees: BigNumber,
 |};
 
 export type NetworkInfoRaw = {|
   family: "polkadot",
-  fees: string
+  fees: string,
 |};
+
+export type PolkadotNominationStatus = "active" | "inactive" | "waiting";
 
 export type PolkadotNomination = {|
   address: string,
   pendingRewards: BigNumber,
-  status: PolkadotValidatorStatus,
-|}
+  status: PolkadotNominationStatus,
+|};
 
 export type PolkadotNominationRaw = {|
   address: string,
-  pendingRewards: BigNumber,
-  status: PolkadotValidatorStatus,
-|}
+  pendingRewards: string,
+  status: PolkadotNominationStatus,
+|};
 
 export type PolkadotUnbonding = {|
   amount: BigNumber,
-  completionDate: Date
-|}
+  completionDate: Date,
+|};
+
+export type PolkadotUnbondingRaw = {|
+  amount: string,
+  completionDate: Date,
+|};
 
 export type PolkadotResources = {|
   nonce: number,
   bondedBalance: BigNumber,
-  unbondings: PolkadotUnbonding[],
-  nominations: PolkadotNomination,
+  unbondings: ?PolkadotUnbonding[],
+  nominations: ?PolkadotNomination[],
 |};
 
 export type PolkadotResourcesRaw = {|
   nonce: number,
   bondedBalance: string,
-  unbondings: PolkadotUnbonding[],
-  nominations: ?PolkadotNominationRaw;
+  unbondings: ?PolkadotUnbondingRaw[],
+  nominations: ?PolkadotNominationRaw[],
 |};
-
-export type PolkadotValidatorStatus = "active" | "inactive" | "waiting";
 
 export type Transaction = {|
   ...TransactionCommon,
   mode: string,
   family: "polkadot",
   networkInfo: ?NetworkInfo,
-  validators?: string[];
+  validators: ?string[],
 |};
 
 export type TransactionRaw = {|
@@ -72,11 +77,11 @@ export type TransactionRaw = {|
   family: "polkadot",
   mode: string,
   networkInfo: ?NetworkInfoRaw,
-  validators?: string[]
+  validators: ?string[],
 |};
 
 export type PolkadotValidator = {|
-  validatorAddress: string,
+  address: string,
   identity: string,
   isOversubscribed: boolean,
   nominatorsCounts: number,
@@ -84,19 +89,19 @@ export type PolkadotValidator = {|
   commission: number,
   totalBonded: BigNumber,
   selfBonded: BigNumber,
-  status: PolkadotValidatorStatus
+  isElected: boolean,
 |};
 
 export type PolkadotValidatorRaw = {|
-  validatorAddress: string,
+  address: string,
   identity: string,
   isOversubscribed: boolean,
-  nominatorCount: number,
-  rewardsPoint: number,
+  nominatorsCounts: number,
+  rewardPoints: number,
   commission: number,
   totalBonded: string,
   selfBonded: string,
-  status: PolkadotValidatorStatus
+  isElected: boolean,
 |};
 
 export const reflect = (_declare: *) => {};
