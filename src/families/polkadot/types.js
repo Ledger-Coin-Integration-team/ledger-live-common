@@ -83,25 +83,25 @@ export type TransactionRaw = {|
 export type PolkadotValidator = {|
   address: string,
   identity: string,
-  isOversubscribed: boolean,
-  nominatorsCounts: number,
+  nominatorsCount: number,
   rewardPoints: number,
   commission: number,
   totalBonded: BigNumber,
   selfBonded: BigNumber,
   isElected: boolean,
+  isOversubscribed: boolean,
 |};
 
 export type PolkadotValidatorRaw = {|
   address: string,
   identity: string,
-  isOversubscribed: boolean,
-  nominatorsCounts: number,
+  nominatorsCount: number,
   rewardPoints: number,
   commission: number,
   totalBonded: string,
   selfBonded: string,
   isElected: boolean,
+  isOversubscribed: boolean,
 |};
 
 export const reflect = (_declare: *) => {};
