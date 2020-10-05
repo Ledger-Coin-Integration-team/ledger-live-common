@@ -1,6 +1,7 @@
 // @flow
 import { BigNumber } from "bignumber.js";
 import { Observable } from "rxjs";
+import invariant from "invariant";
 import { createSignedTx } from "@substrate/txwrapper";
 
 import {
@@ -8,6 +9,8 @@ import {
   RecipientRequired,
   InvalidAddress,
   FeeTooHigh,
+  InvalidAddressBecauseDestinationIsAlsoSource,
+  AmountRequired,
 } from "@ledgerhq/errors";
 
 import type {
@@ -32,6 +35,8 @@ import {
   submitExtrinsic,
   paymentInfo,
   getTxInfo,
+  isAddressValid,
+  getElectionStatus,
 } from "../../../api/Polkadot";
 import {
   getEstimatedFees,
@@ -52,6 +57,7 @@ const estimateMaxSpendable = ({ account, parentAccount, transaction }) => {
 
 const getAccountShape = async (info, syncConfig) => {
   const balances = await getBalances(info.address);
+  console.log("getAccountShape", balances);
   const operations = await getTransfers(info.id, info.address);
 
   return {
@@ -77,7 +83,7 @@ const createTransaction = (): Transaction => ({
   amount: BigNumber(0),
   recipient: "",
   useAllAmount: false,
-  networkInfo: null,
+  fees: null,
   validators: [],
 });
 
@@ -87,38 +93,166 @@ const prepareTransaction = async (a, t) => {
   return t;
 };
 
-// Still WIP only mock here
-const getTransactionStatus = async (account, t) => {
+const isValid = async (recipient) => {
+  return await isAddressValid(recipient);
+};
+
+const isNewAccount = async (recipient) => {
+  const balances = await getBalances(recipient);
+
+  return balances.polkadotResources.nonce === 0;
+};
+
+const isElectionStatusClosed = async () => {
+  const status = await getElectionStatus();
+
+  return status;
+};
+
+// Should try to refacto
+const getSendTransactionStatus = async (a: Account, t: Transaction) => {
   const errors = {};
   const warnings = {};
   const useAllAmount = !!t.useAllAmount;
+  let minAmountRequired = BigNumber(0);
 
-  const estimatedFees = await getEstimatedFees(account, t);
+  if (a.freshAddress === t.recipient) {
+    errors.recipient = new InvalidAddressBecauseDestinationIsAlsoSource();
+  }
+  if (!t.recipient) {
+    errors.recipient = new RecipientRequired("");
+  }
+  // TODO is valid with API ? how to check that properly ?
+  if (!(await isValid(t.recipient))) {
+    errors.recipient = new InvalidAddress("");
+  }
 
-  console.log(estimatedFees);
+  // Should be min 1 DOT
+  if (!errors.recipient && (await isNewAccount(t.recipient))) {
+    minAmountRequired = BigNumber(10000000000);
+  }
+
+  const txInfo = await getTxInfo(a);
+  let estimatedFees = BigNumber(0);
+  if (!errors.recipient) {
+    estimatedFees = await getEstimatedFees(a, t, txInfo);
+  }
 
   const totalSpent = useAllAmount
-    ? account.balance
+    ? a.spendableBalance
     : BigNumber(t.amount).plus(estimatedFees);
 
   const amount = useAllAmount
-    ? account.balance.minus(estimatedFees)
+    ? a.spendableBalance.minus(estimatedFees)
     : BigNumber(t.amount);
 
-  if (amount.gt(0) && estimatedFees.times(10).gt(amount)) {
-    warnings.feeTooHigh = new FeeTooHigh();
+  if (amount.lte(0) && !t.useAllAmount) {
+    errors.amount = new AmountRequired();
   }
 
-  // Fill up transaction errors...
-  if (totalSpent.gt(account.balance)) {
+  if (totalSpent.gt(a.spendableBalance)) {
     errors.amount = new NotEnoughBalance();
   }
 
-  // Fill up recipient errors...
-  if (!t.recipient) {
-    errors.recipient = new RecipientRequired("");
-  } else if (isInvalidRecipient(t.recipient)) {
-    errors.recipient = new InvalidAddress("");
+  if (!errors.recipient && !errors.amount) {
+    const txInfo = await getTxInfo(a);
+    estimatedFees = await getEstimatedFees(a, t, txInfo);
+  }
+
+  return Promise.resolve({
+    errors,
+    warnings,
+    estimatedFees,
+    amount,
+    totalSpent,
+  });
+};
+
+// Still WIP only mock here
+const getTransactionStatus = async (a: Account, t: Transaction) => {
+  console.log("TRANSACTION", t);
+  const errors = {};
+  const warnings = {};
+  const useAllAmount = !!t.useAllAmount;
+  let minAmountRequired = BigNumber(0);
+
+  if (t.mode === "send") {
+    return await getSendTransactionStatus(a, t);
+  }
+
+  if (await !isElectionStatusClosed()) {
+    throw new Error("ELECTION IS CLOSED");
+  }
+
+  let estimatedFees = t.fees || BigNumber(0);
+  let amount = t.amount;
+  let totalSpent = estimatedFees;
+
+  switch (t.mode) {
+    case "unbond":
+      if (a.polkadotResources?.unbondings) {
+        const totalUnbond = a.polkadotResources.unbondings.reduce(
+          (old, current) => {
+            return old.plus(current.amount);
+          },
+          BigNumber(0)
+        );
+
+        const remainingUnbond = a.polkadotResources?.bondedBalance.minus(
+          totalUnbond
+        );
+
+        if (
+          remainingUnbond
+            ? remainingUnbond.lt(t.amount)
+            : a.polkadotResources?.bondedBalance.lt(t.amount)
+        ) {
+          errors.amount = new NotEnoughBalance();
+        }
+      }
+      break;
+
+    case "nominate":
+      if (
+        t.validators?.some(
+          (v) => true //TODO check validator when we got validatorList
+        ) ||
+        t.validators?.length === 0
+      )
+        errors.recipient = new InvalidAddress(null, {
+          currencyName: a.currency.name,
+        });
+      break;
+  }
+
+  if (!errors.amount) {
+    const txInfo = await getTxInfo(a);
+    estimatedFees = await getEstimatedFees(a, t, txInfo);
+    totalSpent = estimatedFees;
+  }
+
+  if (t.mode === "bond") {
+    amount = useAllAmount
+      ? a.spendableBalance.minus(estimatedFees)
+      : BigNumber(t.amount);
+
+    totalSpent = useAllAmount
+      ? a.spendableBalance
+      : BigNumber(t.amount).plus(estimatedFees);
+
+    // TODO: Not true must check if there's a controller with :
+    // api.query.staking.ledger(controller)
+    if (a.polkadotResources?.bondedBalance.eq(0) && t.amount.lt(10000000000)) {
+      throw new Error("Not enough amount to activate new account");
+    }
+
+    if (amount.lte(0) && !t.useAllAmount) {
+      errors.amount = new AmountRequired();
+    }
+  }
+
+  if (totalSpent.gt(a.spendableBalance)) {
+    errors.amount = new NotEnoughBalance();
   }
 
   return Promise.resolve({
@@ -140,7 +274,8 @@ const signOperation = ({ account, transaction, deviceId }) =>
         // Sign by device
 
         const txInfo = await getTxInfo(account);
-
+        console.log(txInfo);
+        console.log("buildTR");
         const unsignedTransaction = await buildTransaction(
           account,
           transaction,
