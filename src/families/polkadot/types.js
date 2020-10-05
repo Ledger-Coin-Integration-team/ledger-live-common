@@ -16,15 +16,6 @@ export type CoreOperationSpecifics = {};
 
 export type CoreCurrencySpecifics = {};
 
-export type NetworkInfo = {|
-  family: "polkadot",
-  fees: BigNumber,
-|};
-
-export type NetworkInfoRaw = {|
-  family: "polkadot",
-  fees: string,
-|};
 
 export type PolkadotNominationStatus = "active" | "inactive" | "waiting";
 
@@ -68,7 +59,7 @@ export type Transaction = {|
   ...TransactionCommon,
   mode: string,
   family: "polkadot",
-  networkInfo: ?NetworkInfo,
+  fees: ?BigNumber,
   validators: ?string[],
 |};
 
@@ -76,7 +67,7 @@ export type TransactionRaw = {|
   ...TransactionCommonRaw,
   family: "polkadot",
   mode: string,
-  networkInfo: ?NetworkInfoRaw,
+  fees: ?string,
   validators: ?string[],
 |};
 

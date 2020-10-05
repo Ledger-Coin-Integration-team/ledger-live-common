@@ -49,8 +49,6 @@ import type { CoreOperationSpecifics as CoreOperationSpecifics_polkadot } from "
 import type { CoreCurrencySpecifics as CoreCurrencySpecifics_polkadot } from "../families/polkadot/types";
 import type { Transaction as polkadotTransaction } from "../families/polkadot/types";
 import type { TransactionRaw as polkadotTransactionRaw } from "../families/polkadot/types";
-import type { NetworkInfo as polkadotNetworkInfo } from "../families/polkadot/types";
-import type { NetworkInfoRaw as polkadotNetworkInfoRaw } from "../families/polkadot/types";
 import { reflect as rippleReflect } from "../families/ripple/types";
 import type { CoreStatics as CoreStatics_ripple } from "../families/ripple/types";
 import type { CoreAccountSpecifics as CoreAccountSpecifics_ripple } from "../families/ripple/types";
@@ -159,7 +157,6 @@ export type NetworkInfo =
   | cosmosNetworkInfo
   | ethereumNetworkInfo
   | neoNetworkInfo
-  | polkadotNetworkInfo
   | rippleNetworkInfo
   | stellarNetworkInfo
   | tezosNetworkInfo
@@ -169,7 +166,6 @@ export type NetworkInfoRaw =
   | cosmosNetworkInfoRaw
   | ethereumNetworkInfoRaw
   | neoNetworkInfoRaw
-  | polkadotNetworkInfoRaw
   | rippleNetworkInfoRaw
   | stellarNetworkInfoRaw
   | tezosNetworkInfoRaw
