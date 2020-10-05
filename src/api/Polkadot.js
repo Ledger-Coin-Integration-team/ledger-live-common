@@ -19,6 +19,14 @@ async function fetch(url: string) {
   return data;
 }
 
+async function getApi() {
+  const wsProvider = new WsProvider("ws://localhost:9944");
+  const api = await ApiPromise.create({ provider: wsProvider });
+
+  await api.isReady;
+  return api;
+}
+
 const rpc = async (method: string, params: any[] = []): Promise<any> => {
   const {
     data: { result, error },
@@ -70,17 +78,42 @@ export const ApigetBalances = async (addr: string) => {
   }
 };
 
+export const getElectionStatus = async () => {
+  const api = await getApi();
+
+  const status = await api.query.staking.eraElectionStatus();
+
+  const res = status.isClose;
+
+  await api.disconnect();
+
+  return res;
+};
+
+export const isAddressValid = async (addr: string) => {
+  const api = await getApi();
+
+  try {
+    await api.query.balances.account(addr);
+  } catch (error) {
+    await api.disconnect();
+    return false;
+  }
+
+  await api.disconnect();
+  return true;
+};
+
 export const getBalances = async (addr: string) => {
-  const wsProvider = new WsProvider("ws://localhost:9944");
-  console.log("===== GET BALANCES");
-  console.log(addr);
-  const api = await ApiPromise.create({ provider: wsProvider });
+  const api = await getApi();
 
-  await api.isReady;
-
-  const allBalances = await api.derive.balances.all(addr);
+  const [allBalances, unbondings] = await Promise.all([
+    api.derive.balances.all(addr),
+    api.query.staking.ledger(addr),
+  ]);
   const json = JSON.parse(JSON.stringify(allBalances, null, 2));
-  console.log(json);
+
+  const unbondJson = JSON.parse(JSON.stringify(unbondings, null, 2));
 
   await api.disconnect();
 
@@ -90,7 +123,10 @@ export const getBalances = async (addr: string) => {
     polkadotResources: {
       nonce: json.accountNonce,
       bondedBalance: BigNumber(json.lockedBalance),
-      unbondings: [], // TODO
+      unbondings: unbondJson.unlocking.map((unbond) => ({
+        amount: BigNumber(unbond.value),
+        completionDate: new Date(),
+      })), // TODO
       nominations: [], // TODO
     },
   };
@@ -159,12 +195,11 @@ export const getTransactionParams = async () => {
 };
 
 export const getValidators = async () => {
-  const wsProvider = new WsProvider("ws://localhost:9944");
-
-  const api = await ApiPromise.create({ provider: wsProvider });
+  const api = await getApi();
 
   const validators = await api.query.session.validators();
 
+  let formattedValidator = [];
   if (validators && validators.length > 0) {
     // Retrieve the balances for all validators
     const validatorBalances = await Promise.all(
@@ -174,13 +209,17 @@ export const getValidators = async () => {
       }))
     );
 
-    return validators.map((authorityId, index) => ({
+    formattedValidator = validators.map((authorityId, index) => ({
       address: authorityId.toString(),
       balance: validatorBalances[index].balances.data.free.toHuman(),
       nonce: validatorBalances[index].balances.nonce.toHuman(),
       bonded: validatorBalances[index].bonded,
     }));
   }
+
+  await api.disconnect();
+
+  return formattedValidator;
 };
 
 export const submitExtrinsic = async (extrinsic: string) => {
@@ -194,7 +233,7 @@ export const submitExtrinsic = async (extrinsic: string) => {
 export const paymentInfo = async (extrinsic: string) => {
   const res = await rpc("payment_queryInfo", [extrinsic]);
 
-  console.log("broadcast", res);
+  console.log("paymentInfo", res);
 
   return res;
 };

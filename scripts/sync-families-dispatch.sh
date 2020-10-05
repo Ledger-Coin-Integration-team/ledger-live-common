@@ -29,7 +29,7 @@ account.js \
 swap.js \
 "
 
-withoutNetworkInfo=("algorand")
+withoutNetworkInfo=("algorand polkadot")
 
 cd ../src
 
