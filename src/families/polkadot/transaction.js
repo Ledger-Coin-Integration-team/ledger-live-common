@@ -38,6 +38,7 @@ export const fromTransactionRaw = (tr: TransactionRaw): Transaction => {
     fees: tr.fees ? BigNumber(tr.fees) : null,
     validators: tr.validators,
     era: tr.era,
+    rewardDestination: tr.rewardDestination,
   };
 };
 
@@ -50,6 +51,7 @@ export const toTransactionRaw = (t: Transaction): TransactionRaw => {
     fees: t.fees?.toString(),
     validators: t.validators,
     era: t.era,
+    rewardDestination: t.rewardDestination,
   };
 };
 
