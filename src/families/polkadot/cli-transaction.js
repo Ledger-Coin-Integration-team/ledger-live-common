@@ -23,6 +23,11 @@ const options = [
     multiple: true,
     desc: "address of recipient validator that will receive the delegate",
   },
+  {
+    name: "era",
+    type: String,
+    desc: "Era of when to claim rewards",
+  },
 ];
 
 const polkadotValidatorsFormatters = {
@@ -69,6 +74,7 @@ function inferTransactions(
       fees: opts.fees ? inferAmount(account, opts.fees) : null,
       mode: opts.mode || "send",
       validators,
+      era: opts.era || null,
     };
   });
 }

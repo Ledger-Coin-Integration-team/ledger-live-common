@@ -6,8 +6,10 @@ import type { PolkadotResourcesRaw, PolkadotResources } from "./types";
 export function toPolkadotResourcesRaw(
   r: PolkadotResources
 ): PolkadotResourcesRaw {
-  const { nonce } = r;
+  const { nonce, controller, stash } = r;
   return {
+    controller,
+    stash,
     nonce,
     bondedBalance: r.bondedBalance.toString(),
     unbondings: r.unbondings?.map((u) => ({
@@ -25,8 +27,10 @@ export function toPolkadotResourcesRaw(
 export function fromPolkadotResourcesRaw(
   r: PolkadotResourcesRaw
 ): PolkadotResources {
-  const { nonce } = r;
+  const { nonce, controller, stash } = r;
   return {
+    controller,
+    stash,
     nonce,
     bondedBalance: BigNumber(r.bondedBalance),
     unbondings: r.unbondings?.map((u) => ({
