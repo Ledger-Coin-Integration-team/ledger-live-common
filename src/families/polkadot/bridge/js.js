@@ -8,7 +8,6 @@ import {
   NotEnoughBalance,
   RecipientRequired,
   InvalidAddress,
-  FeeTooHigh,
   InvalidAddressBecauseDestinationIsAlsoSource,
   AmountRequired,
 } from "@ledgerhq/errors";
@@ -85,6 +84,7 @@ const createTransaction = (): Transaction => ({
   useAllAmount: false,
   fees: null,
   validators: [],
+  era: null,
 });
 
 const updateTransaction = (t, patch) => ({ ...t, ...patch });
@@ -128,8 +128,12 @@ const getSendTransactionStatus = async (a: Account, t: Transaction) => {
   }
 
   // Should be min 1 DOT
-  if (!errors.recipient && (await isNewAccount(t.recipient))) {
-    minAmountRequired = BigNumber(10000000000);
+  if (
+    !errors.recipient &&
+    (await isNewAccount(t.recipient)) &&
+    t.amount.lt(10000000000)
+  ) {
+    throw new Error("Should send more than one dot for existential deposit");
   }
 
   const txInfo = await getTxInfo(a);
@@ -189,7 +193,16 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
   let totalSpent = estimatedFees;
 
   switch (t.mode) {
+    case "bond":
+      if (!a.polkadotResources?.controller) {
+        errors.staking = new Error("Can't bond with controller account");
+      }
+      break;
+
     case "unbond":
+      if (!a.polkadotResources?.controller) {
+        errors.staking = new Error("Can't unbond with controller account");
+      }
       if (a.polkadotResources?.unbondings) {
         const totalUnbond = a.polkadotResources.unbondings.reduce(
           (old, current) => {
@@ -213,9 +226,12 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
       break;
 
     case "nominate":
+      if (!a.polkadotResources?.stash) {
+        errors.staking = new Error("Can't nominate with stash account");
+      }
       if (
         t.validators?.some(
-          (v) => true //TODO check validator when we got validatorList
+          (v) => false //TODO check validator when we got validatorList
         ) ||
         t.validators?.length === 0
       )
@@ -231,7 +247,7 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
     totalSpent = estimatedFees;
   }
 
-  if (t.mode === "bond") {
+  if (t.mode === "bond" && !errors.staking) {
     amount = useAllAmount
       ? a.spendableBalance.minus(estimatedFees)
       : BigNumber(t.amount);
@@ -242,7 +258,7 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
 
     // TODO: Not true must check if there's a controller with :
     // api.query.staking.ledger(controller)
-    if (a.polkadotResources?.bondedBalance.eq(0) && t.amount.lt(10000000000)) {
+    if (!a.polkadotResources?.controller && t.amount.lt(10000000000)) {
       throw new Error("Not enough amount to activate new account");
     }
 
@@ -274,7 +290,6 @@ const signOperation = ({ account, transaction, deviceId }) =>
         // Sign by device
 
         const txInfo = await getTxInfo(account);
-        console.log(txInfo);
         console.log("buildTR");
         const unsignedTransaction = await buildTransaction(
           account,
