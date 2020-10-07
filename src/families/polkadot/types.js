@@ -8,6 +8,8 @@ import type {
 
 export type PolkadotOperationMode = "send" | "bond" | "nominate" | "unbond"
 
+export type RewardDestinationType = "Staked" | "Stash" | "Account" | "Controller"
+
 export type CoreStatics = {};
 
 export type CoreAccountSpecifics = {};
@@ -66,6 +68,7 @@ export type Transaction = {|
   fees: ?BigNumber,
   validators: ?string[],
   era: ?string,
+  rewardDestination: ?string,
 |};
 
 export type TransactionRaw = {|
@@ -75,6 +78,7 @@ export type TransactionRaw = {|
   fees: ?string,
   validators: ?string[],
   era: ?string,
+  rewardDestination: ?string,
 |};
 
 export type PolkadotValidator = {|
