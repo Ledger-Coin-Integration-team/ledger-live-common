@@ -73,7 +73,7 @@ export const ApigetBalances = async (addr: string) => {
     return {
       balance: BigNumber(0),
       spendableBalance: BigNumber(0),
-      polkadotResources: { nonce: 0 },
+      polkadotResources: { nonce: 0, controller: null },
     };
   }
 };
@@ -107,13 +107,16 @@ export const isAddressValid = async (addr: string) => {
 export const getBalances = async (addr: string) => {
   const api = await getApi();
 
-  const [allBalances, unbondings] = await Promise.all([
+  const [allBalances, unbondings, bonded] = await Promise.all([
     api.derive.balances.all(addr),
     api.query.staking.ledger(addr),
+    api.query.staking.bonded(addr),
   ]);
   const json = JSON.parse(JSON.stringify(allBalances, null, 2));
 
   const unbondJson = JSON.parse(JSON.stringify(unbondings, null, 2));
+  const stash = unbondJson ? unbondJson.stash : null;
+  const controller = bonded.isSome ? bonded.unwrap().toString() : null;
 
   await api.disconnect();
 
@@ -121,12 +124,16 @@ export const getBalances = async (addr: string) => {
     balance: BigNumber(json.freeBalance),
     spendableBalance: BigNumber(json.availableBalance),
     polkadotResources: {
+      controller,
+      stash,
       nonce: json.accountNonce,
       bondedBalance: BigNumber(json.lockedBalance),
-      unbondings: unbondJson.unlocking.map((unbond) => ({
-        amount: BigNumber(unbond.value),
-        completionDate: new Date(),
-      })), // TODO
+      unbondings: unbondJson
+        ? unbondJson.unlocking.map((unbond) => ({
+            amount: BigNumber(unbond.value),
+            completionDate: new Date(),
+          }))
+        : [], // TODO
       nominations: [], // TODO
     },
   };
