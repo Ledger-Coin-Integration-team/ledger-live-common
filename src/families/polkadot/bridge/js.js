@@ -12,6 +12,8 @@ import {
   AmountRequired,
 } from "@ledgerhq/errors";
 
+import { PolkadotNotAuthorizeOperation } from "../../../errors";
+
 import type {
   Account,
   Operation,
@@ -85,6 +87,7 @@ const createTransaction = (): Transaction => ({
   fees: null,
   validators: [],
   era: null,
+  rewardDestination: null,
 });
 
 const updateTransaction = (t, patch) => ({ ...t, ...patch });
@@ -195,13 +198,13 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
   switch (t.mode) {
     case "bond":
       if (!a.polkadotResources?.controller) {
-        errors.staking = new Error("Can't bond with controller account");
+        errors.staking = new PolkadotNotAuthorizeOperation();
       }
       break;
 
     case "unbond":
       if (!a.polkadotResources?.controller) {
-        errors.staking = new Error("Can't unbond with controller account");
+        errors.staking = new PolkadotNotAuthorizeOperation();
       }
       if (a.polkadotResources?.unbondings) {
         const totalUnbond = a.polkadotResources.unbondings.reduce(
@@ -227,7 +230,7 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
 
     case "nominate":
       if (!a.polkadotResources?.stash) {
-        errors.staking = new Error("Can't nominate with stash account");
+        errors.staking = new PolkadotNotAuthorizeOperation();
       }
       if (
         t.validators?.some(

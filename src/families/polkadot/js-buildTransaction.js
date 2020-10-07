@@ -1,14 +1,13 @@
 // @flow
 
-import type Transport from "@ledgerhq/hw-transport";
 import type { Transaction } from "./types";
 import type { Account } from "../../types";
 
 import { methods } from "@substrate/txwrapper";
-import { getTxInfo } from "../../api/Polkadot";
 
 const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
   const { txBaseInfo, txOptions } = txInfo;
+  const validator = t.validators ? t.validators[0] : null;
 
   let transaction;
   switch (t.mode) {
@@ -25,7 +24,7 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
 
     // still not sure about this rule should get more info about that
     case "bond":
-      transaction = a.polkadotResources?.bondedBalance.gte(0)
+      transaction = a.polkadotResources?.controller
         ? methods.staking.bondExtra(
             {
               maxAdditional: t.amount.toString(),
@@ -35,9 +34,9 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
           )
         : methods.staking.bond(
             {
-              controller: a.freshAddress,
+              controller: t.recipient,
               value: t.amount.toString(),
-              payee: "Stash",
+              payee: t.rewardDestination,
             },
             txBaseInfo,
             txOptions
@@ -63,7 +62,6 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
       break;
 
     case "claimReward":
-      const validator = t.validators ? t.validators[0] : null;
       transaction = methods.staking.payoutStakers(
         { validatorStash: validator, era: t.era },
         txBaseInfo,
