@@ -42,6 +42,8 @@ export type PolkadotUnbondingRaw = {|
 |};
 
 export type PolkadotResources = {|
+  controller: ?string,
+  stash: ?string,
   nonce: number,
   bondedBalance: BigNumber,
   unbondings: ?PolkadotUnbonding[],
@@ -49,6 +51,8 @@ export type PolkadotResources = {|
 |};
 
 export type PolkadotResourcesRaw = {|
+  controller: ?string,
+  stash: ?string,
   nonce: number,
   bondedBalance: string,
   unbondings: ?PolkadotUnbondingRaw[],
@@ -61,6 +65,7 @@ export type Transaction = {|
   family: "polkadot",
   fees: ?BigNumber,
   validators: ?string[],
+  era: ?string,
 |};
 
 export type TransactionRaw = {|
@@ -69,6 +74,7 @@ export type TransactionRaw = {|
   mode: string,
   fees: ?string,
   validators: ?string[],
+  era: ?string,
 |};
 
 export type PolkadotValidator = {|
