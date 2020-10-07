@@ -412,7 +412,12 @@ export function genAccount(
 
   if (currency.family === "polkadot") {
     account.polkadotResources = {
+      stash: null,
+      controller: null,
       nonce: 0,
+      bondedBalance: BigNumber(0),
+      unbondings: null,
+      nominations: null,
     };
   }
 

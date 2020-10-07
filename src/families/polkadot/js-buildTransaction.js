@@ -62,6 +62,15 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
       );
       break;
 
+    case "claimReward":
+      const validator = t.validators ? t.validators[0] : null;
+      transaction = methods.staking.payoutStakers(
+        { validatorStash: validator, era: t.era },
+        txBaseInfo,
+        txOptions
+      );
+      break;
+
     default:
       throw new Error("Unknown mode in transaction");
   }
