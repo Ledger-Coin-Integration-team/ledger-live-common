@@ -28,6 +28,17 @@ const options = [
     type: String,
     desc: "Era of when to claim rewards",
   },
+  /** Different possible destionation : 
+    Staked - Pay into the stash account, increasing the amount at stake accordingly.
+    Stash - Pay into the stash account, not increasing the amount at stake.
+    Account - Pay into a custom account, like so: Account DMTHrNcmA8QbqRS4rBq8LXn8ipyczFoNMb1X4cY2WD9tdBX.
+    Controller - Pay into the controller account.
+   */
+  {
+    name: "rewardDestination",
+    type: String,
+    desc: "Reward destination",
+  },
 ];
 
 const polkadotValidatorsFormatters = {
@@ -75,6 +86,7 @@ function inferTransactions(
       mode: opts.mode || "send",
       validators,
       era: opts.era || null,
+      rewardDestination: opts.rewardDestination || null,
     };
   });
 }
