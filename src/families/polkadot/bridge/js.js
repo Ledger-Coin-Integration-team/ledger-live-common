@@ -10,9 +10,13 @@ import {
   InvalidAddress,
   InvalidAddressBecauseDestinationIsAlsoSource,
   AmountRequired,
+  NotEnoughBalanceBecauseDestinationNotCreated,
 } from "@ledgerhq/errors";
 
-import { PolkadotNotAuthorizeOperation } from "../../../errors";
+import {
+  PolkadotUnauthorizedOperation,
+  PolkadotElectionClosed,
+} from "../../../errors";
 
 import type {
   Account,
@@ -45,6 +49,7 @@ import {
 } from "../js-getFeesForTransaction";
 import buildTransaction from "../js-buildTransaction";
 import { Polkadot } from "../ledger-app/Polkadot";
+import { isStash, isController } from "../logic.js";
 
 const receive = makeAccountBridgeReceive();
 
@@ -136,7 +141,9 @@ const getSendTransactionStatus = async (a: Account, t: Transaction) => {
     (await isNewAccount(t.recipient)) &&
     t.amount.lt(10000000000)
   ) {
-    throw new Error("Should send more than one dot for existential deposit");
+    errors.amount = new NotEnoughBalanceBecauseDestinationNotCreated("", {
+      minimalAmount: "1 DOT",
+    });
   }
 
   const txInfo = await getTxInfo(a);
@@ -188,7 +195,7 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
   }
 
   if (await !isElectionStatusClosed()) {
-    throw new Error("ELECTION IS CLOSED");
+    errors.staking = new PolkadotElectionClosed();
   }
 
   let estimatedFees = t.fees || BigNumber(0);
@@ -197,14 +204,14 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
 
   switch (t.mode) {
     case "bond":
-      if (!a.polkadotResources?.controller) {
-        errors.staking = new PolkadotNotAuthorizeOperation();
+      if (isController(a)) {
+        errors.staking = new PolkadotUnauthorizedOperation();
       }
       break;
 
     case "unbond":
-      if (!a.polkadotResources?.controller) {
-        errors.staking = new PolkadotNotAuthorizeOperation();
+      if (isController(a)) {
+        errors.staking = new PolkadotUnauthorizedOperation();
       }
       if (a.polkadotResources?.unbondings) {
         const totalUnbond = a.polkadotResources.unbondings.reduce(
@@ -229,8 +236,8 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
       break;
 
     case "nominate":
-      if (!a.polkadotResources?.stash) {
-        errors.staking = new PolkadotNotAuthorizeOperation();
+      if (isStash(a)) {
+        errors.staking = new PolkadotUnauthorizedOperation();
       }
       if (
         t.validators?.some(
@@ -259,10 +266,10 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
       ? a.spendableBalance
       : BigNumber(t.amount).plus(estimatedFees);
 
-    // TODO: Not true must check if there's a controller with :
-    // api.query.staking.ledger(controller)
     if (!a.polkadotResources?.controller && t.amount.lt(10000000000)) {
-      throw new Error("Not enough amount to activate new account");
+      errors.amount = new NotEnoughBalanceBecauseDestinationNotCreated("", {
+        minimalAmount: "1 DOT",
+      });
     }
 
     if (amount.lte(0) && !t.useAllAmount) {
@@ -283,6 +290,7 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
   });
 };
 
+// TODO : Need to fix when we got indexer
 const signOperation = ({ account, transaction, deviceId }) =>
   Observable.create((o) => {
     async function main() {
