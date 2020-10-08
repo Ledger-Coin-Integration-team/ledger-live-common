@@ -154,6 +154,10 @@ export const CompoundLowerAllowanceOfActiveAccountError = createCustomErrorClass
   "CompoundLowerAllowanceOfActiveAccountError"
 );
 
-export const PolkadotNotAuthorizeOperation = createCustomErrorClass(
-  "PolkadotNotAuthorizeOperation"
+export const PolkadotUnauthorizedOperation = createCustomErrorClass(
+  "PolkadotUnauthorizedOperation"
+);
+
+export const PolkadotElectionClosed = createCustomErrorClass(
+  "PolkadotElectionClosed"
 );
