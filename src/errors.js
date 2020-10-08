@@ -145,6 +145,10 @@ export const AlgorandASANotOptInInRecipient = createCustomErrorClass(
   "AlgorandASANotOptInInRecipient"
 );
 
-export const PolkadotNotAuthorizeOperation = createCustomErrorClass(
-  "PolkadotNotAuthorizeOperation"
+export const PolkadotUnauthorizedOperation = createCustomErrorClass(
+  "PolkadotUnauthorizedOperation"
+);
+
+export const PolkadotElectionClosed = createCustomErrorClass(
+  "PolkadotElectionClosed"
 );
