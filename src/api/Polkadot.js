@@ -8,6 +8,7 @@ type AsyncApiFunction = (api: typeof ApiPromise) => Promise<any>;
 
 const getBaseApiUrl = () => getEnv("API_POLKADOT_INDEXER");
 const getWsUrl = () => getEnv("API_POLKADOT_NODE");
+const SUBSCAN_MULTIPLIER = 10000000000;
 
 /**
  * Connects to Substrate Node, executes calls then disconnects
@@ -38,21 +39,6 @@ export const isElectionClosed = async () =>
     const res = status.isClose;
 
     return !!res;
-  });
-
-/**
- * Returns true if an address is valid
- *
- * @param {string} addr - the address to test
- */
-export const isAddressValid = async (addr: string) =>
-  withApi(async (api: typeof ApiPromise) => {
-    try {
-      await api.query.balances.account(addr);
-      return true;
-    } catch (error) {
-      return false;
-    }
   });
 
 /**
@@ -229,4 +215,203 @@ export const getTransfers = async (accountId: string, addr: string) => {
   }
 
   return operations;
+};
+
+const mapSubscanReward = (ownerAddr, accountId, reward) => {
+  return {
+    id: `${accountId}-${reward.extrinsic_hash}-REWARD`,
+    accountId,
+    fee: BigNumber(0),
+    value: BigNumber(reward.amount),
+    type: "REWARD", // TODO: Slash
+    hash: reward.extrinsic_hash,
+    blockHeight: reward.block_num,
+    date: new Date(reward.block_timestamp * 1000),
+    extra: {
+      module: reward.module_id,
+    },
+  };
+};
+
+const getSubscanRewards = async (
+  accountId,
+  addr,
+  page = 0,
+  prevOperations = []
+) => {
+  let url = `${getBaseApiUrl()}/api/scan/account/reward_slash`;
+  let operations = [];
+  let count;
+
+  try {
+    const { data } = await network({
+      method: "POST",
+      url,
+      data: {
+        row: 5,
+        page,
+        address: addr,
+      },
+    });
+
+    count = data.data.count;
+    operations = [
+      ...prevOperations,
+      ...data.data.list.map(mapSubscanReward.bind(null, addr, accountId)),
+    ];
+  } catch (e) {
+    console.log(e);
+    throw new Error("Sync has failed");
+  }
+
+  return operations.length < count
+    ? getSubscanRewards(accountId, addr, page + 1, operations)
+    : operations;
+};
+
+const mapSubscanTransfer = (ownerAddr, accountId, transfer) => {
+  const type = transfer.from === ownerAddr ? "OUT" : "IN";
+
+  return {
+    id: `${accountId}-${transfer.extrinsic_hash}-${type}`,
+    accountId,
+    fee: BigNumber(transfer.fee),
+    value: BigNumber(transfer.amount).multipliedBy(SUBSCAN_MULTIPLIER),
+    type,
+    hash: transfer.hash,
+    blockHeight: transfer.block_num,
+    date: new Date(transfer.block_timestamp * 1000),
+    extra: {
+      module: transfer.module,
+    },
+    hasFailed: !transfer.success,
+  };
+};
+
+const getSubscanTransfers = async (
+  accountId,
+  addr,
+  page = 0,
+  prevOperations = []
+) => {
+  let url = `${getBaseApiUrl()}/api/scan/transfers`;
+  let operations = [];
+  let count;
+
+  try {
+    const { data } = await network({
+      method: "POST",
+      url,
+      data: {
+        row: 5,
+        page,
+        address: addr,
+      },
+    });
+
+    count = data.data.count;
+    operations = [
+      ...prevOperations,
+      ...data.data.transfers.map(
+        mapSubscanTransfer.bind(null, addr, accountId)
+      ),
+    ];
+  } catch (e) {
+    console.log(e);
+    throw new Error("Sync has failed");
+  }
+
+  return operations.length < count
+    ? getSubscanTransfers(accountId, addr, page + 1, operations)
+    : operations;
+};
+
+const getOperationType = (pallet, palletMethod) => {
+  if (pallet === "staking" && palletMethod === "nominate") {
+    return "DELEGATE";
+  }
+
+  return "NONE";
+};
+
+const mapSubscanExtrinsic = (accountId: string, extrinsic) => {
+  if (extrinsic.call_module === "balances") {
+    return undefined;
+  }
+
+  const type = getOperationType(
+    extrinsic.call_module,
+    extrinsic.call_module_function
+  );
+
+  return {
+    id: `${accountId}-${extrinsic.extrinsic_hash}-${type}`,
+    accountId,
+    fee: BigNumber(extrinsic.fee),
+    value: BigNumber(0),
+    type,
+    hash: extrinsic.extrinsic_hash,
+    blockHeight: extrinsic.block_num,
+    date: new Date(extrinsic.block_timestamp * 1000),
+    extra: {
+      module: extrinsic.call_module,
+      function: extrinsic.call_module_function,
+    },
+    hasFailed: !extrinsic.success,
+  };
+};
+
+/**
+ * WIP - Fetch all operations from subscan
+ *
+ * @param {string} accountId - the internal identifier for account
+ * @param {string} addr - the account address on Substrate
+ */
+const getSubscanExtrinsics = async (
+  accountId: string,
+  addr: string,
+  page = 0,
+  prevOperations = []
+) => {
+  let url = `${getBaseApiUrl()}/api/scan/extrinsics`;
+  let count;
+  let operations;
+
+  try {
+    const { data } = await network({
+      method: "POST",
+      url,
+      data: {
+        row: 5,
+        page,
+        address: addr,
+      },
+    });
+
+    count = data.data.count;
+
+    operations = [
+      ...prevOperations,
+      ...data.data.extrinsics.map(mapSubscanExtrinsic.bind(null, accountId)),
+    ];
+  } catch (e) {
+    console.log(e);
+    throw new Error(e);
+  }
+
+  return operations.length < count
+    ? getSubscanExtrinsics(accountId, addr, page + 1, operations)
+    : operations.filter(Boolean);
+};
+
+export const getOperations = async (accountId: string, addr: string) => {
+  const [extrinsicsOp, transfersOp, rewardsOp] = await Promise.all([
+    getSubscanExtrinsics(accountId, addr),
+    getSubscanTransfers(accountId, addr),
+    getSubscanRewards(accountId, addr),
+  ]);
+
+  return [...extrinsicsOp, ...transfersOp, ...rewardsOp].sort(
+    (a, b) => b.date - a.date
+  );
 };
