@@ -49,7 +49,7 @@ const envDefinitions = {
   },
   API_POLKADOT_INDEXER: {
     parser: stringParser,
-    def: "https://explorer-31.polkascan.io/",
+    def: "https://polkadot.subscan.io",
     desc: "explorer API for polkadot",
   },
   API_POLKADOT_NODE: {
