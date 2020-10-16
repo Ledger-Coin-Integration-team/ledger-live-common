@@ -13,7 +13,9 @@ import dataset from "../generated/test-dataset";
 import specifics from "../generated/test-specifics";
 import type { DatasetTest } from "../types";
 
-jest.mock("@polkadot/util/logger.js", () => require("./__mocks__/@polkadot/util/logger.js"));
+jest.mock("@polkadot/util/logger.js", () =>
+  require("./__mocks__/@polkadot/util/logger.js")
+);
 
 setup("libcore");
 

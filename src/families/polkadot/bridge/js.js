@@ -37,7 +37,7 @@ import {
 } from "../../../bridge/jsHelpers";
 import {
   getBalances,
-  getTransfers,
+  getOperations,
   submitExtrinsic,
   isElectionClosed,
 } from "../../../api/Polkadot";
@@ -66,7 +66,7 @@ const estimateMaxSpendable = ({
 const getAccountShape = async (info, _syncConfig) => {
   const balances = await getBalances(info.address);
   console.log("getAccountShape", balances);
-  const operations = await getTransfers(info.id, info.address);
+  const operations = await getOperations(info.id, info.address);
 
   return {
     id: info.id,
