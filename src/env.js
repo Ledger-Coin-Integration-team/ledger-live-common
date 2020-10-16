@@ -54,8 +54,8 @@ const envDefinitions = {
   },
   API_POLKADOT_NODE: {
     parser: stringParser,
-    def: "http://localhost:9933",
-    desc: "Polkadot Node RPC url",
+    def: "ws://localhost:9944",
+    desc: "Polkadot Node WS url",
   },
   API_TEZOS_BAKER: {
     parser: stringParser,
