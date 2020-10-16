@@ -8,6 +8,15 @@ import type { Transaction } from "./types";
 import { paymentInfo } from "../../api/Polkadot";
 import buildTransaction from "./js-buildTransaction";
 
+/**
+ * Fetch transactions fees for an unsigned extrinsic.
+ * Note: we need to add a fake signature for the paymentInfo to be retrieved.
+ * So we add a signature filled with any bytes.
+ *
+ * @param {*} a - the account
+ * @param {*} unsignedTx
+ * @param {*} txInfo
+ */
 export const getEstimatedFeesFromUnsignedTx = async (
   a: Account,
   unsignedTx: string,
@@ -29,6 +38,13 @@ export const getEstimatedFeesFromUnsignedTx = async (
   return fee;
 };
 
+/**
+ * Fetch the transaction fees for a transaction
+ *
+ * @param {Account} a
+ * @param {Transaction} t
+ * @param {*} txInfo
+ */
 export const getEstimatedFees = async (
   a: Account,
   t: Transaction,

@@ -1,8 +1,9 @@
 // @flow
 import { BigNumber } from "bignumber.js";
 import { Observable } from "rxjs";
-import invariant from "invariant";
+// import invariant from "invariant";
 import { createSignedTx } from "@substrate/txwrapper";
+import { decodeAddress } from "@polkadot/util-crypto";
 
 import {
   NotEnoughBalance,
@@ -27,8 +28,8 @@ import type {
 import type { Transaction } from "../types";
 import { open, close } from "../../../hw";
 import type { AccountBridge, CurrencyBridge } from "../../../types";
-import { isInvalidRecipient } from "../../../bridge/mockHelpers";
-import { getMainAccount } from "../../../account";
+// import { isInvalidRecipient } from "../../../bridge/mockHelpers";
+// import { getMainAccount } from "../../../account";
 import {
   makeSync,
   makeScanAccounts,
@@ -38,11 +39,9 @@ import {
   getBalances,
   getTransfers,
   submitExtrinsic,
-  paymentInfo,
-  getTxInfo,
-  isAddressValid,
-  getElectionStatus,
+  isElectionClosed,
 } from "../../../api/Polkadot";
+import getTxInfo from "../js-getTransactionInfo";
 import {
   getEstimatedFees,
   getEstimatedFeesFromUnsignedTx,
@@ -50,18 +49,21 @@ import {
 import buildTransaction from "../js-buildTransaction";
 import { Polkadot } from "../ledger-app/Polkadot";
 import { isStash, isController } from "../logic.js";
+import { patchOperationWithHash } from "../../../operation";
 
 const receive = makeAccountBridgeReceive();
 
-const estimateMaxSpendable = ({ account, parentAccount, transaction }) => {
-  const mainAccount = getMainAccount(account, parentAccount);
+const estimateMaxSpendable = ({
+  account /*, parentAccount, transaction */,
+}) => {
+  // const mainAccount = getMainAccount(account, parentAccount);
   const estimatedFees = BigNumber(5000);
   return Promise.resolve(
     BigNumber.max(0, account.balance.minus(estimatedFees))
   );
 };
 
-const getAccountShape = async (info, syncConfig) => {
+const getAccountShape = async (info, _syncConfig) => {
   const balances = await getBalances(info.address);
   console.log("getAccountShape", balances);
   const operations = await getTransfers(info.id, info.address);
@@ -101,8 +103,14 @@ const prepareTransaction = async (a, t) => {
   return t;
 };
 
-const isValid = async (recipient) => {
-  return await isAddressValid(recipient);
+const isValid = (recipient) => {
+  if (!recipient) return false;
+  try {
+    decodeAddress(recipient);
+    return true;
+  } catch (err) {
+    return false;
+  }
 };
 
 const isNewAccount = async (recipient) => {
@@ -111,42 +119,30 @@ const isNewAccount = async (recipient) => {
   return balances.polkadotResources.nonce === 0;
 };
 
-const isElectionStatusClosed = async () => {
-  const status = await getElectionStatus();
-
-  return status;
-};
-
 // Should try to refacto
-const getSendTransactionStatus = async (a: Account, t: Transaction) => {
+const getSendTransactionStatus = async (
+  a: Account,
+  t: Transaction
+): Promise<TransactionStatus> => {
   const errors = {};
   const warnings = {};
   const useAllAmount = !!t.useAllAmount;
-  let minAmountRequired = BigNumber(0);
+  // let minAmountRequired = BigNumber(0);
 
-  if (a.freshAddress === t.recipient) {
-    errors.recipient = new InvalidAddressBecauseDestinationIsAlsoSource();
-  }
   if (!t.recipient) {
     errors.recipient = new RecipientRequired("");
-  }
-  // TODO is valid with API ? how to check that properly ?
-  if (!(await isValid(t.recipient))) {
+  } else if (a.freshAddress === t.recipient) {
+    errors.recipient = new InvalidAddressBecauseDestinationIsAlsoSource();
+  } else if (!isValid(t.recipient)) {
     errors.recipient = new InvalidAddress("");
-  }
-
-  // Should be min 1 DOT
-  if (
-    !errors.recipient &&
-    (await isNewAccount(t.recipient)) &&
-    t.amount.lt(10000000000)
-  ) {
+  } else if ((await isNewAccount(t.recipient)) && t.amount.lt(10000000000)) {
     errors.amount = new NotEnoughBalanceBecauseDestinationNotCreated("", {
       minimalAmount: "1 DOT",
     });
   }
 
   const txInfo = await getTxInfo(a);
+
   let estimatedFees = BigNumber(0);
   if (!errors.recipient) {
     estimatedFees = await getEstimatedFees(a, t, txInfo);
@@ -168,11 +164,6 @@ const getSendTransactionStatus = async (a: Account, t: Transaction) => {
     errors.amount = new NotEnoughBalance();
   }
 
-  if (!errors.recipient && !errors.amount) {
-    const txInfo = await getTxInfo(a);
-    estimatedFees = await getEstimatedFees(a, t, txInfo);
-  }
-
   return Promise.resolve({
     errors,
     warnings,
@@ -188,13 +179,13 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
   const errors = {};
   const warnings = {};
   const useAllAmount = !!t.useAllAmount;
-  let minAmountRequired = BigNumber(0);
+  // let minAmountRequired = BigNumber(0);
 
   if (t.mode === "send") {
     return await getSendTransactionStatus(a, t);
   }
 
-  if (await !isElectionStatusClosed()) {
+  if (await !isElectionClosed()) {
     errors.staking = new PolkadotElectionClosed();
   }
 
@@ -241,7 +232,7 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
       }
       if (
         t.validators?.some(
-          (v) => false //TODO check validator when we got validatorList
+          (_v) => false //TODO check validator when we got validatorList
         ) ||
         t.validators?.length === 0
       )
@@ -386,7 +377,7 @@ const broadcast = async ({
 }): Promise<Operation> => {
   const hash = await submitExtrinsic(signature);
 
-  return operation;
+  return patchOperationWithHash(operation, hash);
 };
 
 const accountBridge: AccountBridge<Transaction> = {
