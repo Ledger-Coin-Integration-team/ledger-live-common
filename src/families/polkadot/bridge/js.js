@@ -72,12 +72,12 @@ const getAccountShape = async (info, _syncConfig) => {
     id: info.id,
     ...balances,
     operationsCount: operations.length,
-    operations,
+    operations: operations,
     blockHeight: operations.length,
   };
 };
 
-const postSync = (parent) => {
+const postSync = (initial: Account, parent: Account) => {
   return parent;
 };
 
