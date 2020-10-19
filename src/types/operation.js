@@ -17,6 +17,12 @@ export type OperationType =
   | "REWARD"
   | "FEES"
 
+  // POLKADOT
+  | "BOND"
+  | "UNBOND"
+  | "NOMINATE"
+  | "SLASH"
+
   // COMPOUND TYPE OPERATIONS
   | "SUPPLY"
   | "REDEEM"
