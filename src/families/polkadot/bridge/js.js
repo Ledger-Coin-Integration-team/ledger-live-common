@@ -34,6 +34,7 @@ import {
   makeSync,
   makeScanAccounts,
   makeAccountBridgeReceive,
+  mergeOps,
 } from "../../../bridge/jsHelpers";
 import {
   getBalances,
@@ -64,16 +65,25 @@ const estimateMaxSpendable = ({
 };
 
 const getAccountShape = async (info, _syncConfig) => {
-  const balances = await getBalances(info.address);
+  const { id, address, initialAccount } = info;
+  const oldOperations = initialAccount?.operations || [];
+  const startAt = oldOperations.length
+    ? (oldOperations[0].blockHeight || 0) + 1
+    : 0;
+
+  const balances = await getBalances(address);
+  const newOperations = await getOperations(id, address, startAt);
+  const operations = mergeOps(oldOperations, newOperations);
+  const blockHeight = operations.length ? operations[0].blockHeight : 0;
+
   console.log("getAccountShape", balances);
-  const operations = await getOperations(info.id, info.address);
 
   return {
     id: info.id,
     ...balances,
     operationsCount: operations.length,
-    operations: operations,
-    blockHeight: operations.length,
+    operations,
+    blockHeight,
   };
 };
 
