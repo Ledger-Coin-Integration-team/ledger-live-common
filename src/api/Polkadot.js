@@ -5,6 +5,7 @@ import network from "../network";
 import { BigNumber } from "bignumber.js";
 import { getEnv } from "../env";
 import { WsProvider, ApiPromise } from "@polkadot/api";
+import { encodeAddress } from "@polkadot/util-crypto";
 
 type AsyncApiFunction = (api: typeof ApiPromise) => Promise<any>;
 
@@ -12,19 +13,6 @@ const getBaseApiUrl = () => getEnv("API_POLKADOT_INDEXER");
 const getWsUrl = () => getEnv("API_POLKADOT_NODE");
 const SUBSCAN_MULTIPLIER = 10000000000;
 const ROW = 100;
-
-const fetch = async ({ method, url, args }) => {
-  const { data } = await network({
-    method,
-    url,
-    data: args,
-  });
-
-  // TODO: Code error test
-  const list = data.data.extrinsics || data.data.list || data.data.transfers;
-
-  return { count: data.data.count, list: list || [] };
-};
 
 /**
  * Connects to Substrate Node, executes calls then disconnects
@@ -184,62 +172,48 @@ export const paymentInfo = async (extrinsic: string) =>
  * EXPLORER/INDEXER FEATURES
  */
 
-/**
- * WIP - Fetch all operations for an account from Polkascan.
- * Only get the first 100 operations,
- * we probably are going to change indexer because this one missing some important information like date
- * It's just a semi-mock to be able to go forward on the code
- *
- * @param {string} accountId - the internal identifier for account
- * @param {string} addr - the account address on Substrate
- */
+const DOT_REDOMINATION_BLOCK = 1248328;
 
-export const getTransfers = async (accountId: string, addr: string) => {
-  const page = 1;
-  let operations = [];
-
-  let url = `${getBaseApiUrl()}/polkadot/api/v1/balances/transfer?filter[address]=${addr}&page[number]=${page}&page[size]=100`;
-  try {
-    const { data } = await network({
-      method: "GET",
-      url,
-    });
-
-    operations = data.data.map((op) => {
-      const type =
-        op.attributes.event_id === "Reward"
-          ? "IN"
-          : op.attributes.sender.attributes.address === addr
-          ? "OUT"
-          : "IN";
-
-      return {
-        id: `${accountId}-${op.attributes.event_idx}-${type}`,
-        accountId,
-        type,
-        value: BigNumber(op.attributes.value),
-        hash: op.attributes.event_idx,
-        fee: BigNumber(op.attributes.fee),
-        senders: [op.attributes.sender.attributes.address],
-        recipients: [op.attributes.destination.attributes.address],
-        blockHeight: op.attributes.block_id,
-        date: new Date(),
-      };
-    });
-  } catch (e) {
-    operations = [];
+const subscanAmountToPlanck = (amount, blockHeight) => {
+  if (blockHeight >= DOT_REDOMINATION_BLOCK) {
+    return BigNumber(amount).multipliedBy(SUBSCAN_MULTIPLIER);
   }
+  return BigNumber(amount).multipliedBy(100).multipliedBy(SUBSCAN_MULTIPLIER);
+};
 
-  return operations;
+const identity = (a) => a;
+/**
+ * Returns an array of unique elemnts, providing a function for getting deduplication value
+ *
+ * @param {*} arr - the original array
+ * @param {*} by - the function called for getting the value that must be unique
+ */
+const uniqBy = (arr, by = identity) => {
+  const existing = new Set();
+  return arr.reduce(
+    (uniq, value) =>
+      ((key) => {
+        if (existing.has(key)) {
+          return uniq;
+        }
+        existing.add(key);
+        uniq.push(value);
+        return uniq;
+      })(by(value)),
+    []
+  );
 };
 
 const mapSubscanReward = ({ accountId }, reward): $Shape<Operation> => {
+  const type = reward.event_id === "Reward" ? "REWARD" : "SLASH";
+  const hash = reward.extrinsic_hash || reward.event_index; // Slashes are not extrinsics
+
   return {
-    id: `${accountId}-${reward.extrinsic_hash}-REWARD`,
+    id: `${accountId}-${hash}-${type}`,
     accountId,
     fee: BigNumber(0),
     value: BigNumber(reward.amount),
-    type: "REWARD", // TODO: Slash
+    type,
     hash: reward.extrinsic_hash,
     blockHeight: reward.block_num,
     date: new Date(reward.block_timestamp * 1000),
@@ -252,7 +226,7 @@ const mapSubscanReward = ({ accountId }, reward): $Shape<Operation> => {
 const mapSubscanTransfer = (
   { addr, accountId },
   transfer
-): $Shape<Operation> => {
+): $Shape<Operation> | null => {
   const type = transfer.from === addr ? "OUT" : "IN";
 
   return {
@@ -261,11 +235,7 @@ const mapSubscanTransfer = (
     fee: BigNumber(transfer.fee),
     value: !transfer.success
       ? BigNumber(0)
-      : type === "IN"
-      ? BigNumber(transfer.amount).multipliedBy(SUBSCAN_MULTIPLIER)
-      : BigNumber(transfer.amount)
-          .multipliedBy(SUBSCAN_MULTIPLIER)
-          .plus(transfer.fee),
+      : subscanAmountToPlanck(transfer.amount, transfer.block_num),
     type,
     hash: transfer.hash,
     blockHeight: transfer.block_num,
@@ -281,6 +251,10 @@ const mapSubscanTransfer = (
 
 const getOperationType = (pallet, palletMethod) => {
   switch (palletMethod) {
+    case "transfer":
+    case "transfer_keep_alive":
+      return "OUT";
+
     case "bond_extra":
     case "bond":
       return "FREEZE";
@@ -304,25 +278,39 @@ const getOperationType = (pallet, palletMethod) => {
   }
 };
 
-const mapSubscanExtrinsic = ({ accountId }, extrinsic): $Shape<Operation> => {
-  if (extrinsic.call_module === "balances") {
-    return {};
-  }
-
+const mapSubscanExtrinsic = (
+  { addr, accountId },
+  extrinsic
+): $Shape<Operation> => {
   const type = getOperationType(
     extrinsic.call_module,
     extrinsic.call_module_function
   );
 
+  // FIXME subscan plz
+  const recipient =
+    extrinsic.destination &&
+    encodeAddress("0x" + extrinsic.destination, /* SS58FORMAT= */ 0);
+
+  // All successful transfers, but not self transfers (which only burn fees)
+  const value =
+    type === "OUT" && extrinsic.success && recipient !== addr
+      ? subscanAmountToPlanck(extrinsic.amount, extrinsic.block_num).plus(
+          extrinsic.fee
+        )
+      : BigNumber(extrinsic.fee);
+
   return {
     id: `${accountId}-${extrinsic.extrinsic_hash}-${type}`,
     accountId,
     fee: BigNumber(extrinsic.fee),
-    value: BigNumber(extrinsic.fee),
+    value,
     type,
     hash: extrinsic.extrinsic_hash,
     blockHeight: extrinsic.block_num,
     date: new Date(extrinsic.block_timestamp * 1000),
+    senders: recipient ? [addr] : undefined,
+    recipients: recipient ? [recipient] : undefined,
     extra: {
       module: extrinsic.call_module,
       function: extrinsic.call_module_function,
@@ -332,66 +320,101 @@ const mapSubscanExtrinsic = ({ accountId }, extrinsic): $Shape<Operation> => {
 };
 
 const fetchSubscanList = async (
+  resourceName,
   url,
   mapFn,
   mapArgs,
+  startAt,
   page = 0,
   prevOperations = []
 ) => {
   let operations;
+
+  if (prevOperations.length) {
+    const oldestBlockHeight =
+      prevOperations[prevOperations.length - 1].blockHeight;
+
+    if (oldestBlockHeight < startAt) {
+      return prevOperations.filter((o) => o.blockHeight >= startAt);
+    }
+  }
+
   try {
-    const { count, list } = await fetch({
+    const { data } = await network({
       method: "POST",
-      url,
-      args: {
+      url: `${getBaseApiUrl()}${url}`,
+      data: {
         address: mapArgs.addr,
         row: ROW,
         page,
       },
     });
 
-    console.log(url);
-    console.log(`${prevOperations.length} / ${count}`);
+    if (data.code !== 0) {
+      throw new Error(`SUBSCAN: ${data.message} - code ${data.code}`);
+    }
+    const list = data.data[resourceName] || [];
+    const count = data.data.count;
+
+    console.log(`${url} - ${prevOperations.length} / ${count}`);
 
     operations = [...prevOperations, ...list.map(mapFn.bind(null, mapArgs))];
 
-    console.log(operations.length);
     return operations.length < count
-      ? fetchSubscanList(url, mapFn, mapArgs, page + 1, operations)
+      ? fetchSubscanList(
+          resourceName,
+          url,
+          mapFn,
+          mapArgs,
+          startAt,
+          page + 1,
+          operations
+        )
       : operations;
   } catch (e) {
-    console.log(e);
-    throw new Error(e);
+    console.error(e);
+    throw e;
   }
 };
 
-export const getOperations = async (accountId: string, addr: string) => {
+export const getOperations = async (
+  accountId: string,
+  addr: string,
+  startAt: number = 0
+) => {
   const mapArgs = { addr, accountId };
   const [extrinsicsOp, transfersOp, rewardsOp] = await Promise.all([
     fetchSubscanList(
-      `${getBaseApiUrl()}/api/scan/extrinsics`,
+      "extrinsics",
+      "/api/scan/extrinsics",
       mapSubscanExtrinsic,
-      mapArgs
+      mapArgs,
+      startAt
     ),
     fetchSubscanList(
-      `${getBaseApiUrl()}/api/scan/transfers`,
+      "transfers",
+      "/api/scan/transfers",
       mapSubscanTransfer,
-      mapArgs
+      mapArgs,
+      startAt
     ),
     fetchSubscanList(
-      `${getBaseApiUrl()}/api/scan/account/reward_slash`,
+      "list",
+      "/api/scan/account/reward_slash",
       mapSubscanReward,
-      mapArgs
+      mapArgs,
+      startAt
     ),
   ]);
 
-  const operations = [
-    ...extrinsicsOp.filter((op) => op.id),
-    ...transfersOp,
-    ...rewardsOp,
-  ];
+  const incomingTransfers = transfersOp.filter((t) => t.type === "IN");
 
-  return operations.sort((a, b) => {
-    b.date - a.date;
-  });
+  const operations = uniqBy(
+    [...extrinsicsOp, ...incomingTransfers, ...rewardsOp],
+    (op) => op.id
+  );
+
+  operations.sort((a, b) => b.date - a.date);
+
+  return operations;
 };
