@@ -1,5 +1,4 @@
 // @flow
-import { BigNumber } from "bignumber.js";
 import type { Transaction, TransactionRaw } from "./types";
 import {
   fromTransactionCommonRaw,
@@ -10,7 +9,7 @@ import { getAccountUnit } from "../../account";
 import { formatCurrencyUnit } from "../../currencies";
 
 export const formatTransaction = (
-  { mode, amount, fees, recipient, validators, useAllAmount }: Transaction,
+  { mode, amount, recipient, validators, useAllAmount }: Transaction,
   account: Account
 ): string =>
   `
@@ -26,8 +25,7 @@ ${mode.toUpperCase()} ${
         })
   }
 TO ${recipient}
-${!validators ? "" : validators.join("\n")}
-with fees=${fees ? formatCurrencyUnit(getAccountUnit(account), fees) : "?"}`;
+${!validators ? "" : validators.join("\n")}`;
 
 export const fromTransactionRaw = (tr: TransactionRaw): Transaction => {
   const common = fromTransactionCommonRaw(tr);
@@ -35,7 +33,7 @@ export const fromTransactionRaw = (tr: TransactionRaw): Transaction => {
     ...common,
     family: tr.family,
     mode: tr.mode,
-    fees: tr.fees ? BigNumber(tr.fees) : null,
+    fees: null,
     validators: tr.validators,
     era: tr.era,
     rewardDestination: tr.rewardDestination,
@@ -48,7 +46,7 @@ export const toTransactionRaw = (t: Transaction): TransactionRaw => {
     ...common,
     family: t.family,
     mode: t.mode,
-    fees: t.fees?.toString(),
+    fees: null,
     validators: t.validators,
     era: t.era,
     rewardDestination: t.rewardDestination,
