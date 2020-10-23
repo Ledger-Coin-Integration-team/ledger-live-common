@@ -38,7 +38,7 @@ async function withApi(execute: AsyncApiFunction): Promise<any> {
 /**
  * Returns true if ElectionStatus is Close. If ElectionStatus is Open, some features must be disabled.
  */
-export const isElectionClosed = async () =>
+export const isElectionClosed = async (): Promise<Boolean> =>
   withApi(async (api: typeof ApiPromise) => {
     const status = await api.query.staking.eraElectionStatus();
 
@@ -48,21 +48,58 @@ export const isElectionClosed = async () =>
   });
 
 /**
+ * Get all validators addresses to check for validity.
+ */
+export const getValidatorsStashesAddresses = async (): Promise<string[]> =>
+  withApi(async (api: typeof ApiPromise) => {
+    const list = await api.derive.staking.stashes();
+
+    return list.map((v) => v.toString());
+  });
+
+/**
+ * Returns true if the address is a new account with no balance
+ *
+ * @param {*} addr
+ */
+export const isNewAccount = async (address: string): Promise<Boolean> =>
+  withApi(async (api: typeof ApiPromise) => {
+    const {
+      nonce,
+      data: { free },
+    } = await api.query.system.account(address);
+
+    return BigNumber(0).isEqualTo(nonce) && BigNumber(0).isEqualTo(free);
+  });
+
+/**
+ * Returns true if the address is a new account with no balance
+ *
+ * @param {*} addr
+ */
+export const isControllerAddress = async (address: string): Promise<Boolean> =>
+  withApi(async (api: typeof ApiPromise) => {
+    const ledgetOpt = await api.query.staking.ledger(address);
+
+    return ledgetOpt.isSome;
+  });
+
+/**
  * WIP - Returns all the balances for an account
  *
  * @param {*} addr - the account address
  */
 export const getBalances = async (addr: string) =>
   withApi(async (api: typeof ApiPromise) => {
-    const [allBalances, unbondings, bonded] = await Promise.all([
+    const [allBalances, ledgerOpt, bonded] = await Promise.all([
       api.derive.balances.all(addr),
       api.query.staking.ledger(addr),
       api.query.staking.bonded(addr),
     ]);
     const json = JSON.parse(JSON.stringify(allBalances, null, 2));
 
-    const unbondJson = JSON.parse(JSON.stringify(unbondings, null, 2));
-    const stash = unbondJson ? unbondJson.stash : null;
+    const ledgerJSON = JSON.parse(JSON.stringify(ledgerOpt, null, 2));
+    const stash = ledgerJSON ? ledgerJSON.stash : null;
     const controller = bonded.isSome ? bonded.unwrap().toString() : null;
 
     return {
@@ -73,8 +110,8 @@ export const getBalances = async (addr: string) =>
         stash,
         nonce: json.accountNonce,
         bondedBalance: BigNumber(json.lockedBalance),
-        unbondings: unbondJson
-          ? unbondJson.unlocking.map((unbond) => ({
+        unbondings: ledgerJSON
+          ? ledgerJSON.unlocking.map((unbond) => ({
               amount: BigNumber(unbond.value),
               completionDate: new Date(),
             }))

@@ -145,10 +145,16 @@ export const AlgorandASANotOptInInRecipient = createCustomErrorClass(
   "AlgorandASANotOptInInRecipient"
 );
 
+/* POLKADOT SPECIFIC */
+
 export const PolkadotUnauthorizedOperation = createCustomErrorClass(
   "PolkadotUnauthorizedOperation"
 );
 
 export const PolkadotElectionClosed = createCustomErrorClass(
   "PolkadotElectionClosed"
+);
+
+export const PolkadotNotValidator = createCustomErrorClass(
+  "PolkadotNotValidator"
 );
