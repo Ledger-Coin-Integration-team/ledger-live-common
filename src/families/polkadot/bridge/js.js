@@ -3,28 +3,7 @@ import { BigNumber } from "bignumber.js";
 import { Observable } from "rxjs";
 // import invariant from "invariant";
 import { createSignedTx } from "@substrate/txwrapper";
-import { decodeAddress } from "@polkadot/util-crypto";
-
-import {
-  NotEnoughBalance,
-  RecipientRequired,
-  InvalidAddress,
-  InvalidAddressBecauseDestinationIsAlsoSource,
-  AmountRequired,
-  NotEnoughBalanceBecauseDestinationNotCreated,
-} from "@ledgerhq/errors";
-
-import {
-  PolkadotUnauthorizedOperation,
-  PolkadotElectionClosed,
-} from "../../../errors";
-
-import type {
-  Account,
-  Operation,
-  TransactionStatus,
-  SignedOperation,
-} from "../../../types";
+import type { Account, Operation, SignedOperation } from "../../../types";
 import type { Transaction } from "../types";
 import { open, close } from "../../../hw";
 import type { AccountBridge, CurrencyBridge } from "../../../types";
@@ -40,16 +19,13 @@ import {
   getBalances,
   getOperations,
   submitExtrinsic,
-  isElectionClosed,
 } from "../../../api/Polkadot";
 import getTxInfo from "../js-getTransactionInfo";
-import {
-  getEstimatedFees,
-  getEstimatedFeesFromUnsignedTx,
-} from "../js-getFeesForTransaction";
+import { getEstimatedFeesFromUnsignedTx } from "../js-getFeesForTransaction";
 import buildTransaction from "../js-buildTransaction";
+import getTransactionStatus from "../js-getTransactionStatus";
 import { Polkadot } from "../ledger-app/Polkadot";
-import { isStash, isController } from "../logic.js";
+
 import { patchOperationWithHash } from "../../../operation";
 
 const receive = makeAccountBridgeReceive();
@@ -76,10 +52,16 @@ const getAccountShape = async (info, _syncConfig) => {
   const operations = mergeOps(oldOperations, newOperations);
   const blockHeight = operations.length ? operations[0].blockHeight : 0;
 
-  console.log("getAccountShape", balances);
+  console.log("getAccountShape", {
+    id,
+    address,
+    ...balances,
+    operationsCount: operations.length,
+    blockHeight,
+  });
 
   return {
-    id: info.id,
+    id,
     ...balances,
     operationsCount: operations.length,
     operations,
@@ -113,184 +95,6 @@ const prepareTransaction = async (a, t) => {
   return t;
 };
 
-const isValid = (recipient) => {
-  if (!recipient) return false;
-  try {
-    decodeAddress(recipient);
-    return true;
-  } catch (err) {
-    return false;
-  }
-};
-
-const isNewAccount = async (recipient) => {
-  const balances = await getBalances(recipient);
-
-  return balances.polkadotResources.nonce === 0;
-};
-
-// Should try to refacto
-const getSendTransactionStatus = async (
-  a: Account,
-  t: Transaction
-): Promise<TransactionStatus> => {
-  const errors = {};
-  const warnings = {};
-  const useAllAmount = !!t.useAllAmount;
-  // let minAmountRequired = BigNumber(0);
-
-  if (!t.recipient) {
-    errors.recipient = new RecipientRequired("");
-  } else if (a.freshAddress === t.recipient) {
-    errors.recipient = new InvalidAddressBecauseDestinationIsAlsoSource();
-  } else if (!isValid(t.recipient)) {
-    errors.recipient = new InvalidAddress("");
-  } else if ((await isNewAccount(t.recipient)) && t.amount.lt(10000000000)) {
-    errors.amount = new NotEnoughBalanceBecauseDestinationNotCreated("", {
-      minimalAmount: "1 DOT",
-    });
-  }
-
-  const txInfo = await getTxInfo(a);
-
-  let estimatedFees = BigNumber(0);
-  if (!errors.recipient) {
-    estimatedFees = await getEstimatedFees(a, t, txInfo);
-  }
-
-  const totalSpent = useAllAmount
-    ? a.spendableBalance
-    : BigNumber(t.amount).plus(estimatedFees);
-
-  const amount = useAllAmount
-    ? a.spendableBalance.minus(estimatedFees)
-    : BigNumber(t.amount);
-
-  if (amount.lte(0) && !t.useAllAmount) {
-    errors.amount = new AmountRequired();
-  }
-
-  if (totalSpent.gt(a.spendableBalance)) {
-    errors.amount = new NotEnoughBalance();
-  }
-
-  return Promise.resolve({
-    errors,
-    warnings,
-    estimatedFees,
-    amount,
-    totalSpent,
-  });
-};
-
-// Still WIP only mock here
-const getTransactionStatus = async (a: Account, t: Transaction) => {
-  console.log("TRANSACTION", t);
-  const errors = {};
-  const warnings = {};
-  const useAllAmount = !!t.useAllAmount;
-  // let minAmountRequired = BigNumber(0);
-
-  if (t.mode === "send") {
-    return await getSendTransactionStatus(a, t);
-  }
-
-  if (await !isElectionClosed()) {
-    errors.staking = new PolkadotElectionClosed();
-  }
-
-  let estimatedFees = t.fees || BigNumber(0);
-  let amount = t.amount;
-  let totalSpent = estimatedFees;
-
-  switch (t.mode) {
-    case "bond":
-      if (isController(a)) {
-        errors.staking = new PolkadotUnauthorizedOperation();
-      }
-      break;
-
-    case "unbond":
-      if (isController(a)) {
-        errors.staking = new PolkadotUnauthorizedOperation();
-      }
-      if (a.polkadotResources?.unbondings) {
-        const totalUnbond = a.polkadotResources.unbondings.reduce(
-          (old, current) => {
-            return old.plus(current.amount);
-          },
-          BigNumber(0)
-        );
-
-        const remainingUnbond = a.polkadotResources?.bondedBalance.minus(
-          totalUnbond
-        );
-
-        if (
-          remainingUnbond
-            ? remainingUnbond.lt(t.amount)
-            : a.polkadotResources?.bondedBalance.lt(t.amount)
-        ) {
-          errors.amount = new NotEnoughBalance();
-        }
-      }
-      break;
-
-    case "nominate":
-      if (isStash(a)) {
-        errors.staking = new PolkadotUnauthorizedOperation();
-      }
-      if (
-        t.validators?.some(
-          (_v) => false //TODO check validator when we got validatorList
-        ) ||
-        t.validators?.length === 0
-      )
-        errors.recipient = new InvalidAddress(null, {
-          currencyName: a.currency.name,
-        });
-      break;
-  }
-
-  if (!errors.amount) {
-    const txInfo = await getTxInfo(a);
-    estimatedFees = await getEstimatedFees(a, t, txInfo);
-    totalSpent = estimatedFees;
-  }
-
-  if (t.mode === "bond" && !errors.staking) {
-    amount = useAllAmount
-      ? a.spendableBalance.minus(estimatedFees)
-      : BigNumber(t.amount);
-
-    totalSpent = useAllAmount
-      ? a.spendableBalance
-      : BigNumber(t.amount).plus(estimatedFees);
-
-    if (!a.polkadotResources?.controller && t.amount.lt(10000000000)) {
-      errors.amount = new NotEnoughBalanceBecauseDestinationNotCreated("", {
-        minimalAmount: "1 DOT",
-      });
-    }
-
-    if (amount.lte(0) && !t.useAllAmount) {
-      errors.amount = new AmountRequired();
-    }
-  }
-
-  if (totalSpent.gt(a.spendableBalance)) {
-    errors.amount = new NotEnoughBalance();
-  }
-
-  return Promise.resolve({
-    errors,
-    warnings,
-    estimatedFees,
-    amount,
-    totalSpent,
-  });
-};
-
 // TODO : Need to fix when we got indexer
 const signOperation = ({ account, transaction, deviceId }) =>
   Observable.create((o) => {
@@ -316,7 +120,7 @@ const signOperation = ({ account, transaction, deviceId }) =>
             version: unsignedTransaction.version,
           }
         );
-
+        console.log("about to sign");
         const polkadot = new Polkadot(transport);
         const r = await polkadot.sign(
           account.freshAddressPath,
