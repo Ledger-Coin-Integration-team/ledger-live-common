@@ -86,21 +86,9 @@ export type PolkadotValidator = {|
   identity: string,
   nominatorsCount: number,
   rewardPoints: number,
-  commission: number,
+  commission: BigNumber,
   totalBonded: BigNumber,
   selfBonded: BigNumber,
-  isElected: boolean,
-  isOversubscribed: boolean,
-|};
-
-export type PolkadotValidatorRaw = {|
-  address: string,
-  identity: string,
-  nominatorsCount: number,
-  rewardPoints: number,
-  commission: number,
-  totalBonded: string,
-  selfBonded: string,
   isElected: boolean,
   isOversubscribed: boolean,
 |};
