@@ -1,4 +1,5 @@
 // @flow
+import uniqBy from "lodash/uniqBy";
 import type { Operation } from "../types";
 
 import network from "../network";
@@ -6,13 +7,14 @@ import { BigNumber } from "bignumber.js";
 import { getEnv } from "../env";
 import { WsProvider, ApiPromise } from "@polkadot/api";
 import { encodeAddress } from "@polkadot/util-crypto";
+import type { PolkadotValidator } from "../families/polkadot/types";
 
 type AsyncApiFunction = (api: typeof ApiPromise) => Promise<any>;
 
 const getBaseApiUrl = () => getEnv("API_POLKADOT_INDEXER");
 const getWsUrl = () => getEnv("API_POLKADOT_NODE");
 const SUBSCAN_MULTIPLIER = 10000000000;
-const ROW = 100;
+const SUBSCAN_ROW = 100;
 
 /**
  * Connects to Substrate Node, executes calls then disconnects
@@ -111,34 +113,6 @@ export const getTransactionParams = async () =>
   });
 
 /**
- * List all validators for the current era, and their exposure.
- */
-export const getValidators = async () =>
-  withApi(async (api: typeof ApiPromise) => {
-    const validators = await api.query.session.validators();
-
-    let formattedValidator = [];
-    if (validators && validators.length > 0) {
-      // Retrieve the balances for all validators
-      const validatorBalances = await Promise.all(
-        validators.map((authorityId) => ({
-          balances: api.query.system.account(authorityId),
-          bonded: api.query.staking.bonded(authorityId),
-        }))
-      );
-
-      formattedValidator = validators.map((authorityId, index) => ({
-        address: authorityId.toString(),
-        balance: validatorBalances[index].balances.data.free.toHuman(),
-        nonce: validatorBalances[index].balances.nonce.toHuman(),
-        bonded: validatorBalances[index].bonded,
-      }));
-    }
-
-    return formattedValidator;
-  });
-
-/**
  * The broadcast function on Substrate
  *
  * @param {string} extrinsic - the encoded extrinsic to send
@@ -161,11 +135,11 @@ export const submitExtrinsic = async (extrinsic: string) =>
  */
 export const paymentInfo = async (extrinsic: string) =>
   withApi(async (api: typeof ApiPromise) => {
-    const paymentInfo = await api.rpc.payment.queryInfo(extrinsic);
+    const info = await api.rpc.payment.queryInfo(extrinsic);
 
-    console.log("paymentInfo", paymentInfo);
+    console.log("paymentInfo", info);
 
-    return paymentInfo;
+    return info;
   });
 
 /*
@@ -179,29 +153,6 @@ const subscanAmountToPlanck = (amount, blockHeight) => {
     return BigNumber(amount).multipliedBy(SUBSCAN_MULTIPLIER);
   }
   return BigNumber(amount).multipliedBy(100).multipliedBy(SUBSCAN_MULTIPLIER);
-};
-
-const identity = (a) => a;
-/**
- * Returns an array of unique elemnts, providing a function for getting deduplication value
- *
- * @param {*} arr - the original array
- * @param {*} by - the function called for getting the value that must be unique
- */
-const uniqBy = (arr, by = identity) => {
-  const existing = new Set();
-  return arr.reduce(
-    (uniq, value) =>
-      ((key) => {
-        if (existing.has(key)) {
-          return uniq;
-        }
-        existing.add(key);
-        uniq.push(value);
-        return uniq;
-      })(by(value)),
-    []
-  );
 };
 
 const mapSubscanReward = ({ accountId }, reward): $Shape<Operation> => {
@@ -270,11 +221,8 @@ const getOperationType = (pallet, palletMethod) => {
       return "FEES";
 
     default:
-      console.log("==========");
-      console.log(pallet);
-      console.log(palletMethod);
-      console.log("===========");
-      return "NONE";
+      console.warn(`Unhandled operation type ${pallet}.${palletMethod}`);
+      return "FEES";
   }
 };
 
@@ -345,7 +293,7 @@ const fetchSubscanList = async (
       url: `${getBaseApiUrl()}${url}`,
       data: {
         address: mapArgs.addr,
-        row: ROW,
+        row: SUBSCAN_ROW,
         page,
       },
     });
@@ -356,7 +304,7 @@ const fetchSubscanList = async (
     const list = data.data[resourceName] || [];
     const count = data.data.count;
 
-    console.log(`${url} - ${prevOperations.length} / ${count}`);
+    // console.log(`${url} - ${prevOperations.length} / ${count}`);
 
     operations = [...prevOperations, ...list.map(mapFn.bind(null, mapArgs))];
 
@@ -409,7 +357,7 @@ export const getOperations = async (
 
   const incomingTransfers = transfersOp.filter((t) => t.type === "IN");
 
-  const operations = uniqBy(
+  const operations = uniqBy<Operation>(
     [...extrinsicsOp, ...incomingTransfers, ...rewardsOp],
     (op) => op.id
   );
@@ -417,4 +365,73 @@ export const getOperations = async (
   operations.sort((a, b) => b.date - a.date);
 
   return operations;
+};
+
+const SUBSCAN_VALIDATOR_OVERSUBSCRIBED = 256;
+const SUBSCAN_VALIDATOR_COMISSION_RATIO = 1000000000;
+
+const mapSubscanValidator = (validator, isElected): PolkadotValidator => {
+  return {
+    address: validator.stash_account_display.address,
+    identity: validator.stash_account_display.display,
+    nominatorsCount: validator.count_nominators,
+    rewardPoints: validator.reward_point,
+    commission: BigNumber(validator.validator_prefs_value).dividedBy(
+      SUBSCAN_VALIDATOR_COMISSION_RATIO
+    ),
+    totalBonded: BigNumber(validator.bonded_nominators).plus(
+      validator.bonded_owner
+    ),
+    selfBonded: BigNumber(validator.bonded_owner),
+    isElected,
+    isOversubscribed:
+      validator.count_nominators >= SUBSCAN_VALIDATOR_OVERSUBSCRIBED,
+  };
+};
+
+const fetchSubscanValidators = async (isElected) => {
+  // Cannot fetch both at the same time through subscan
+  const url = isElected
+    ? "/api/scan/staking/validators"
+    : "/api/scan/staking/waiting";
+
+  try {
+    const { data } = await network({
+      method: "POST",
+      url: `${getBaseApiUrl()}${url}`,
+      data: {},
+    });
+
+    if (data.code !== 0) {
+      throw new Error(`SUBSCAN: ${data.message} - code ${data.code}`);
+    }
+    const validators = data.data.list.map((v) =>
+      mapSubscanValidator(v, isElected)
+    );
+
+    return validators;
+  } catch (e) {
+    console.error(e);
+    throw e;
+  }
+};
+
+/**
+ * List all validators for the current era, and their exposure.
+ */
+export const getValidators = async (status: string = "elected") => {
+  if (status === "elected") {
+    return fetchSubscanValidators(true);
+  } else if (status === "waiting") {
+    return fetchSubscanValidators(false);
+  } else if (status === "all") {
+    const [elected, waiting] = await Promise.all([
+      fetchSubscanValidators(true),
+      fetchSubscanValidators(false),
+    ]);
+
+    return [...elected, ...waiting];
+  }
+
+  return [];
 };
