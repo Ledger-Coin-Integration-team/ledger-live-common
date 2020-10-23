@@ -4,6 +4,7 @@ import type { Transaction } from "./types";
 import type { Account } from "../../types";
 
 import { methods } from "@substrate/txwrapper";
+import { isStash } from "./logic";
 
 const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
   const { txBaseInfo, txOptions } = txInfo;
@@ -24,7 +25,7 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
 
     // still not sure about this rule should get more info about that
     case "bond":
-      transaction = a.polkadotResources?.controller
+      transaction = isStash(a)
         ? methods.staking.bondExtra(
             {
               maxAdditional: t.amount.toString(),
