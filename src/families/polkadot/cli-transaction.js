@@ -1,10 +1,11 @@
 // @flow
 import { from, Observable } from "rxjs";
 import { map } from "rxjs/operators";
-import { getValidators } from "../../api/Polkadot";
+import { getValidators } from "./validators";
 import invariant from "invariant";
 import flatMap from "lodash/flatMap";
 import type { Transaction, AccountLike } from "../../types";
+import { getCryptoCurrencyById, formatCurrencyUnit } from "../../currencies";
 
 const options = [
   {
@@ -43,7 +44,48 @@ const options = [
 
 const polkadotValidatorsFormatters = {
   json: (list) => JSON.stringify(list),
-  default: (list) => list.map((v) => `${v.validatorAddress}`).join("\n"),
+  csv: (list) => {
+    const polkadotUnit = getCryptoCurrencyById("polkadot").units[0];
+    const csvHeader =
+      "ADDRESS IDENTITY TOTAL_BONDED SELF_BONDED NOMINATORS_COUNT COMMISSION REWARD_POINTS\n";
+    const csvList = list
+      .map(
+        (v) =>
+          `${v.address} "${v.identity}" ${formatCurrencyUnit(
+            polkadotUnit,
+            v.totalBonded,
+            { showCode: false, disableRounding: true, useGrouping: false }
+          )} ${formatCurrencyUnit(polkadotUnit, v.selfBonded, {
+            showCode: false,
+            disableRounding: true,
+            useGrouping: false,
+          })} ${v.nominatorsCount} ${v.commission
+            .multipliedBy(100)
+            .toFixed(2)} ${v.rewardPoints}`
+      )
+      .join("\n");
+    return csvHeader + csvList;
+  },
+  default: (list) => {
+    const polkadotUnit = getCryptoCurrencyById("polkadot").units[0];
+    const tableList = list
+      .map(
+        (v) =>
+          `${v.address} "${v.identity}" ${formatCurrencyUnit(
+            polkadotUnit,
+            v.totalBonded,
+            { showCode: true, disableRounding: true, useGrouping: false }
+          )} ${formatCurrencyUnit(polkadotUnit, v.selfBonded, {
+            showCode: true,
+            disableRounding: true,
+            useGrouping: false,
+          })} ${v.nominatorsCount} ${
+            v.commission.multipliedBy(100).toFixed(2) + "%"
+          } ${v.rewardPoints + " PTS"}`
+      )
+      .join("\n");
+    return tableList;
+  },
 };
 
 const polkadotValidators = {
@@ -53,9 +95,17 @@ const polkadotValidators = {
       desc: Object.keys(polkadotValidatorsFormatters).join("|"),
       type: String,
     },
+    {
+      name: "status",
+      desc: "The status of the validators to fetch (all|elected|waiting)",
+      type: String,
+    },
   ],
-  job: ({ format }: $Shape<{ format: string }>): Observable<string> =>
-    from(getValidators()).pipe(
+  job: ({
+    format,
+    status,
+  }: $Shape<{ format: string, status: string }>): Observable<string> =>
+    from(getValidators(status)).pipe(
       map((validators) => {
         const f =
           polkadotValidatorsFormatters[format] ||
