@@ -20,7 +20,7 @@ export type OperationType =
   // POLKADOT
   | "BOND"
   | "UNBOND"
-  | "NOMINATE"
+  | "WITHDRAW_UNBONDED"
   | "SLASH"
 
   // COMPOUND TYPE OPERATIONS
@@ -29,9 +29,7 @@ export type OperationType =
   | "APPROVE"
   | "OPT_IN"
   | "OPT_OUT"
-  | "CLOSE_ACCOUNT"
-  | "SUPPLY"
-  | "REDEEM";
+  | "CLOSE_ACCOUNT";
 
 export type Operation = {
   // unique identifier (usually hash)
