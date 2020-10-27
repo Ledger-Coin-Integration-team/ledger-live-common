@@ -46,9 +46,23 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
 
     case "unbond":
       transaction = methods.staking.unbond(
-        {
-          value: t.amount.toString(),
-        },
+        { value: t.amount.toString() },
+        txBaseInfo,
+        txOptions
+      );
+      break;
+
+    case "rebond":
+      transaction = methods.staking.rebond(
+        { value: t.amount.toNumber() },
+        txBaseInfo,
+        txOptions
+      );
+      break;
+
+    case "withdrawUnbonded":
+      transaction = methods.staking.withdrawUnbonded(
+        { numSlashingSpans: 0 },
         txBaseInfo,
         txOptions
       );
