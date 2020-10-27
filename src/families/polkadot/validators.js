@@ -1,3 +1,3 @@
-import { getValidators } from "../../api/Polkadot";
+import { getValidators } from "../../api/polkadot";
 
 export { getValidators };

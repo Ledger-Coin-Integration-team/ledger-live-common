@@ -5,7 +5,7 @@ import { createSignedTx } from "@substrate/txwrapper";
 
 import type { Account } from "../../types";
 import type { Transaction } from "./types";
-import { paymentInfo } from "../../api/Polkadot";
+import { paymentInfo } from "../../api/polkadot";
 import buildTransaction from "./js-buildTransaction";
 
 /**
