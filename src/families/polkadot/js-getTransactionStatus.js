@@ -24,7 +24,7 @@ import {
   isNewAccount,
   isControllerAddress,
   getValidatorsStashesAddresses,
-} from "../../api/Polkadot";
+} from "../../api/polkadot";
 
 import type { Transaction } from "./types";
 import {

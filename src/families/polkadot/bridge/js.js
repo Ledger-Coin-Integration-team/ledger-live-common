@@ -15,11 +15,8 @@ import {
   makeAccountBridgeReceive,
   mergeOps,
 } from "../../../bridge/jsHelpers";
-import {
-  getBalances,
-  getOperations,
-  submitExtrinsic,
-} from "../../../api/Polkadot";
+import { submitExtrinsic } from "../../../api/polkadot";
+import { getAccountShape } from "../synchronisation";
 import getTxInfo from "../js-getTransactionInfo";
 import { getEstimatedFeesFromUnsignedTx } from "../js-getFeesForTransaction";
 import buildTransaction from "../js-buildTransaction";
@@ -38,35 +35,6 @@ const estimateMaxSpendable = ({
   return Promise.resolve(
     BigNumber.max(0, account.balance.minus(estimatedFees))
   );
-};
-
-const getAccountShape = async (info, _syncConfig) => {
-  const { id, address, initialAccount } = info;
-  const oldOperations = initialAccount?.operations || [];
-  const startAt = oldOperations.length
-    ? (oldOperations[0].blockHeight || 0) + 1
-    : 0;
-
-  const balances = await getBalances(address);
-  const newOperations = await getOperations(id, address, startAt);
-  const operations = mergeOps(oldOperations, newOperations);
-  const blockHeight = operations.length ? operations[0].blockHeight : 0;
-
-  console.log("getAccountShape", {
-    id,
-    address,
-    ...balances,
-    operationsCount: operations.length,
-    blockHeight,
-  });
-
-  return {
-    id,
-    ...balances,
-    operationsCount: operations.length,
-    operations,
-    blockHeight,
-  };
 };
 
 const postSync = (initial: Account, parent: Account) => {
