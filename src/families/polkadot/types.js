@@ -6,8 +6,6 @@ import type {
   TransactionCommonRaw,
 } from "../../types/transaction";
 
-export type PolkadotOperationMode = "send" | "bond" | "nominate" | "unbond"
-
 export type RewardDestinationType = "Staked" | "Stash" | "Account" | "Controller"
 
 export type CoreStatics = {};

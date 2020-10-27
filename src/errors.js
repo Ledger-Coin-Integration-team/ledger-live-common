@@ -167,3 +167,8 @@ export const PolkadotElectionClosed = createCustomErrorClass(
 export const PolkadotNotValidator = createCustomErrorClass(
   "PolkadotNotValidator"
 );
+
+export const PolkadotLowBondedBalance = createCustomErrorClass(
+  "PolkadotLowBondedBalance"
+);
+

@@ -15,6 +15,7 @@ import {
   PolkadotUnauthorizedOperation,
   PolkadotElectionClosed,
   PolkadotNotValidator,
+  PolkadotLowBondedBalance,
 } from "../../errors";
 
 import { formatCurrencyUnit } from "../../currencies";
@@ -110,9 +111,19 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
     errors.staking = new PolkadotElectionClosed();
   }
 
+  // FIXME We should get actual fees estimation
   let estimatedFees = BigNumber(0);
   let amount = t.amount;
   let totalSpent = estimatedFees;
+
+  const currentUnbonding = a.polkadotResources?.unbondings ? 
+  a.polkadotResources.unbondings.reduce(
+    (old, current) => { return old.plus(current.amount); },
+    BigNumber(0)
+  )
+  : BigNumber(0);
+
+  const currentBonded = a.polkadotResources?.bondedBalance.minus(currentUnbonding);
 
   switch (t.mode) {
     case "bond":
@@ -120,42 +131,57 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
       if (!isStash(a)) {
         if (!t.recipient) {
           errors.recipient = new RecipientRequired("");
+          break;
         } else if (!isValidAddress(t.recipient)) {
           errors.recipient = new InvalidAddress("");
+          break;
         } else if (await isControllerAddress(t.recipient)) {
           errors.recipient = new PolkadotUnauthorizedOperation(
             "Recipient is already a controller"
           );
+          break;
         }
+      }
+
+      if (t.amount.gt(a.spendableBalance)) {
+        errors.amount = new NotEnoughBalance();
       }
       break;
 
     case "unbond":
       if (!isController(a)) {
         errors.staking = new PolkadotUnauthorizedOperation();
+        break;
       }
-      if (a.polkadotResources?.unbondings) {
-        const totalUnbond = a.polkadotResources.unbondings.reduce(
-          (old, current) => {
-            return old.plus(current.amount);
-          },
-          BigNumber(0)
-        );
-
-        const remainingUnbond = a.polkadotResources?.bondedBalance.minus(
-          totalUnbond
-        );
-
-        if (
-          remainingUnbond
-            ? remainingUnbond.lt(t.amount)
-            : a.polkadotResources?.bondedBalance.lt(t.amount)
-        ) {
-          errors.amount = new NotEnoughBalance();
-        }
+      
+      if (t.amount.lte(0)) {
+        errors.amount = new AmountRequired();
+        break;
+      }
+    
+      if (t.amount.gt(currentBonded.minus(EXISTENTIAL_DEPOSIT)) && t.amount.lt(currentBonded)) {
+        warnings.amount = new PolkadotLowBondedBalance();
+      } else if (t.amount.gt(currentBonded)) {
+        errors.amount = new NotEnoughBalance();
       }
       break;
 
+    case "rebond":
+      if (!isController(a)) {
+        errors.staking = new PolkadotUnauthorizedOperation();
+        break;
+      }
+      
+      if (t.amount.lte(0)) {
+        errors.amount = new AmountRequired();
+        break;
+      }
+    
+      if (t.amount.gt(currentUnbonding)) {
+        errors.amount = new NotEnoughBalance();
+      }
+      break;
+  
     case "nominate":
       if (!isController(a)) {
         errors.staking = new PolkadotUnauthorizedOperation();
