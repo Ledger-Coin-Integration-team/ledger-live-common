@@ -11,10 +11,30 @@ const agent = new https.Agent({
   rejectUnauthorized: false,
 });
 
-const getAccountOperation = (addr, offset, startAt, limit = 100) =>
+const LIMIT = 100;
+
+const getAccountOperation = (addr, offset, startAt, limit = LIMIT) =>
   `https://polkadot.indexer.dev.stagebison.net/accounts/${addr}/operations?limit=${limit}${
     offset ? `&offset=${offset}` : ``
   }${startAt ? `&startAt=${startAt}` : ``}`;
+
+const rewardToOperation = (addr, accountId, reward) => {
+  const hash = reward.extrinsicHash;
+
+  return {
+    id: `${accountId}-${hash}-REWARD`,
+    accountId,
+    fee: BigNumber(0),
+    value: BigNumber(reward.value),
+    type: "REWARD",
+    hash: hash,
+    blockHeight: reward.blockNumber,
+    date: new Date(reward.timestamp),
+    extra: {
+      module: reward.description,
+    },
+  };
+};
 
 const extrinsicToOperation = (addr, accountId, extrinsic) => {
   let type = getOperationType(extrinsic.section, extrinsic.method);
@@ -62,8 +82,23 @@ const fetchOperationList = async (
     extrinsicToOperation.bind(null, addr, accountId)
   );
 
-  console.log(operations);
-  return operations;
+  const rewards = data.rewards.map(
+    rewardToOperation.bind(null, addr, accountId)
+  );
+
+  const mergedOp = [...prevOperations, ...operations, ...rewards];
+
+  if (operations.length < LIMIT && rewards.length < LIMIT) {
+    return mergedOp.sort((a, b) => b.date - a.date);
+  }
+
+  return await fetchOperationList(
+    accountId,
+    addr,
+    startAt,
+    offset + LIMIT,
+    mergedOp
+  );
 };
 
 export const getOperations = async (
