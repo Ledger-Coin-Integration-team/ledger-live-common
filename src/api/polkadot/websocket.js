@@ -100,7 +100,8 @@ export const getBalances = async (addr: string) =>
         controller,
         stash,
         nonce: json.accountNonce,
-        bondedBalance: BigNumber(json.lockedBalance),
+        lockedBalance: BigNumber(json.lockedBalance),
+        unbondedBalance: BigNumber(0), // TODO
         unbondings: ledgerJSON
           ? ledgerJSON.unlocking.map((unbond) => ({
               amount: BigNumber(unbond.value),
