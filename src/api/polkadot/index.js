@@ -1,4 +1,4 @@
-export { getOperations } from "./bisontrails";
+export { getOperations } from "./subscan";
 
 export {
   isElectionClosed,
