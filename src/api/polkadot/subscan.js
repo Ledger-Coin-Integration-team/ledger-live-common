@@ -35,6 +35,8 @@ const mapSubscanReward = ({ accountId }, reward): $Shape<Operation> => {
     hash: reward.extrinsic_hash,
     blockHeight: reward.block_num,
     date: new Date(reward.block_timestamp * 1000),
+    recipients: [],
+    senders: [],
     extra: {
       module: reward.module_id,
     },
@@ -98,8 +100,8 @@ const mapSubscanExtrinsic = (
     hash: extrinsic.extrinsic_hash,
     blockHeight: extrinsic.block_num,
     date: new Date(extrinsic.block_timestamp * 1000),
-    senders: recipient ? [addr] : undefined,
-    recipients: recipient ? [recipient] : undefined,
+    senders: recipient ? [addr] : [],
+    recipients: recipient ? [recipient] : [],
     extra: {
       module: extrinsic.call_module,
       function: extrinsic.call_module_function,
