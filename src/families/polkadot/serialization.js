@@ -11,7 +11,8 @@ export function toPolkadotResourcesRaw(
     controller,
     stash,
     nonce,
-    bondedBalance: r.bondedBalance.toString(),
+    lockedBalance: r.lockedBalance.toString(),
+    unbondedBalance: r.unbondedBalance.toString(),
     unbondings: r.unbondings?.map((u) => ({
       amount: u.amount.toString(),
       completionDate: u.completionDate,
@@ -32,7 +33,8 @@ export function fromPolkadotResourcesRaw(
     controller,
     stash,
     nonce,
-    bondedBalance: BigNumber(r.bondedBalance),
+    lockedBalance: BigNumber(r.lockedBalance),
+    unbondedBalance: BigNumber(r.unbondedBalance),
     unbondings: r.unbondings?.map((u) => ({
       amount: BigNumber(u.amount),
       completionDate: u.completionDate,

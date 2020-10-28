@@ -45,7 +45,8 @@ export type PolkadotResources = {|
   controller: ?string,
   stash: ?string,
   nonce: number,
-  bondedBalance: BigNumber,
+  lockedBalance: BigNumber,
+  unbondedBalance: BigNumber,
   unbondings: ?PolkadotUnbonding[],
   nominations: ?PolkadotNomination[],
 |};
@@ -54,7 +55,8 @@ export type PolkadotResourcesRaw = {|
   controller: ?string,
   stash: ?string,
   nonce: number,
-  bondedBalance: string,
+  lockedBalance: string,
+  unbondedBalance: string,
   unbondings: ?PolkadotUnbondingRaw[],
   nominations: ?PolkadotNominationRaw[],
 |};
