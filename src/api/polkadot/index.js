@@ -6,6 +6,7 @@ export {
   isNewAccount,
   isControllerAddress,
   getBalances,
+  getNominations,
   getTransactionParams,
   submitExtrinsic,
   paymentInfo,
