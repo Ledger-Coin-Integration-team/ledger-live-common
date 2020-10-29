@@ -21,22 +21,22 @@ export type PolkadotNominationStatus = "active" | "inactive" | "waiting";
 
 export type PolkadotNomination = {|
   address: string,
-  pendingRewards: BigNumber,
+  value: BigNumber,
   status: PolkadotNominationStatus,
 |};
 
 export type PolkadotNominationRaw = {|
   address: string,
-  pendingRewards: string,
+  value: string,
   status: PolkadotNominationStatus,
 |};
 
-export type PolkadotUnbonding = {|
+export type PolkadotUnlocking = {|
   amount: BigNumber,
   completionDate: Date,
 |};
 
-export type PolkadotUnbondingRaw = {|
+export type PolkadotUnlockingRaw = {|
   amount: string,
   completionDate: Date,
 |};
@@ -46,8 +46,9 @@ export type PolkadotResources = {|
   stash: ?string,
   nonce: number,
   lockedBalance: BigNumber,
-  unbondedBalance: BigNumber,
-  unbondings: ?PolkadotUnbonding[],
+  unlockedBalance: BigNumber,
+  unlockingBalance: BigNumber,
+  unlockings: ?PolkadotUnlocking[],
   nominations: ?PolkadotNomination[],
 |};
 
@@ -56,8 +57,9 @@ export type PolkadotResourcesRaw = {|
   stash: ?string,
   nonce: number,
   lockedBalance: string,
-  unbondedBalance: string,
-  unbondings: ?PolkadotUnbondingRaw[],
+  unlockedBalance: string,
+  unlockingBalance: string,
+  unlockings: ?PolkadotUnlockingRaw[],
   nominations: ?PolkadotNominationRaw[],
 |};
 

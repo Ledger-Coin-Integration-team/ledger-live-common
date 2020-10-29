@@ -12,14 +12,15 @@ export function toPolkadotResourcesRaw(
     stash,
     nonce,
     lockedBalance: r.lockedBalance.toString(),
-    unbondedBalance: r.unbondedBalance.toString(),
-    unbondings: r.unbondings?.map((u) => ({
+    unlockedBalance: r.unlockedBalance.toString(),
+    unlockingBalance: r.unlockingBalance.toString(),
+    unlockings: r.unlockings?.map((u) => ({
       amount: u.amount.toString(),
       completionDate: u.completionDate,
     })),
     nominations: r.nominations?.map((n) => ({
       address: n.address,
-      pendingRewards: n.pendingRewards.toString(),
+      value: n.value.toString(),
       status: n.status,
     })),
   };
@@ -34,14 +35,15 @@ export function fromPolkadotResourcesRaw(
     stash,
     nonce,
     lockedBalance: BigNumber(r.lockedBalance),
-    unbondedBalance: BigNumber(r.unbondedBalance),
-    unbondings: r.unbondings?.map((u) => ({
+    unlockedBalance: BigNumber(r.unlockedBalance),
+    unlockingBalance: BigNumber(r.unlockingBalance),
+    unlockings: r.unlockings?.map((u) => ({
       amount: BigNumber(u.amount),
       completionDate: u.completionDate,
     })),
     nominations: r.nominations?.map((n) => ({
       address: n.address,
-      pendingRewards: BigNumber(n.pendingRewards),
+      value: BigNumber(n.value),
       status: n.status,
     })),
   };

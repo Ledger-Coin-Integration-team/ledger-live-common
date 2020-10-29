@@ -6,12 +6,8 @@ import { getEnv } from "../../env";
 import { WsProvider, ApiPromise } from "@polkadot/api";
 import { u8aToString } from "@polkadot/util";
 
-import type {
-  AccountId,
-  RewardPoint,
-  Registration,
-} from "@polkadot/types/interfaces";
-import type { Data, Option } from "@polkadot/types";
+import { AccountId, Registration } from "@polkadot/types/interfaces";
+import { Data, Option } from "@polkadot/types";
 import type { ITuple } from "@polkadot/types/types";
 import type { PolkadotValidator } from "../../families/polkadot/types";
 
@@ -101,6 +97,19 @@ export const isControllerAddress = async (address: string): Promise<Boolean> =>
     return ledgetOpt.isSome;
   });
 
+export const getAccount = async (addr: string) =>
+  withApi(async () => {
+    const balances = await getBalances(addr);
+    const stakingInfo = await getStakingInfo(addr);
+    const nominations = await getNominations(addr);
+
+    return {
+      ...balances,
+      ...stakingInfo,
+      nominations,
+    };
+  });
+
 /**
  * WIP - Returns all the balances for an account
  *
@@ -108,44 +117,102 @@ export const isControllerAddress = async (address: string): Promise<Boolean> =>
  */
 export const getBalances = async (addr: string) =>
   withApi(async (api: typeof ApiPromise) => {
-    const [allBalances, ledgerOpt, bonded] = await Promise.all([
-      api.derive.balances.all(addr),
+    const balances = await api.derive.balances.all(addr);
+
+    return {
+      balance: BigNumber(balances.freeBalance),
+      spendableBalance: BigNumber(balances.availableBalance),
+      nonce: balances.accountNonce.toNumber(),
+      lockedBalance: BigNumber(balances.lockedBalance),
+    };
+  });
+
+export const getStakingInfo = async (addr: string) =>
+  withApi(async (api: typeof ApiPromise) => {
+    const [activeOpt, ledgerOpt, bonded] = await Promise.all([
+      api.query.staking.activeEra(),
       api.query.staking.ledger(addr),
       api.query.staking.bonded(addr),
     ]);
-    const json = JSON.parse(JSON.stringify(allBalances, null, 2));
+    const now = new Date();
 
-    const ledgerJSON = JSON.parse(JSON.stringify(ledgerOpt, null, 2));
-    const stash = ledgerJSON ? ledgerJSON.stash : null;
+    const { index, start } = activeOpt.unwrapOrDefault();
+    const activeEraIndex = index.toNumber();
+    const activeEraStart = start.unwrap().toNumber();
+
+    const blockTime = api.consts.babe.expectedBlockTime; // 6000 ms
+    const epochDuration = api.consts.babe.epochDuration; // 2400 blocks
+    const eraLength = api.consts.staking.sessionsPerEra // 6 sessions
+      .mul(epochDuration)
+      .mul(blockTime)
+      .toNumber();
+
+    const ledger = ledgerOpt.isSome ? ledgerOpt.unwrap() : null;
+    const stash = ledger ? ledger.stash.toString() : null;
     const controller = bonded.isSome ? bonded.unwrap().toString() : null;
+    const unlockings = ledger
+      ? ledger.unlocking.map((lock) => ({
+          amount: BigNumber(lock.value),
+          completionDate: new Date(
+            activeEraStart + (lock.era - activeEraIndex) * eraLength
+          ), // This is an estimation of the date of completion, since it depends on block validation speed
+        }))
+      : [];
+    const unlocked = unlockings.filter((lock) => lock.completionDate <= now);
+    const unlockingBalance = unlockings.reduce(
+      (sum, lock) => sum.plus(lock.amount),
+      BigNumber(0)
+    );
+    const unlockedBalance = unlocked.reduce(
+      (sum, lock) => sum.plus(lock.amount),
+      BigNumber(0)
+    );
 
     return {
-      balance: BigNumber(json.freeBalance),
-      spendableBalance: BigNumber(json.availableBalance),
-      polkadotResources: {
-        controller,
-        stash,
-        nonce: json.accountNonce,
-        lockedBalance: BigNumber(json.lockedBalance),
-        unbondedBalance: BigNumber(0), // TODO
-        unbondings: ledgerJSON
-          ? ledgerJSON.unlocking.map((unbond) => ({
-              amount: BigNumber(unbond.value),
-              completionDate: new Date(),
-            }))
-          : [], // TODO
-      },
+      controller,
+      stash,
+      unlockedBalance,
+      unlockingBalance,
+      unlockings,
     };
   });
 
 export const getNominations = async (addr: string) =>
   withApi(async (api: typeof ApiPromise) => {
-    const json = await api.query.staking.nominators(addr);
-    const apiNominations = JSON.parse(JSON.stringify(json, null, 2));
-    const nominations = apiNominations?.targets.map((t) => ({
-      address: t.toString(),
-    }));
-    return nominations;
+    const [{ activeEra }, nominationsOpt] = await Promise.all([
+      api.derive.session.indexes(),
+      api.query.staking.nominators(addr),
+    ]);
+    if (nominationsOpt.isNone) return [];
+
+    const targets = nominationsOpt.unwrap().targets;
+
+    const exposures = await api.query.staking.erasStakers.multi(
+      targets.map((target) => [activeEra, target])
+    );
+
+    return targets.map((target, index) => {
+      const exposure = exposures[index];
+
+      const individualExposure = exposure.others.find(
+        (o) => o.who.toString() === addr
+      );
+      const value = individualExposure
+        ? BigNumber(individualExposure.value)
+        : BigNumber(0);
+
+      const status = exposure.others.length
+        ? individualExposure
+          ? "active"
+          : "inactive"
+        : "waiting";
+
+      return {
+        address: target.toString(),
+        value,
+        status,
+      };
+    });
   });
 
 /**
@@ -218,7 +285,7 @@ export const fetchRewardPoints = async () =>
     const { individual } = await api.query.staking.erasRewardPoints(activeEra);
 
     // recast BTreeMap<AccountId,RewardPoint> to Map<String, RewardPoint> because strict equality does not work
-    const rewards = new Map<String, RewardPoint>(
+    const rewards = new Map<String, BigNumber>(
       [...individual.entries()].map(([k, v]) => [
         k.toString(),
         BigNumber(v.toString()),
@@ -231,11 +298,11 @@ export const fetchRewardPoints = async () =>
 /**
  * @source https://github.com/polkadot-js/api/blob/master/packages/api-derive/src/accounts/info.ts
  */
-function dataAsString(data: Data): string | undefined {
+function dataAsString(data: typeof Data): string {
   return data.isRaw
     ? u8aToString(data.asRaw.toU8a(true))
     : data.isNone
-    ? undefined
+    ? ""
     : data.toHex();
 }
 
@@ -248,7 +315,7 @@ function dataAsString(data: Data): string | undefined {
 export const fetchIdentities = async (addresses: string[]) =>
   withApi(async (api: typeof ApiPromise) => {
     const superOfOpts = await api.query.identity.superOf.multi<
-      Option<ITuple<[AccountId, Data]>>
+      Option<ITuple<[typeof AccountId, typeof Data]>>
     >(addresses);
 
     const withParent = superOfOpts.map((superOfOpt) =>
@@ -260,8 +327,10 @@ export const fetchIdentities = async (addresses: string[]) =>
     );
 
     const [identities, parentIdentities] = await Promise.all([
-      api.query.identity.identityOf.multi<Option<Registration>>(addresses),
-      api.query.identity.identityOf.multi<Option<Registration>>(
+      api.query.identity.identityOf.multi<Option<typeof Registration>>(
+        addresses
+      ),
+      api.query.identity.identityOf.multi<Option<typeof Registration>>(
         parentAddresses
       ),
     ]);
@@ -286,9 +355,7 @@ export const fetchIdentities = async (addresses: string[]) =>
         } = identityOpt.unwrap();
 
         const name = withParent[index]
-          ? `${dataAsString(display)} / ${
-              dataAsString(withParent[index][1]) || ""
-            }`
+          ? `${dataAsString(display)} / ${dataAsString(withParent[index][1])}`
           : dataAsString(display);
 
         return [addr, name];

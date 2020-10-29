@@ -3,7 +3,7 @@
 import type { GetAccountShape } from "../../bridge/jsHelpers";
 import { mergeOps } from "../../bridge/jsHelpers";
 
-import { getBalances, getOperations, getNominations } from "../../api/polkadot";
+import { getAccount, getOperations } from "../../api/polkadot";
 
 export const getAccountShape: GetAccountShape = async (info) => {
   const { id, address, initialAccount } = info;
@@ -12,26 +12,40 @@ export const getAccountShape: GetAccountShape = async (info) => {
     ? (oldOperations[0].blockHeight || 0) + 1
     : 0;
 
-  const balances = await getBalances(address);
-  balances.polkadotResources.nominations = await getNominations(address);
-
+  const {
+    balance,
+    spendableBalance,
+    nonce,
+    lockedBalance,
+    controller,
+    stash,
+    unlockedBalance,
+    unlockingBalance,
+    unlockings,
+    nominations,
+  } = await getAccount(address);
   const newOperations = await getOperations(id, address, startAt);
   const operations = mergeOps(oldOperations, newOperations);
-  const blockHeight = operations.length ? operations[0].blockHeight : 0;
+  const blockHeight = operations.length ? operations[0].blockHeight || 0 : 0;
 
-  console.log("getAccountShape", {
+  const shape = {
     id,
-    address,
-    ...balances,
+    balance,
+    spendableBalance,
     operationsCount: operations.length,
     blockHeight,
-  });
-
-  return {
-    id,
-    ...balances,
-    operationsCount: operations.length,
-    operations,
-    blockHeight,
+    polkadotResources: {
+      nonce,
+      controller,
+      stash,
+      lockedBalance,
+      unlockedBalance,
+      unlockingBalance,
+      unlockings,
+      nominations,
+    },
   };
+  console.log("getAccountShape", JSON.stringify(shape, null, 2));
+
+  return { ...shape, operations };
 };
