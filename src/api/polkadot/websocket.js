@@ -108,10 +108,17 @@ export const getBalances = async (addr: string) =>
               completionDate: new Date(),
             }))
           : [], // TODO
-        nominations: [], // TODO
       },
     };
   });
+
+export const getNominations = async (addr: string) =>
+  withApi(async (api: typeof ApiPromise) => {
+    const json = await api.query.staking.nominators(addr);
+    const apiNominations = JSON.parse(JSON.stringify(json, null, 2));
+    const nominations = apiNominations.targets.map((t) => ({address: t.toString()}));
+    return nominations;
+});
 
 /**
  * Returns all the params from the chain to build an extrinsic (a transaction on Substrate)
