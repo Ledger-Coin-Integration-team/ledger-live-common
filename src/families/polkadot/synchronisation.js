@@ -1,10 +1,9 @@
 //@flow
 
 import type { GetAccountShape } from "../../bridge/jsHelpers";
-
 import { mergeOps } from "../../bridge/jsHelpers";
 
-import { getBalances, getOperations } from "../../api/polkadot";
+import { getBalances, getOperations, getNominations } from "../../api/polkadot";
 
 export const getAccountShape: GetAccountShape = async (info) => {
   const { id, address, initialAccount } = info;
@@ -14,6 +13,8 @@ export const getAccountShape: GetAccountShape = async (info) => {
     : 0;
 
   const balances = await getBalances(address);
+  balances.polkadotResources.nominations = await getNominations(address);
+
   const newOperations = await getOperations(id, address, startAt);
   const operations = mergeOps(oldOperations, newOperations);
   const blockHeight = operations.length ? operations[0].blockHeight : 0;
