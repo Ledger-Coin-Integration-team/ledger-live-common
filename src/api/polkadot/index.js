@@ -10,4 +10,5 @@ export {
   getTransactionParams,
   submitExtrinsic,
   paymentInfo,
+  getValidators,
 } from "./websocket";

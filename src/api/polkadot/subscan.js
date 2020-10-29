@@ -11,9 +11,11 @@ import type { PolkadotValidator } from "../../families/polkadot/types";
 
 const getBaseApiUrl = () => getEnv("API_POLKADOT_INDEXER");
 
+const DOT_REDOMINATION_BLOCK = 1248328;
 const SUBSCAN_MULTIPLIER = 10000000000;
 const SUBSCAN_ROW = 100;
-const DOT_REDOMINATION_BLOCK = 1248328;
+const SUBSCAN_VALIDATOR_OVERSUBSCRIBED = 128;
+const SUBSCAN_VALIDATOR_COMISSION_RATIO = 1000000000;
 
 const encodePolkadotAddr = (addr) => {
   return encodeAddress("0x" + addr, /* SS58FORMAT= */ 0);
@@ -260,13 +262,6 @@ export const getOperations = async (
   return operations;
 };
 
-/*
- * EXPLORER/INDEXER FEATURES
- */
-
-const SUBSCAN_VALIDATOR_OVERSUBSCRIBED = 256;
-const SUBSCAN_VALIDATOR_COMISSION_RATIO = 1000000000;
-
 const mapSubscanValidator = (validator, isElected): PolkadotValidator => {
   return {
     address: validator.stash_account_display.address,
@@ -316,16 +311,22 @@ const fetchSubscanValidators = async (isElected) => {
 /**
  * List all validators for the current era, and their exposure.
  */
-export const getValidators = async (status: string = "elected") => {
-  if (status === "elected") {
+export const getValidators = async (stashes: string | string[] = "elected") => {
+  if (stashes === "elected") {
     return fetchSubscanValidators(true);
-  } else if (status === "waiting") {
+  } else if (stashes === "waiting") {
     return fetchSubscanValidators(false);
-  } else if (status === "all") {
+  } else if (stashes === "all" || Array.isArray(stashes)) {
     const [elected, waiting] = await Promise.all([
       fetchSubscanValidators(true),
       fetchSubscanValidators(false),
     ]);
+
+    if (Array.isArray(stashes)) {
+      return [...elected, ...waiting].filter((v) =>
+        stashes.includes(v.address)
+      );
+    }
 
     return [...elected, ...waiting];
   }
