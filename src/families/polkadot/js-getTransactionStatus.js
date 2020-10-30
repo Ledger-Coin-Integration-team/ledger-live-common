@@ -17,6 +17,7 @@ import {
   PolkadotNotValidator,
   PolkadotLowBondedBalance,
   PolkadotNoUnbondedBalance,
+  PolkadotNoNominations,
 } from "../../errors";
 
 import { formatCurrencyUnit } from "../../currencies";
@@ -221,6 +222,14 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
             break;
           }
         }
+      }
+      break;
+
+    case "chill":
+      if (!isController(a)) {
+        errors.staking = new PolkadotUnauthorizedOperation();
+      } else if (!a.polkadotResources?.nominations) {
+        errors.staking = new PolkadotNoNominations();
       }
       break;
   }
