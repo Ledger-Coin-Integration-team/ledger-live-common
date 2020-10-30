@@ -76,6 +76,14 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
       );
       break;
 
+    case "chill":
+      transaction = methods.staking.chill(
+        {},
+        txBaseInfo,
+        txOptions
+      );
+      break;
+
     case "claimReward":
       transaction = methods.staking.payoutStakers(
         { validatorStash: validator, era: t.era },

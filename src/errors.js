@@ -167,3 +167,6 @@ export const PolkadotNoUnbondedBalance = createCustomErrorClass(
   "PolkadotNoUnbondedBalance"
 );
 
+export const PolkadotNoNominations = createCustomErrorClass(
+  "PolkadotNoNominations"
+);
