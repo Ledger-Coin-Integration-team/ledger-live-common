@@ -15,6 +15,51 @@ const SUBSCAN_MULTIPLIER = 10000000000;
 const SUBSCAN_ROW = 100;
 const DOT_REDOMINATION_BLOCK = 1248328;
 
+const encodePolkadotAddr = (addr) => {
+  encodeAddress("0x" + addr, /* SS58FORMAT= */ 0);
+};
+
+const getExtra = (type, extrinsic, pallet, method) => {
+  let extra = {
+    palletMethod: `${pallet}.${method}`,
+  };
+
+  const params = JSON.parse(extrinsic.params);
+
+  switch (type) {
+    case "BOND":
+      extra = { ...extra, bondedAmount: BigNumber(params.amount) };
+      break;
+
+    case "UNBOND":
+      extra = {
+        ...extra,
+        unbondedAmount: BigNumber(params.value),
+      };
+      break;
+
+    case "REWARD":
+      extra = {
+        ...extra,
+        validatorStash: params.find((p) => p.type === "AccountId").value,
+        amount: BigNumber(params.find((p) => p.type === "Balance").value),
+      };
+      break;
+
+    case "DELEGATE":
+    case "NOMINATE":
+      extra = {
+        ...extra,
+        validators: params.values.reduce((current, old) => {
+          return [...old, encodePolkadotAddr(current)];
+        }, []),
+      };
+      break;
+  }
+
+  return extra;
+};
+
 const subscanAmountToPlanck = (amount, blockHeight) => {
   if (blockHeight >= DOT_REDOMINATION_BLOCK) {
     return BigNumber(amount).multipliedBy(SUBSCAN_MULTIPLIER);
@@ -37,9 +82,7 @@ const mapSubscanReward = ({ accountId }, reward): $Shape<Operation> => {
     date: new Date(reward.block_timestamp * 1000),
     recipients: [],
     senders: [],
-    extra: {
-      module: reward.module_id,
-    },
+    extra: getExtra(type, reward, "staking", "Reward"),
   };
 };
 
@@ -80,8 +123,7 @@ const mapSubscanExtrinsic = (
 
   // FIXME subscan plz
   const recipient =
-    extrinsic.destination &&
-    encodeAddress("0x" + extrinsic.destination, /* SS58FORMAT= */ 0);
+    extrinsic.destination && encodePolkadotAddr(extrinsic.destination);
 
   // All successful transfers, but not self transfers (which only burn fees)
   const value =
@@ -102,10 +144,12 @@ const mapSubscanExtrinsic = (
     date: new Date(extrinsic.block_timestamp * 1000),
     senders: recipient ? [addr] : [],
     recipients: recipient ? [recipient] : [],
-    extra: {
-      module: extrinsic.call_module,
-      function: extrinsic.call_module_function,
-    },
+    extra: getExtra(
+      type,
+      extrinsic,
+      extrinsic.call_module,
+      extrinsic.call_module_function
+    ),
     hasFailed: !extrinsic.success,
   };
 };
@@ -204,6 +248,8 @@ export const getOperations = async (
     [...extrinsicsOp, ...incomingTransfers, ...rewardsOp],
     (op) => op.id
   );
+
+  console.log(operations);
 
   operations.sort((a, b) => b.date - a.date);
 

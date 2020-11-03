@@ -14,7 +14,7 @@ export const getOperationType = (pallet: string, palletMethod: string) => {
     case "bond_extra":
     case "bondExtra":
     case "rebond":
-        return "BOND";
+      return "BOND";
 
     case "unbond":
       return "UNBOND";
@@ -24,7 +24,7 @@ export const getOperationType = (pallet: string, palletMethod: string) => {
 
     case "chill":
       return "UNDELEGATE";
-  
+
     case "withdraw_unbonded":
     case "withdrawUnbonded":
       return "WITHDRAW_UNBONDED";

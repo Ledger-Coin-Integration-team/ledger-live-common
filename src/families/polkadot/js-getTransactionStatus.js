@@ -114,19 +114,20 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
 
   let amount = t.amount;
   const useAllAmount = !!t.useAllAmount;
-  
+
   const txInfo = await getTxInfo(a);
   const estimatedFees = await getEstimatedFees(a, t, txInfo);
   let totalSpent = estimatedFees;
 
-  const currentUnbonding = a.polkadotResources?.unbondings ? 
-  a.polkadotResources.unbondings.reduce(
-    (old, current) => { return old.plus(current.amount); },
-    BigNumber(0)
-  )
-  : BigNumber(0);
+  const currentUnbonding = a.polkadotResources?.unbondings
+    ? a.polkadotResources.unbondings.reduce((old, current) => {
+        return old.plus(current.amount);
+      }, BigNumber(0))
+    : BigNumber(0);
 
-  const currentBonded = a.polkadotResources?.lockedBalance.minus(currentUnbonding);
+  const currentBonded = a.polkadotResources?.lockedBalance.minus(
+    currentUnbonding
+  );
 
   switch (t.mode) {
     case "bond":
@@ -168,17 +169,20 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
           });
         }
       }
-      
+
       break;
 
     case "unbond":
       if (!isController(a)) {
         errors.staking = new PolkadotUnauthorizedOperation();
       }
-      
+
       if (amount.lte(0)) {
         errors.amount = new AmountRequired();
-      } else if (amount.gt(currentBonded.minus(MINIMUM_BOND_AMOUNT)) && amount.lt(currentBonded)) {
+      } else if (
+        amount.gt(currentBonded.minus(MINIMUM_BOND_AMOUNT)) &&
+        amount.lt(currentBonded)
+      ) {
         warnings.amount = new PolkadotLowBondedBalance();
       } else if (amount.gt(currentBonded)) {
         errors.amount = new NotEnoughBalance();
@@ -189,25 +193,25 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
       if (!isController(a)) {
         errors.staking = new PolkadotUnauthorizedOperation();
       }
-      
+
       if (amount.lte(0)) {
         errors.amount = new AmountRequired();
       } else if (amount.gt(currentUnbonding)) {
         errors.amount = new NotEnoughBalance();
       }
       break;
-  
+
     case "withdrawUnbonded":
       if (!isController(a)) {
         errors.staking = new PolkadotUnauthorizedOperation();
       }
-      
+
       // FIXME This always returns a warning, until unbondedBalance is retrieved from the API (see websocket.js)
       if (a.polkadotResources?.unbondedBalance.lte(0)) {
         warnings.amount = new PolkadotNoUnbondedBalance();
       }
       break;
-    
+
     case "nominate":
       if (!isController(a)) {
         errors.staking = new PolkadotUnauthorizedOperation();
