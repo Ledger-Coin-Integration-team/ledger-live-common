@@ -1,6 +1,7 @@
 // @flow
 import uniq from "lodash/uniq";
 import compact from "lodash/compact";
+
 import { BigNumber } from "bignumber.js";
 import { getEnv } from "../../env";
 import { WsProvider, ApiPromise } from "@polkadot/api";
@@ -16,8 +17,11 @@ type AsyncApiFunction = (api: typeof ApiPromise) => Promise<any>;
 const VALIDATOR_COMISSION_RATIO = 1000000000;
 
 const getWsUrl = () => getEnv("API_POLKADOT_NODE");
+const WEBSOCKET_DEBOUNCE_DELAY = 30000;
 
 let api;
+let pendingQueries = [];
+let apiDisconnectTimeout;
 
 /**
  * Connects to Substrate Node, executes calls then disconnects
@@ -26,8 +30,9 @@ let api;
  */
 async function withApi(execute: AsyncApiFunction): Promise<any> {
   if (api) {
-    await api.isReady;
-    const res = await execute(api);
+    const query = execute(api);
+    pendingQueries.push(query.catch((err) => err));
+    const res = await query;
 
     return res;
   }
@@ -36,17 +41,45 @@ async function withApi(execute: AsyncApiFunction): Promise<any> {
   api = await ApiPromise.create({ provider: wsProvider });
 
   try {
-    await api.isReady;
-    const res = await execute(api);
+    const query = execute(api);
+    pendingQueries.push(query.catch((err) => err));
+    const res = await query;
 
     return res;
   } finally {
-    const disconnecting = api;
-    api = undefined;
-
-    await disconnecting.disconnect();
+    debouncedDisconnect();
   }
 }
+
+/**
+ * Disconnects Websocket API client after all pending queries are flushed.
+ */
+export const disconnect = async () => {
+  if (apiDisconnectTimeout) {
+    clearTimeout(apiDisconnectTimeout);
+    apiDisconnectTimeout = null;
+  }
+
+  if (api) {
+    const disconnecting = api;
+    const pending = pendingQueries;
+    api = undefined;
+    pendingQueries = [];
+    await Promise.all(pending);
+    await disconnecting.disconnect();
+  }
+};
+
+/**
+ * Disconnects Websocket client after a delay.
+ */
+const debouncedDisconnect = () => {
+  if (apiDisconnectTimeout) {
+    clearTimeout(apiDisconnectTimeout);
+  }
+
+  apiDisconnectTimeout = setTimeout(disconnect, WEBSOCKET_DEBOUNCE_DELAY);
+};
 
 /**
  * Returns true if ElectionStatus is Close. If ElectionStatus is Open, some features must be disabled.

@@ -13,4 +13,5 @@ export {
   submitExtrinsic,
   paymentInfo,
   getValidators,
+  disconnect,
 } from "./websocket";
