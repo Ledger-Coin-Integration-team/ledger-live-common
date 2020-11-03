@@ -12,10 +12,17 @@ import { testBridge } from "./test-helpers/bridge";
 import dataset from "../generated/test-dataset";
 import specifics from "../generated/test-specifics";
 import type { DatasetTest } from "../types";
+import { disconnectAll } from "../api";
 
+// Polkadot Api is very verbose...
 jest.mock("@polkadot/util/logger.js", () =>
   require("./__mocks__/@polkadot/util/logger.js")
 );
+
+// Disconnect all api clients that could be open.
+afterAll(async () => {
+  await disconnectAll();
+});
 
 setup("libcore");
 
@@ -32,6 +39,7 @@ const maybeFamilyToOnlyRun =
 const shouldExcludeFamilies =
   maybeFamilyToOnlyRun && families.includes(maybeFamilyToOnlyRun);
 
+console.log("families", families);
 // covers all bridges through many different accounts
 // to test the common shared properties of bridges.
 // const all =
