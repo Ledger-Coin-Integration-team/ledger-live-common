@@ -23,6 +23,7 @@ export type OperationType =
   | "BOND"
   | "UNBOND"
   | "WITHDRAW_UNBONDED"
+  | "SLASH"
   | "NOMINATE"
   | "CHILL"
 
