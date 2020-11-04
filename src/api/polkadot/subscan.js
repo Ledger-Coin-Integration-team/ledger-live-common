@@ -46,7 +46,6 @@ const getExtra = (type, extrinsic, pallet, method) => {
       };
       break;
 
-    case "DELEGATE":
     case "NOMINATE":
       extra = {
         ...extra,
@@ -248,8 +247,6 @@ export const getOperations = async (
     [...extrinsicsOp, ...incomingTransfers, ...rewardsOp],
     (op) => op.id
   );
-
-  console.log(operations);
 
   operations.sort((a, b) => b.date - a.date);
 
