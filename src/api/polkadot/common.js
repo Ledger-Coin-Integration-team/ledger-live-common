@@ -20,10 +20,10 @@ export const getOperationType = (pallet: string, palletMethod: string) => {
       return "UNBOND";
 
     case "nominate":
-      return "DELEGATE";
+      return "NOMINATE";
 
     case "chill":
-      return "UNDELEGATE";
+      return "CHILL";
 
     case "withdraw_unbonded":
     case "withdrawUnbonded":
