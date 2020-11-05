@@ -16,7 +16,7 @@ const SUBSCAN_ROW = 100;
 const DOT_REDOMINATION_BLOCK = 1248328;
 
 const encodePolkadotAddr = (addr) => {
-  encodeAddress("0x" + addr, /* SS58FORMAT= */ 0);
+  return encodeAddress("0x" + addr, /* SS58FORMAT= */ 0);
 };
 
 const getExtra = (type, extrinsic) => {
@@ -27,16 +27,21 @@ const getExtra = (type, extrinsic) => {
   };
 
   const params = JSON.parse(extrinsic.params);
-
+  let valueParam;
   switch (type) {
     case "BOND":
-      extra = { ...extra, bondedAmount: BigNumber(params.amount) };
+      valueParam =
+        params.find((p) => p.name === "value")?.value ||
+        params.find((p) => p.name === "max_additional")?.value;
+      extra = { ...extra, bondedAmount: BigNumber(valueParam || 0) };
       break;
 
     case "UNBOND":
       extra = {
         ...extra,
-        unbondedAmount: BigNumber(params.value),
+        unbondedAmount: BigNumber(
+          params.find((p) => p.name === "value")?.value || 0
+        ),
       };
       break;
 
@@ -54,9 +59,11 @@ const getExtra = (type, extrinsic) => {
     case "NOMINATE":
       extra = {
         ...extra,
-        validators: params.values.reduce((current, old) => {
-          return [...old, encodePolkadotAddr(current)];
-        }, []),
+        validators: params
+          .find((t) => t.name === "targets")
+          .value.reduce((old, current) => {
+            return current ? [...old, encodePolkadotAddr(current)] : old;
+          }, []),
       };
       break;
   }
