@@ -11,17 +11,21 @@ export type OperationType =
   | "DELEGATE"
   | "UNDELEGATE"
   | "REDELEGATE"
+  | "REWARD"
+  | "FEES"
+
+  // TRON
   | "FREEZE"
   | "UNFREEZE"
   | "VOTE"
-  | "REWARD"
-  | "FEES"
 
   // POLKADOT
   | "BOND"
   | "UNBOND"
   | "WITHDRAW_UNBONDED"
   | "SLASH"
+  | "NOMINATE"
+  | "CHILL"
 
   // COMPOUND TYPE OPERATIONS
   | "SUPPLY"

@@ -15,6 +15,62 @@ const SUBSCAN_MULTIPLIER = 10000000000;
 const SUBSCAN_ROW = 100;
 const DOT_REDOMINATION_BLOCK = 1248328;
 
+const encodePolkadotAddr = (addr) => {
+  return encodeAddress("0x" + addr, /* SS58FORMAT= */ 0);
+};
+
+const getExtra = (type, extrinsic) => {
+  let extra = {
+    palletMethod: extrinsic.call_module
+      ? `${extrinsic.call_module}.${extrinsic.call_module_function}`
+      : `${extrinsic.module_id}.${extrinsic.event_id}`,
+  };
+
+  const params = JSON.parse(extrinsic.params);
+  let valueParam;
+  switch (type) {
+    case "BOND":
+      valueParam =
+        params.find((p) => p.name === "value")?.value ||
+        params.find((p) => p.name === "max_additional")?.value;
+      extra = { ...extra, bondedAmount: BigNumber(valueParam || 0) };
+      break;
+
+    case "UNBOND":
+      extra = {
+        ...extra,
+        unbondedAmount: BigNumber(
+          params.find((p) => p.name === "value")?.value || 0
+        ),
+      };
+      break;
+
+    case "SLASH":
+    case "REWARD":
+      extra = {
+        ...extra,
+        validatorStash: encodePolkadotAddr(
+          params.find((p) => p.type === "AccountId").value
+        ),
+        amount: BigNumber(params.find((p) => p.type === "Balance").value),
+      };
+      break;
+
+    case "NOMINATE":
+      extra = {
+        ...extra,
+        validators: params
+          .find((t) => t.name === "targets")
+          .value.reduce((old, current) => {
+            return current ? [...old, encodePolkadotAddr(current)] : old;
+          }, []),
+      };
+      break;
+  }
+
+  return extra;
+};
+
 const subscanAmountToPlanck = (amount, blockHeight) => {
   if (blockHeight >= DOT_REDOMINATION_BLOCK) {
     return BigNumber(amount).multipliedBy(SUBSCAN_MULTIPLIER);
@@ -37,9 +93,7 @@ const mapSubscanReward = ({ accountId }, reward): $Shape<Operation> => {
     date: new Date(reward.block_timestamp * 1000),
     recipients: [],
     senders: [],
-    extra: {
-      module: reward.module_id,
-    },
+    extra: getExtra(type, reward),
   };
 };
 
@@ -80,8 +134,7 @@ const mapSubscanExtrinsic = (
 
   // FIXME subscan plz
   const recipient =
-    extrinsic.destination &&
-    encodeAddress("0x" + extrinsic.destination, /* SS58FORMAT= */ 0);
+    extrinsic.destination && encodePolkadotAddr(extrinsic.destination);
 
   // All successful transfers, but not self transfers (which only burn fees)
   const value =
@@ -102,10 +155,7 @@ const mapSubscanExtrinsic = (
     date: new Date(extrinsic.block_timestamp * 1000),
     senders: recipient ? [addr] : [],
     recipients: recipient ? [recipient] : [],
-    extra: {
-      module: extrinsic.call_module,
-      function: extrinsic.call_module_function,
-    },
+    extra: getExtra(type, extrinsic),
     hasFailed: !extrinsic.success,
   };
 };

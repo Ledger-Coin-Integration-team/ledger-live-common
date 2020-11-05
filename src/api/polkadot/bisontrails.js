@@ -13,6 +13,43 @@ const agent = new https.Agent({
 
 const LIMIT = 100;
 
+const getExtra = (type, extrinsic) => {
+  let extra = {
+    palletMethod: `${extrinsic.section}.${extrinsic.method}`,
+  };
+
+  switch (type) {
+    case "BOND":
+      extra = { ...extra, bondedAmount: BigNumber(extrinsic.amount) };
+      break;
+
+    case "UNBOND":
+      extra = {
+        ...extra,
+        unbondedAmount: BigNumber(extrinsic.amount),
+      };
+      break;
+
+    case "REWARD":
+      extra = {
+        ...extra,
+        validatorStash: extrinsic.validatorStash,
+      };
+      break;
+
+    case "NOMINATE":
+      extra = {
+        ...extra,
+        validators: extrinsic.validators.reduce((current, old) => {
+          return [...old, current.address];
+        }, []),
+      };
+      break;
+  }
+
+  return extra;
+};
+
 const getAccountOperation = (addr, offset, startAt, limit = LIMIT) =>
   `https://polkadot.indexer.dev.stagebison.net/accounts/${addr}/operations?limit=${limit}${
     offset ? `&offset=${offset}` : ``
@@ -55,10 +92,7 @@ const extrinsicToOperation = (addr, accountId, extrinsic) => {
     hash: extrinsic.hash,
     blockHeight: extrinsic.blockNumber,
     date: new Date(extrinsic.timestamp),
-    extra: {
-      section: extrinsic.section,
-      method: extrinsic.method,
-    },
+    extra: getExtra(type, extrinsic),
     senders: [extrinsic.signer],
     recipients: [extrinsic.affectedAddress1],
     hasFailed: !extrinsic.isSuccess,
