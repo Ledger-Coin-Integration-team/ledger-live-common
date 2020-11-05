@@ -1,0 +1,138 @@
+// @flow
+import invariant from "invariant";
+import { BigNumber } from "bignumber.js";
+import type { Account, Operation, Unit } from "../../types";
+import { getAccountUnit } from "../../account";
+import { formatCurrencyUnit } from "../../currencies";
+
+function formatOperationSpecifics(op: Operation, unit: ?Unit): string {
+  const {
+    validators,
+    bondedAmount,
+    unbondedAmount,
+    validatorStash,
+    amount,
+  } = op.extra;
+  let str = (validators || []).map((v) => `\n    ${v}`).join("");
+
+  const formatConfig = {
+    disableRounding: true,
+    alwaysShowSign: false,
+    showCode: true,
+  };
+
+  str += bondedAmount
+    ? `\n    bondedAmount: ${
+        unit
+          ? formatCurrencyUnit(unit, bondedAmount, formatConfig)
+          : bondedAmount
+      }`
+    : unbondedAmount
+    ? `\n    unbondedAmount: ${
+        unit
+          ? formatCurrencyUnit(unit, unbondedAmount, formatConfig)
+          : unbondedAmount
+      }`
+    : validatorStash
+    ? `\n    validatorStash: ${validatorStash}` +
+      `\n    amount: ${
+        unit ? formatCurrencyUnit(unit, amount, formatConfig) : amount
+      }`
+    : "";
+
+  return str;
+}
+
+function formatAccountSpecifics(account: Account): string {
+  const { polkadotResources } = account;
+  invariant(polkadotResources, "polkadot account expected");
+  const unit = getAccountUnit(account);
+  const formatConfig = {
+    disableRounding: true,
+    alwaysShowSign: false,
+    showCode: true,
+  };
+
+  let str = " ";
+
+  str +=
+    formatCurrencyUnit(unit, account.spendableBalance, formatConfig) + " spendable. ";
+  if (polkadotResources.lockedBalance.gt(0)) {
+    str +=
+      formatCurrencyUnit(unit, polkadotResources.lockedBalance, formatConfig) +
+      " locked. ";
+  }
+  if (polkadotResources.unbondedBalance.gt(0)) {
+    str +=
+      formatCurrencyUnit(
+        unit,
+        polkadotResources.unbondedBalance,
+        formatConfig
+      ) + " unlocked. ";
+  }
+  if (polkadotResources.stash) {
+    str += "\nstash : " + polkadotResources.stash;
+  }
+  if (polkadotResources.controller) {
+    str += "\ncontroller : " + polkadotResources.controller;
+  }
+
+  if (polkadotResources.nominations?.length) {
+    str += "\nNominations\n";
+    str += polkadotResources.nominations
+      .map((v) => `  to ${v.address}`)
+      .join("\n");
+  }
+  return str;
+}
+
+export function fromOperationExtraRaw(extra: ?Object) {
+  if (extra && extra.bondedAmount) {
+    return {
+      ...extra,
+      bondedAmount: BigNumber(extra.bondedAmount),
+    };
+  }
+  if (extra && extra.unbondedAmount) {
+    return {
+      ...extra,
+      bondedAmount: BigNumber(extra.unbondedAmount),
+    };
+  }
+  if (extra && extra.amount) {
+    return {
+      ...extra,
+      bondedAmount: BigNumber(extra.amount),
+    };
+  }
+  return extra;
+}
+
+export function toOperationExtraRaw(extra: ?Object) {
+  if (extra && extra.bondedAmount) {
+    return {
+      ...extra,
+      bondedAmount: extra.bondedAmount.toString(),
+    };
+  }
+  if (extra && extra.unbondedAmount) {
+    return {
+      ...extra,
+      bondedAmount: extra.unbondedAmount.toString(),
+    };
+  }
+  if (extra && extra.amount) {
+    return {
+      ...extra,
+      bondedAmount: extra.amount.toString(),
+    };
+  }
+  return extra;
+}
+
+export default {
+  formatAccountSpecifics,
+  formatOperationSpecifics,
+  fromOperationExtraRaw,
+  toOperationExtraRaw,
+};
