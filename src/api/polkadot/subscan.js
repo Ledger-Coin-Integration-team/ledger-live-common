@@ -19,9 +19,11 @@ const encodePolkadotAddr = (addr) => {
   encodeAddress("0x" + addr, /* SS58FORMAT= */ 0);
 };
 
-const getExtra = (type, extrinsic, pallet, method) => {
+const getExtra = (type, extrinsic) => {
   let extra = {
-    palletMethod: `${pallet}.${method}`,
+    palletMethod: extrinsic.call_module
+      ? `${extrinsic.call_module}.${extrinsic.call_module_function}`
+      : `${extrinsic.module_id}.${extrinsic.event_id}`,
   };
 
   const params = JSON.parse(extrinsic.params);
@@ -38,10 +40,13 @@ const getExtra = (type, extrinsic, pallet, method) => {
       };
       break;
 
+    case "SLASH":
     case "REWARD":
       extra = {
         ...extra,
-        validatorStash: params.find((p) => p.type === "AccountId").value,
+        validatorStash: encodePolkadotAddr(
+          params.find((p) => p.type === "AccountId").value
+        ),
         amount: BigNumber(params.find((p) => p.type === "Balance").value),
       };
       break;
@@ -81,7 +86,7 @@ const mapSubscanReward = ({ accountId }, reward): $Shape<Operation> => {
     date: new Date(reward.block_timestamp * 1000),
     recipients: [],
     senders: [],
-    extra: getExtra(type, reward, "staking", "Reward"),
+    extra: getExtra(type, reward),
   };
 };
 
@@ -143,12 +148,7 @@ const mapSubscanExtrinsic = (
     date: new Date(extrinsic.block_timestamp * 1000),
     senders: recipient ? [addr] : [],
     recipients: recipient ? [recipient] : [],
-    extra: getExtra(
-      type,
-      extrinsic,
-      extrinsic.call_module,
-      extrinsic.call_module_function
-    ),
+    extra: getExtra(type, extrinsic),
     hasFailed: !extrinsic.success,
   };
 };
