@@ -438,16 +438,24 @@ export const getValidators = async (stashes: string | string[] = "elected") =>
       api.derive.staking.stashes(),
       api.query.session.validators(),
     ]);
+    let stashIds;
 
+    const allIds = allStashes.map((s) => s.toString());
     const electedIds = elected.map((s) => s.toString());
-    let stashIds = allStashes.map((s) => s.toString());
 
     if (Array.isArray(stashes)) {
-      stashIds = stashIds.filter((s) => stashes.includes(s));
+      stashIds = allIds.filter((s) => stashes.includes(s));
     } else if (stashes === "elected") {
       stashIds = electedIds;
-    } else if (stashes === "waiting") {
-      stashIds = stashIds.filter((v) => !electedIds.includes(v));
+    } else {
+      const waitingIds = allIds.filter((v) => !electedIds.includes(v));
+
+      if (stashes === "waiting") {
+        stashIds = waitingIds;
+      } else {
+        // Keep elected in first positions
+        stashIds = [...electedIds, ...waitingIds];
+      }
     }
 
     const [validators, rewards, identities] = await Promise.all([
