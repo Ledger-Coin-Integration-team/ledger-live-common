@@ -76,6 +76,8 @@
     "@ledgerhq/hw-transport": "5.28.0",
     "@ledgerhq/hw-transport-mocker": "^5.28.0",
     "@ledgerhq/hw-transport-node-speculos": "^5.28.0",
+    "@polkadot/api": "2.2.1",
+    "@substrate/txwrapper": "^3.10.1",
     "@ledgerhq/logs": "5.28.0",
     "@polkadot/api": "^2.2.1",
     "@substrate/txwrapper": "^3.10.1",

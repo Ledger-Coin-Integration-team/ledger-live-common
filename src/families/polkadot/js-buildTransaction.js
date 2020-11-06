@@ -77,11 +77,7 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
       break;
 
     case "chill":
-      transaction = methods.staking.chill(
-        {},
-        txBaseInfo,
-        txOptions
-      );
+      transaction = methods.staking.chill({}, txBaseInfo, txOptions);
       break;
 
     case "claimReward":
