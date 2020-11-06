@@ -95,4 +95,15 @@ export type PolkadotValidator = {|
   isOversubscribed: boolean,
 |};
 
+export type PolkadotNominationInfo = string;
+
+// by convention preload would return a Promise of CosmosPreloadData
+export type PolkadotPreloadData = {
+  validators: PolkadotValidator[],
+};
+
+export type PolkadotSearchFilter = (
+  query: string
+) => (validator: PolkadotValidator) => boolean;
+
 export const reflect = (_declare: *) => {};
