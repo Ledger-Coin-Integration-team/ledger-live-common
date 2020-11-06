@@ -27,17 +27,17 @@ import {
 } from "../preloadedData";
 import { Polkadot } from "../ledger-app/Polkadot";
 import { patchOperationWithHash } from "../../../operation";
+import { ESTIMATED_FEES } from "../logic";
 
 const receive = makeAccountBridgeReceive();
 
-const estimateMaxSpendable = ({
-  account /*, parentAccount, transaction */,
+const estimateMaxSpendable = async ({
+  account,
+  parentAccount /*,transaction ,*/,
 }) => {
-  // const mainAccount = getMainAccount(account, parentAccount);
-  const estimatedFees = BigNumber(5000);
-  return Promise.resolve(
-    BigNumber.max(0, account.balance.minus(estimatedFees))
-  );
+  const mainAccount = getMainAccount(account, parentAccount);
+  const estimatedFees = ESTIMATED_FEES; // Around 0.0154 DOT
+  return BigNumber.max(0, mainAccount.spendableBalance.minus(estimatedFees));
 };
 
 const postSync = (initial: Account, parent: Account) => {
