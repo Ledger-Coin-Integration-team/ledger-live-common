@@ -5,6 +5,9 @@ import type { Account } from "../../types";
 
 export const EXISTENTIAL_DEPOSIT = BigNumber(10000000000);
 export const MINIMUM_BOND_AMOUNT = BigNumber(10000000000);
+export const ESTIMATED_FEES = BigNumber(154000000);
+export const MAX_NOMINATIONS = 16;
+export const MAX_UNLOCKINGS = 32;
 
 export const isValidAddress = (address: string) => {
   if (!address) return false;
@@ -25,3 +28,27 @@ export const isStash = (a: Account): boolean => {
 export const isController = (a: Account): boolean => {
   return !!a.polkadotResources?.stash;
 };
+
+// Must have the minimum balance to bond
+export const canBond = (a: Account): boolean => {
+  const { balance } = a;
+
+  return EXISTENTIAL_DEPOSIT.lte(balance);
+};
+
+// Must have locked Balance
+export const canUnbond = (a: Account): boolean => {
+  const {
+    lockedBalance = BigNumber(0),
+    unlockingBalance = BigNumber(0),
+    unlockings = [],
+  } = a.polkadotResources || {};
+
+  return (
+    lockedBalance.minus(unlockingBalance).gt(0) &&
+    (unlockings?.length || 0) < MAX_UNLOCKINGS
+  );
+};
+
+// returns true if an account can nominate
+export const canNominate = (a: Account): boolean => isController(a);

@@ -16,7 +16,7 @@ import {
   PolkadotElectionClosed,
   PolkadotNotValidator,
   PolkadotLowBondedBalance,
-  PolkadotNoUnbondedBalance,
+  PolkadotNoUnlockedBalance,
   PolkadotNoNominations,
 } from "../../errors";
 
@@ -119,15 +119,13 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
   const estimatedFees = await getEstimatedFees(a, t, txInfo);
   let totalSpent = estimatedFees;
 
-  const currentUnbonding = a.polkadotResources?.unbondings
-    ? a.polkadotResources.unbondings.reduce((old, current) => {
-        return old.plus(current.amount);
-      }, BigNumber(0))
-    : BigNumber(0);
+  const unlockingBalance =
+    a.polkadotResources?.unlockingBalance || BigNumber(0);
 
-  const currentBonded = a.polkadotResources?.lockedBalance.minus(
-    currentUnbonding
-  );
+  const unlockedBalance = a.polkadotResources?.unlockedBalance || BigNumber(0);
+
+  const currentBonded =
+    a.polkadotResources?.lockedBalance.minus(unlockingBalance) || BigNumber(0);
 
   switch (t.mode) {
     case "bond":
@@ -196,7 +194,7 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
 
       if (amount.lte(0)) {
         errors.amount = new AmountRequired();
-      } else if (amount.gt(currentUnbonding)) {
+      } else if (amount.gt(unlockingBalance)) {
         errors.amount = new NotEnoughBalance();
       }
       break;
@@ -206,10 +204,10 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
         errors.staking = new PolkadotUnauthorizedOperation();
       }
 
-      // FIXME This always returns a warning, until unbondedBalance is retrieved from the API (see websocket.js)
-      if (a.polkadotResources?.unbondedBalance.lte(0)) {
-        warnings.amount = new PolkadotNoUnbondedBalance();
+      if (unlockedBalance.lte(0)) {
+        errors.amount = new PolkadotNoUnlockedBalance();
       }
+
       break;
 
     case "nominate":

@@ -8,12 +8,11 @@ import type { Transaction } from "../types";
 import { open, close } from "../../../hw";
 import type { AccountBridge, CurrencyBridge } from "../../../types";
 // import { isInvalidRecipient } from "../../../bridge/mockHelpers";
-// import { getMainAccount } from "../../../account";
+import { getMainAccount } from "../../../account";
 import {
   makeSync,
   makeScanAccounts,
   makeAccountBridgeReceive,
-  mergeOps,
 } from "../../../bridge/jsHelpers";
 import { submitExtrinsic } from "../../../api/polkadot";
 import { getAccountShape } from "../synchronisation";
@@ -21,20 +20,24 @@ import getTxInfo from "../js-getTransactionInfo";
 import { getEstimatedFeesFromUnsignedTx } from "../js-getFeesForTransaction";
 import buildTransaction from "../js-buildTransaction";
 import getTransactionStatus from "../js-getTransactionStatus";
+import { getValidators } from "../validators";
+import {
+  setPolkadotPreloadData,
+  asSafePolkadotPreloadData,
+} from "../preloadedData";
 import { Polkadot } from "../ledger-app/Polkadot";
-
 import { patchOperationWithHash } from "../../../operation";
+import { ESTIMATED_FEES } from "../logic";
 
 const receive = makeAccountBridgeReceive();
 
-const estimateMaxSpendable = ({
-  account /*, parentAccount, transaction */,
+const estimateMaxSpendable = async ({
+  account,
+  parentAccount /*,transaction ,*/,
 }) => {
-  // const mainAccount = getMainAccount(account, parentAccount);
-  const estimatedFees = BigNumber(5000);
-  return Promise.resolve(
-    BigNumber.max(0, account.balance.minus(estimatedFees))
-  );
+  const mainAccount = getMainAccount(account, parentAccount);
+  const estimatedFees = ESTIMATED_FEES; // Around 0.0154 DOT
+  return BigNumber.max(0, mainAccount.spendableBalance.minus(estimatedFees));
 };
 
 const postSync = (initial: Account, parent: Account) => {
@@ -175,11 +178,24 @@ const accountBridge: AccountBridge<Transaction> = {
 };
 
 const currencyBridge: CurrencyBridge = {
-  scanAccounts,
-  preload: () => {
-    return Promise.resolve();
+  preload: async () => {
+    const validators = await getValidators("all");
+    console.log("DOUBI");
+    setPolkadotPreloadData({ validators });
+    return Promise.resolve({ validators });
   },
-  hydrate: () => {},
+  hydrate: (data: mixed) => {
+    if (!data || typeof data !== "object") return;
+    const { validators } = data;
+    if (
+      !validators ||
+      typeof validators !== "object" ||
+      !Array.isArray(validators)
+    )
+      return;
+    setPolkadotPreloadData(asSafePolkadotPreloadData(data));
+  },
+  scanAccounts,
 };
 
 export default { currencyBridge, accountBridge };

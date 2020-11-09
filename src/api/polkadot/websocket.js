@@ -1,11 +1,27 @@
 // @flow
+import uniq from "lodash/uniq";
+import compact from "lodash/compact";
+
 import { BigNumber } from "bignumber.js";
 import { getEnv } from "../../env";
 import { WsProvider, ApiPromise } from "@polkadot/api";
+import { u8aToString } from "@polkadot/util";
+
+import { AccountId, Registration } from "@polkadot/types/interfaces";
+import { Data, Option } from "@polkadot/types";
+import type { ITuple } from "@polkadot/types/types";
+import type { PolkadotValidator } from "../../families/polkadot/types";
 
 type AsyncApiFunction = (api: typeof ApiPromise) => Promise<any>;
 
+const VALIDATOR_COMISSION_RATIO = 1000000000;
+
 const getWsUrl = () => getEnv("API_POLKADOT_NODE");
+const WEBSOCKET_DEBOUNCE_DELAY = 30000;
+
+let api;
+let pendingQueries = [];
+let apiDisconnectTimeout;
 
 /**
  * Connects to Substrate Node, executes calls then disconnects
@@ -13,18 +29,57 @@ const getWsUrl = () => getEnv("API_POLKADOT_NODE");
  * @param {*} execute - the calls to execute on api
  */
 async function withApi(execute: AsyncApiFunction): Promise<any> {
+  if (api) {
+    const query = execute(api);
+    pendingQueries.push(query.catch((err) => err));
+    const res = await query;
+
+    return res;
+  }
+
   const wsProvider = new WsProvider(getWsUrl());
-  const api = await ApiPromise.create({ provider: wsProvider });
+  api = await ApiPromise.create({ provider: wsProvider });
 
   try {
-    await api.isReady;
-    const res = await execute(api);
+    const query = execute(api);
+    pendingQueries.push(query.catch((err) => err));
+    const res = await query;
 
     return res;
   } finally {
-    await api.disconnect();
+    debouncedDisconnect();
   }
 }
+
+/**
+ * Disconnects Websocket API client after all pending queries are flushed.
+ */
+export const disconnect = async () => {
+  if (apiDisconnectTimeout) {
+    clearTimeout(apiDisconnectTimeout);
+    apiDisconnectTimeout = null;
+  }
+
+  if (api) {
+    const disconnecting = api;
+    const pending = pendingQueries;
+    api = undefined;
+    pendingQueries = [];
+    await Promise.all(pending);
+    await disconnecting.disconnect();
+  }
+};
+
+/**
+ * Disconnects Websocket client after a delay.
+ */
+const debouncedDisconnect = () => {
+  if (apiDisconnectTimeout) {
+    clearTimeout(apiDisconnectTimeout);
+  }
+
+  apiDisconnectTimeout = setTimeout(disconnect, WEBSOCKET_DEBOUNCE_DELAY);
+};
 
 /**
  * Returns true if ElectionStatus is Close. If ElectionStatus is Open, some features must be disabled.
@@ -75,6 +130,19 @@ export const isControllerAddress = async (address: string): Promise<Boolean> =>
     return ledgetOpt.isSome;
   });
 
+export const getAccount = async (addr: string) =>
+  withApi(async () => {
+    const balances = await getBalances(addr);
+    const stakingInfo = await getStakingInfo(addr);
+    const nominations = await getNominations(addr);
+
+    return {
+      ...balances,
+      ...stakingInfo,
+      nominations,
+    };
+  });
+
 /**
  * WIP - Returns all the balances for an account
  *
@@ -82,44 +150,102 @@ export const isControllerAddress = async (address: string): Promise<Boolean> =>
  */
 export const getBalances = async (addr: string) =>
   withApi(async (api: typeof ApiPromise) => {
-    const [allBalances, ledgerOpt, bonded] = await Promise.all([
-      api.derive.balances.all(addr),
+    const balances = await api.derive.balances.all(addr);
+
+    return {
+      balance: BigNumber(balances.freeBalance),
+      spendableBalance: BigNumber(balances.availableBalance),
+      nonce: balances.accountNonce.toNumber(),
+      lockedBalance: BigNumber(balances.lockedBalance),
+    };
+  });
+
+export const getStakingInfo = async (addr: string) =>
+  withApi(async (api: typeof ApiPromise) => {
+    const [activeOpt, ledgerOpt, bonded] = await Promise.all([
+      api.query.staking.activeEra(),
       api.query.staking.ledger(addr),
       api.query.staking.bonded(addr),
     ]);
-    const json = JSON.parse(JSON.stringify(allBalances, null, 2));
+    const now = new Date();
 
-    const ledgerJSON = JSON.parse(JSON.stringify(ledgerOpt, null, 2));
-    const stash = ledgerJSON ? ledgerJSON.stash : null;
+    const { index, start } = activeOpt.unwrapOrDefault();
+    const activeEraIndex = index.toNumber();
+    const activeEraStart = start.unwrap().toNumber();
+
+    const blockTime = api.consts.babe.expectedBlockTime; // 6000 ms
+    const epochDuration = api.consts.babe.epochDuration; // 2400 blocks
+    const eraLength = api.consts.staking.sessionsPerEra // 6 sessions
+      .mul(epochDuration)
+      .mul(blockTime)
+      .toNumber();
+
+    const ledger = ledgerOpt.isSome ? ledgerOpt.unwrap() : null;
+    const stash = ledger ? ledger.stash.toString() : null;
     const controller = bonded.isSome ? bonded.unwrap().toString() : null;
+    const unlockings = ledger
+      ? ledger.unlocking.map((lock) => ({
+          amount: BigNumber(lock.value),
+          completionDate: new Date(
+            activeEraStart + (lock.era - activeEraIndex) * eraLength
+          ), // This is an estimation of the date of completion, since it depends on block validation speed
+        }))
+      : [];
+    const unlocked = unlockings.filter((lock) => lock.completionDate <= now);
+    const unlockingBalance = unlockings.reduce(
+      (sum, lock) => sum.plus(lock.amount),
+      BigNumber(0)
+    );
+    const unlockedBalance = unlocked.reduce(
+      (sum, lock) => sum.plus(lock.amount),
+      BigNumber(0)
+    );
 
     return {
-      balance: BigNumber(json.freeBalance),
-      spendableBalance: BigNumber(json.availableBalance),
-      polkadotResources: {
-        controller,
-        stash,
-        nonce: json.accountNonce,
-        lockedBalance: BigNumber(json.lockedBalance),
-        unbondedBalance: BigNumber(0), // TODO
-        unbondings: ledgerJSON
-          ? ledgerJSON.unlocking.map((unbond) => ({
-              amount: BigNumber(unbond.value),
-              completionDate: new Date(),
-            }))
-          : [], // TODO
-      },
+      controller,
+      stash,
+      unlockedBalance,
+      unlockingBalance,
+      unlockings,
     };
   });
 
 export const getNominations = async (addr: string) =>
   withApi(async (api: typeof ApiPromise) => {
-    const json = await api.query.staking.nominators(addr);
-    const apiNominations = JSON.parse(JSON.stringify(json, null, 2));
-    const nominations = apiNominations?.targets.map((t) => ({
-      address: t.toString(),
-    }));
-    return nominations;
+    const [{ activeEra }, nominationsOpt] = await Promise.all([
+      api.derive.session.indexes(),
+      api.query.staking.nominators(addr),
+    ]);
+    if (nominationsOpt.isNone) return [];
+
+    const targets = nominationsOpt.unwrap().targets;
+
+    const exposures = await api.query.staking.erasStakers.multi(
+      targets.map((target) => [activeEra, target])
+    );
+
+    return targets.map((target, index) => {
+      const exposure = exposures[index];
+
+      const individualExposure = exposure.others.find(
+        (o) => o.who.toString() === addr
+      );
+      const value = individualExposure
+        ? BigNumber(individualExposure.value)
+        : BigNumber(0);
+
+      const status = exposure.others.length
+        ? individualExposure
+          ? "active"
+          : "inactive"
+        : "waiting";
+
+      return {
+        address: target.toString(),
+        value,
+        status,
+      };
+    });
   });
 
 /**
@@ -176,4 +302,175 @@ export const paymentInfo = async (extrinsic: string) =>
     const info = await api.rpc.payment.queryInfo(extrinsic);
 
     return info;
+  });
+
+/**
+ * Fetch all reward points for validators for current era
+ *
+ * @returns Map<String, BigNumber>
+ */
+export const fetchRewardPoints = async () =>
+  withApi(async (api: typeof ApiPromise) => {
+    const activeOpt = await api.query.staking.activeEra();
+
+    const { index: activeEra } = activeOpt.unwrapOrDefault();
+
+    const { individual } = await api.query.staking.erasRewardPoints(activeEra);
+
+    // recast BTreeMap<AccountId,RewardPoint> to Map<String, RewardPoint> because strict equality does not work
+    const rewards = new Map<String, BigNumber>(
+      [...individual.entries()].map(([k, v]) => [
+        k.toString(),
+        BigNumber(v.toString()),
+      ])
+    );
+
+    return rewards;
+  });
+
+/**
+ * @source https://github.com/polkadot-js/api/blob/master/packages/api-derive/src/accounts/info.ts
+ */
+function dataAsString(data: typeof Data): string {
+  return data.isRaw
+    ? u8aToString(data.asRaw.toU8a(true))
+    : data.isNone
+    ? ""
+    : data.toHex();
+}
+
+/**
+ * Fetch identity name of multiple addresses.
+ * Get parent identity if any, and concatenate parent name with child name.
+ *
+ * @param {string[]} addresses
+ */
+export const fetchIdentities = async (addresses: string[]) =>
+  withApi(async (api: typeof ApiPromise) => {
+    const superOfOpts = await api.query.identity.superOf.multi<
+      Option<ITuple<[typeof AccountId, typeof Data]>>
+    >(addresses);
+
+    const withParent = superOfOpts.map((superOfOpt) =>
+      superOfOpt?.isSome ? superOfOpt?.unwrap() : undefined
+    );
+
+    const parentAddresses = uniq(
+      compact(withParent.map((superOf) => superOf && superOf[0].toString()))
+    );
+
+    const [identities, parentIdentities] = await Promise.all([
+      api.query.identity.identityOf.multi<Option<typeof Registration>>(
+        addresses
+      ),
+      api.query.identity.identityOf.multi<Option<typeof Registration>>(
+        parentAddresses
+      ),
+    ]);
+
+    const map = new Map<string, string>(
+      addresses.map((addr, index) => {
+        const indexOfParent = withParent[index]
+          ? parentAddresses.indexOf(withParent[index][0].toString())
+          : -1;
+
+        const identityOpt =
+          indexOfParent > -1
+            ? parentIdentities[indexOfParent]
+            : identities[index];
+
+        if (identityOpt.isNone) {
+          return [addr, ""];
+        }
+
+        const {
+          info: { display },
+        } = identityOpt.unwrap();
+
+        const name = withParent[index]
+          ? `${dataAsString(display)} / ${dataAsString(withParent[index][1])}`
+          : dataAsString(display);
+
+        return [addr, name];
+      })
+    );
+
+    return map;
+  });
+
+/**
+ * Transforms each validator into an internal Validator type.
+ * @param {*} rewards - map of addres sand corresponding reward
+ * @param {*} identities - map of address and corresponding identity
+ * @param {*} elected - list of elected validator addresses
+ * @param {*} maxNominators - constant for oversubscribed validators
+ * @param {*} validator - the validator details to transform.
+ */
+const mapValidator = (
+  rewards,
+  identities,
+  elected,
+  maxNominators,
+  validator
+): PolkadotValidator => {
+  const address = validator.accountId.toString();
+  return {
+    address: address,
+    identity: identities.get(address) || "",
+    nominatorsCount: validator.exposure.others.length,
+    rewardPoints: rewards.get(address) || null,
+    commission: BigNumber(validator.validatorPrefs.commission).dividedBy(
+      VALIDATOR_COMISSION_RATIO
+    ),
+    totalBonded: BigNumber(validator.exposure.total),
+    selfBonded: BigNumber(validator.exposure.own),
+    isElected: elected.includes(address),
+    isOversubscribed: validator.exposure.others.length >= maxNominators,
+  };
+};
+
+/**
+ * List all validators for the current era, and their exposure, and identity.
+ */
+export const getValidators = async (stashes: string | string[] = "elected") =>
+  withApi(async (api: typeof ApiPromise) => {
+    const [allStashes, elected] = await Promise.all([
+      api.derive.staking.stashes(),
+      api.query.session.validators(),
+    ]);
+    let stashIds;
+
+    const allIds = allStashes.map((s) => s.toString());
+    const electedIds = elected.map((s) => s.toString());
+
+    if (Array.isArray(stashes)) {
+      stashIds = allIds.filter((s) => stashes.includes(s));
+    } else if (stashes === "elected") {
+      stashIds = electedIds;
+    } else {
+      const waitingIds = allIds.filter((v) => !electedIds.includes(v));
+
+      if (stashes === "waiting") {
+        stashIds = waitingIds;
+      } else {
+        // Keep elected in first positions
+        stashIds = [...electedIds, ...waitingIds];
+      }
+    }
+
+    const [validators, rewards, identities] = await Promise.all([
+      api.derive.staking.accounts(stashIds),
+      fetchRewardPoints(),
+      fetchIdentities(stashIds),
+    ]);
+
+    return validators.map(
+      mapValidator.bind(
+        null,
+        rewards,
+        identities,
+        electedIds,
+        api.consts.staking.maxNominatorRewardedPerValidator
+      )
+    );
   });

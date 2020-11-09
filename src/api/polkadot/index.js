@@ -5,9 +5,13 @@ export {
   getValidatorsStashesAddresses,
   isNewAccount,
   isControllerAddress,
+  getAccount,
   getBalances,
+  getStakingInfo,
   getNominations,
   getTransactionParams,
   submitExtrinsic,
   paymentInfo,
+  getValidators,
+  disconnect,
 } from "./websocket";

@@ -100,12 +100,25 @@ const polkadotValidators = {
       desc: "The status of the validators to fetch (all|elected|waiting)",
       type: String,
     },
+    {
+      name: "validator",
+      type: String,
+      multiple: true,
+      desc: "address of recipient validator that will receive the delegate",
+    },
   ],
   job: ({
     format,
     status,
-  }: $Shape<{ format: string, status: string }>): Observable<string> =>
-    from(getValidators(status)).pipe(
+    validator,
+  }: $Shape<{
+    format: string,
+    status: string,
+    validator: string[],
+  }>): Observable<string> =>
+    from(
+      getValidators(validator && validator.length ? validator : status)
+    ).pipe(
       map((validators) => {
         const f =
           polkadotValidatorsFormatters[format] ||
