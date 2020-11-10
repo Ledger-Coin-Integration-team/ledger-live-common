@@ -56,17 +56,18 @@ function formatAccountSpecifics(account: Account): string {
   let str = " ";
 
   str +=
-    formatCurrencyUnit(unit, account.spendableBalance, formatConfig) + " spendable. ";
+    formatCurrencyUnit(unit, account.spendableBalance, formatConfig) +
+    " spendable. ";
   if (polkadotResources.lockedBalance.gt(0)) {
     str +=
       formatCurrencyUnit(unit, polkadotResources.lockedBalance, formatConfig) +
       " locked. ";
   }
-  if (polkadotResources.unbondedBalance.gt(0)) {
+  if (polkadotResources.unlockedBalance.gt(0)) {
     str +=
       formatCurrencyUnit(
         unit,
-        polkadotResources.unbondedBalance,
+        polkadotResources.unlockedBalance,
         formatConfig
       ) + " unlocked. ";
   }

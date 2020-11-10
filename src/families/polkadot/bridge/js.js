@@ -180,7 +180,6 @@ const accountBridge: AccountBridge<Transaction> = {
 const currencyBridge: CurrencyBridge = {
   preload: async () => {
     const validators = await getValidators("all");
-    console.log("DOUBI");
     setPolkadotPreloadData({ validators });
     return Promise.resolve({ validators });
   },
