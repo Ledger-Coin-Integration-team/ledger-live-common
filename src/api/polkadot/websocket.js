@@ -29,16 +29,24 @@ let apiDisconnectTimeout;
  * @param {*} execute - the calls to execute on api
  */
 async function withApi(execute: AsyncApiFunction): Promise<any> {
+  // If client is instanciated already, ensure it is connected & ready
   if (api) {
-    const query = execute(api);
-    pendingQueries.push(query.catch((err) => err));
-    const res = await query;
-
-    return res;
+    try {
+      await api.isReadyOrError;
+    } catch (err) {
+      // definitely not connected...
+      api = null;
+      pendingQueries = [];
+    }
   }
 
-  const wsProvider = new WsProvider(getWsUrl());
-  api = await ApiPromise.create({ provider: wsProvider });
+  if (!api) {
+    const wsProvider = new WsProvider(getWsUrl(), /* autoConnectMs = */ false);
+    wsProvider.connect();
+    api = await new ApiPromise({ provider: wsProvider }).isReadyOrError;
+  }
+
+  cancelDebouncedDisconnect();
 
   try {
     const query = execute(api);
@@ -55,10 +63,7 @@ async function withApi(execute: AsyncApiFunction): Promise<any> {
  * Disconnects Websocket API client after all pending queries are flushed.
  */
 export const disconnect = async () => {
-  if (apiDisconnectTimeout) {
-    clearTimeout(apiDisconnectTimeout);
-    apiDisconnectTimeout = null;
-  }
+  cancelDebouncedDisconnect();
 
   if (api) {
     const disconnecting = api;
@@ -70,14 +75,18 @@ export const disconnect = async () => {
   }
 };
 
+const cancelDebouncedDisconnect = () => {
+  if (apiDisconnectTimeout) {
+    clearTimeout(apiDisconnectTimeout);
+    apiDisconnectTimeout = null;
+  }
+};
+
 /**
  * Disconnects Websocket client after a delay.
  */
 const debouncedDisconnect = () => {
-  if (apiDisconnectTimeout) {
-    clearTimeout(apiDisconnectTimeout);
-  }
-
+  cancelDebouncedDisconnect();
   apiDisconnectTimeout = setTimeout(disconnect, WEBSOCKET_DEBOUNCE_DELAY);
 };
 
