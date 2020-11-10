@@ -418,9 +418,11 @@ export function genAccount(
       stash: null,
       controller: null,
       nonce: 0,
-      bondedBalance: BigNumber(0),
-      unbondings: null,
-      nominations: null,
+      lockedBalance: BigNumber(0),
+      unlockingBalance: BigNumber(0),
+      unlockedBalance: BigNumber(0),
+      unlockings: [],
+      nominations: [],
     };
   }
 
