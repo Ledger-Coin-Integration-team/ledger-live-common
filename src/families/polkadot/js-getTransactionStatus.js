@@ -80,7 +80,11 @@ const getSendTransactionStatus = async (
     errors.amount = new NotEnoughBalance();
   }
 
-  if ((await isNewAccount(t.recipient)) && amount.lt(EXISTENTIAL_DEPOSIT)) {
+  if (
+    !errors.recipient &&
+    (await isNewAccount(t.recipient)) &&
+    amount.lt(EXISTENTIAL_DEPOSIT)
+  ) {
     errors.amount = new NotEnoughBalanceBecauseDestinationNotCreated("", {
       minimalAmount: formatCurrencyUnit(
         a.currency.units[0],

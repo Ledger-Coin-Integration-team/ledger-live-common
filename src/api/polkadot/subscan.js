@@ -1,5 +1,6 @@
 // @flow
 import uniqBy from "lodash/uniqBy";
+import camelCase from "lodash/camelCase";
 import type { Operation } from "../../types";
 
 import network from "../../network";
@@ -24,8 +25,8 @@ const encodePolkadotAddr = (addr) => {
 const getExtra = (type, extrinsic) => {
   let extra = {
     palletMethod: extrinsic.call_module
-      ? `${extrinsic.call_module}.${extrinsic.call_module_function}`
-      : `${extrinsic.module_id}.${extrinsic.event_id}`,
+      ? `${extrinsic.call_module}.${camelCase(extrinsic.call_module_function)}`
+      : `${extrinsic.module_id}.${camelCase(extrinsic.event_id)}`,
   };
 
   const params = JSON.parse(extrinsic.params);
@@ -117,7 +118,7 @@ const mapSubscanTransfer = (
     blockHeight: transfer.block_num,
     date: new Date(transfer.block_timestamp * 1000),
     extra: {
-      module: transfer.module,
+      palletMethod: "balances.transfer", // FIXME subscan plz
     },
     senders: [transfer.from],
     recipients: [transfer.to],
@@ -129,10 +130,9 @@ const mapSubscanExtrinsic = (
   { addr, accountId },
   extrinsic
 ): $Shape<Operation> => {
-  const type = getOperationType(
-    extrinsic.call_module,
-    extrinsic.call_module_function
-  );
+  const pallet = extrinsic.call_module;
+  const palletMethod = camelCase(extrinsic.call_module_function);
+  const type = getOperationType(pallet, palletMethod);
 
   // FIXME subscan plz
   const recipient =
@@ -155,7 +155,7 @@ const mapSubscanExtrinsic = (
     hash: extrinsic.extrinsic_hash,
     blockHeight: extrinsic.block_num,
     date: new Date(extrinsic.block_timestamp * 1000),
-    senders: recipient ? [addr] : [],
+    senders: [addr],
     recipients: recipient ? [recipient] : [],
     extra: getExtra(type, extrinsic),
     hasFailed: !extrinsic.success,
