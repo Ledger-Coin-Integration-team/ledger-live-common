@@ -78,8 +78,8 @@
     "@ledgerhq/hw-transport-mocker": "^5.29.0",
     "@ledgerhq/hw-transport-node-speculos": "^5.29.0",
     "@ledgerhq/logs": "5.29.0",
-    "@polkadot/api": "^2.2.1",
-    "@substrate/txwrapper": "^3.10.1",
+    "@polkadot/api": "2.2.1",
+    "@substrate/txwrapper": "3.10.1",
     "async": "^3.2.0",
     "axios": "0.21.0",
     "bchaddrjs": "^0.4.9",
@@ -154,5 +154,8 @@
     "rimraf": "^3.0.2",
     "svgr": "^1.10.0",
     "timemachine": "^0.3.2"
+  },
+  "resolutions": {
+    "@polkadot/api": "2.2.1"
   }
 }
