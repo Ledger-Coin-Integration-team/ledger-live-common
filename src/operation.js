@@ -90,14 +90,19 @@ export function getOperationAmountNumber(op: Operation): BigNumber {
     case "OPT_IN":
     case "OPT_OUT":
     case "REDEEM":
-    case "SLASH":
-      return op.value.negated();
-    case "FREEZE":
-    case "UNFREEZE":
+
+    // DOT
     case "BOND":
     case "UNBOND":
     case "WITHDRAW_UNBONDED":
+    case "SLASH":
+      return op.value.negated();
+    // TRON
+    case "FREEZE":
+    case "UNFREEZE":
     case "VOTE":
+
+    // DOT
     case "NOMINATE":
     case "CHILL":
       return op.fee.negated();
