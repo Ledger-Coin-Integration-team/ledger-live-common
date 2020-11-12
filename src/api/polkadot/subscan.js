@@ -134,16 +134,16 @@ const mapSubscanExtrinsic = (
   const palletMethod = camelCase(extrinsic.call_module_function);
   const type = getOperationType(pallet, palletMethod);
 
-  // FIXME subscan plz
-  const recipient =
-    extrinsic.destination && encodePolkadotAddr(extrinsic.destination);
+  // FIXME subscan WTF
+  const params = JSON.parse(extrinsic.params);
+  const paramRecipient = params.find((p) => p.name === "dest");
+  const paramAmount = params.find((p) => p.name === "value");
+  const recipient = paramRecipient && encodePolkadotAddr(paramRecipient.value);
 
   // All successful transfers, but not self transfers (which only burn fees)
   const value =
-    type === "OUT" && extrinsic.success && recipient !== addr
-      ? subscanAmountToPlanck(extrinsic.amount, extrinsic.block_num).plus(
-          extrinsic.fee
-        )
+    type === "OUT" && extrinsic.success && recipient !== addr && paramAmount
+      ? BigNumber(paramAmount.value).plus(extrinsic.fee)
       : BigNumber(extrinsic.fee);
 
   return {
