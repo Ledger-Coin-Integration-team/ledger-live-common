@@ -1,4 +1,6 @@
-export { getOperations } from "./subscan";
+// export { getOperations } from "./subscan";
+
+export { getOperations } from "./bisontrails";
 
 export {
   isElectionClosed,

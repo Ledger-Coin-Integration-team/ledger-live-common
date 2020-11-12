@@ -11,7 +11,7 @@ const agent = new https.Agent({
   rejectUnauthorized: false,
 });
 
-const LIMIT = 100;
+const LIMIT = 200;
 
 const getExtra = (type, extrinsic) => {
   let extra = {
@@ -40,8 +40,8 @@ const getExtra = (type, extrinsic) => {
     case "NOMINATE":
       extra = {
         ...extra,
-        validators: extrinsic.validators.reduce((current, old) => {
-          return [...old, current.address];
+        validators: extrinsic.staking.validators.reduce((acc, current) => {
+          return [...acc, current.address];
         }, []),
       };
       break;
@@ -73,21 +73,32 @@ const rewardToOperation = (addr, accountId, reward) => {
   };
 };
 
+const getValue = (extrinsic, type) => {
+  if (!extrinsic.isSuccess) {
+    return type === "IN" ? BigNumber(0) : BigNumber(extrinsic.partialFee || 0);
+  }
+
+  return type === "OUT" && extrinsic.signer !== extrinsic.affectedAddress1
+    ? BigNumber(extrinsic.amount).plus(extrinsic.partialFee)
+    : type === "IN"
+    ? BigNumber(extrinsic.amount)
+    : BigNumber(extrinsic.partialFee);
+};
+
 const extrinsicToOperation = (addr, accountId, extrinsic) => {
   let type = getOperationType(extrinsic.section, extrinsic.method);
-  if (type === "OUT" && extrinsic.affectedAddress1 === addr) {
+  if (
+    type === "OUT" &&
+    extrinsic.affectedAddress1 === addr &&
+    extrinsic.signer !== addr
+  ) {
     type = "IN";
   }
   return {
     id: `${accountId}-${extrinsic.hash}-${type}`,
     accountId,
-    fee: BigNumber(extrinsic.partialFee),
-    value:
-      type === "FEES"
-        ? BigNumber(extrinsic.partialFee)
-        : !extrinsic.isSuccess
-        ? BigNumber(0)
-        : BigNumber(extrinsic.amount),
+    fee: BigNumber(extrinsic.partialFee || 0),
+    value: getValue(extrinsic, type),
     type,
     hash: extrinsic.hash,
     blockHeight: extrinsic.blockNumber,

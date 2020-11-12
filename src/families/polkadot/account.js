@@ -21,24 +21,25 @@ function formatOperationSpecifics(op: Operation, unit: ?Unit): string {
     showCode: true,
   };
 
-  str += bondedAmount
-    ? `\n    bondedAmount: ${
-        unit
-          ? formatCurrencyUnit(unit, bondedAmount, formatConfig)
-          : bondedAmount
-      }`
-    : unbondedAmount
-    ? `\n    unbondedAmount: ${
-        unit
-          ? formatCurrencyUnit(unit, unbondedAmount, formatConfig)
-          : unbondedAmount
-      }`
-    : validatorStash
-    ? `\n    validatorStash: ${validatorStash}` +
-      `\n    amount: ${
-        unit ? formatCurrencyUnit(unit, amount, formatConfig) : amount
-      }`
-    : "";
+  str +=
+    bondedAmount && !bondedAmount.isNaN()
+      ? `\n    bondedAmount: ${
+          unit
+            ? formatCurrencyUnit(unit, bondedAmount, formatConfig)
+            : bondedAmount
+        }`
+      : unbondedAmount && !unbondedAmount.isNaN()
+      ? `\n    unbondedAmount: ${
+          unit
+            ? formatCurrencyUnit(unit, unbondedAmount, formatConfig)
+            : unbondedAmount
+        }`
+      : validatorStash
+      ? `\n    validatorStash: ${validatorStash}` +
+        `\n    amount: ${
+          unit ? formatCurrencyUnit(unit, amount, formatConfig) : amount
+        }`
+      : "";
 
   return str;
 }
