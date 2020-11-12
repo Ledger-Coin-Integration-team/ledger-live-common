@@ -31,6 +31,7 @@ const getExtra = (type, extrinsic) => {
       break;
 
     case "REWARD":
+    case "SLASH":
       extra = {
         ...extra,
         validatorStash: extrinsic.validatorStash,
@@ -55,34 +56,23 @@ const getAccountOperation = (addr, offset, startAt, limit = LIMIT) =>
     offset ? `&offset=${offset}` : ``
   }${startAt ? `&startAt=${startAt}` : ``}`;
 
-const rewardToOperation = (addr, accountId, reward) => {
-  const hash = reward.extrinsicHash;
-
-  return {
-    id: `${accountId}-${hash}-REWARD`,
-    accountId,
-    fee: BigNumber(0),
-    value: BigNumber(reward.value),
-    type: "REWARD",
-    hash: hash,
-    blockHeight: reward.blockNumber,
-    date: new Date(reward.timestamp),
-    extra: {
-      module: reward.description,
-    },
-  };
-};
-
 const getValue = (extrinsic, type) => {
   if (!extrinsic.isSuccess) {
     return type === "IN" ? BigNumber(0) : BigNumber(extrinsic.partialFee || 0);
   }
 
-  return type === "OUT" && extrinsic.signer !== extrinsic.affectedAddress1
-    ? BigNumber(extrinsic.amount).plus(extrinsic.partialFee)
-    : type === "IN"
-    ? BigNumber(extrinsic.amount)
-    : BigNumber(extrinsic.partialFee);
+  switch (type) {
+    case "OUT":
+      if (extrinsic.signer !== extrinsic.affectedAddress1)
+        return BigNumber(extrinsic.amount).plus(extrinsic.partialFee);
+
+    case "IN":
+    case "SLASH":
+      return BigNumber(extrinsic.amount);
+
+    default:
+      return BigNumber(extrinsic.partialFee);
+  }
 };
 
 const extrinsicToOperation = (addr, accountId, extrinsic) => {
@@ -105,8 +95,48 @@ const extrinsicToOperation = (addr, accountId, extrinsic) => {
     date: new Date(extrinsic.timestamp),
     extra: getExtra(type, extrinsic),
     senders: [extrinsic.signer],
-    recipients: [extrinsic.affectedAddress1],
+    recipients: [extrinsic.affectedAddress1, extrinsic.affectedAddress2].filter(
+      Boolean
+    ),
     hasFailed: !extrinsic.isSuccess,
+  };
+};
+
+const rewardToOperation = (addr, accountId, reward) => {
+  const hash = reward.extrinsicHash;
+  const type = "REWARD";
+
+  return {
+    id: `${accountId}-${hash}-${type}`,
+    accountId,
+    fee: BigNumber(0),
+    value: BigNumber(reward.value),
+    type: type,
+    hash: hash,
+    blockHeight: reward.blockNumber,
+    date: new Date(reward.timestamp),
+    extra: getExtra(type, reward),
+    senders: [reward.validatorStash].filter(Boolean),
+    recipients: [reward.accountId].filter(Boolean),
+  };
+};
+
+const slashToOperation = (addr, accountId, slash) => {
+  const hash = `${slash.blockNumber}-0`; // to be compatible with explorer
+  const type = "SLASH";
+
+  return {
+    id: `${accountId}-${hash}-${type}`,
+    accountId,
+    fee: BigNumber(0),
+    value: BigNumber(slash.value),
+    type: type,
+    hash: hash,
+    blockHeight: slash.blockNumber,
+    senders: [slash.validatorStash].filter(Boolean),
+    recipients: [slash.accountId].filter(Boolean),
+    date: new Date(slash.timestamp),
+    extra: getExtra(type, slash),
   };
 };
 
@@ -131,7 +161,11 @@ const fetchOperationList = async (
     rewardToOperation.bind(null, addr, accountId)
   );
 
-  const mergedOp = [...prevOperations, ...operations, ...rewards];
+  const slashes = data.slashes.map(
+    slashToOperation.bind(null, addr, accountId)
+  );
+
+  const mergedOp = [...prevOperations, ...operations, ...rewards, ...slashes];
 
   if (operations.length < LIMIT && rewards.length < LIMIT) {
     return mergedOp.sort((a, b) => b.date - a.date);
