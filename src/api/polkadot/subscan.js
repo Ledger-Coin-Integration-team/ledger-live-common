@@ -32,6 +32,11 @@ const getExtra = (type, extrinsic) => {
   const params = JSON.parse(extrinsic.params);
   let valueParam;
   switch (type) {
+    case "OUT":
+      valueParam = params.find((p) => p.name === "value")?.value;
+      extra = { ...extra, transferAmount: BigNumber(valueParam || 0) };
+      break;
+
     case "BOND":
       valueParam =
         params.find((p) => p.name === "value")?.value ||
@@ -106,19 +111,20 @@ const mapSubscanTransfer = (
 ): $Shape<Operation> | null => {
   const type = transfer.from === addr ? "OUT" : "IN";
 
+  const amount = subscanAmountToPlanck(transfer.amount, transfer.block_num);
+
   return {
     id: `${accountId}-${transfer.hash}-${type}`,
     accountId,
     fee: BigNumber(transfer.fee),
-    value: !transfer.success
-      ? BigNumber(0)
-      : subscanAmountToPlanck(transfer.amount, transfer.block_num),
+    value: !transfer.success ? BigNumber(0) : amount,
     type,
     hash: transfer.hash,
     blockHeight: transfer.block_num,
     date: new Date(transfer.block_timestamp * 1000),
     extra: {
       palletMethod: "balances.transfer", // FIXME subscan plz
+      transferAmount: amount,
     },
     senders: [transfer.from],
     recipients: [transfer.to],
