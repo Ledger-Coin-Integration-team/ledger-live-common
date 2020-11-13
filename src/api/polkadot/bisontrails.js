@@ -63,10 +63,9 @@ const getValue = (extrinsic, type) => {
 
   switch (type) {
     case "OUT":
-      if (extrinsic.signer !== extrinsic.affectedAddress1)
-        return BigNumber(extrinsic.amount).plus(extrinsic.partialFee);
-      break;
-
+      return extrinsic.signer !== extrinsic.affectedAddress1
+        ? BigNumber(extrinsic.amount).plus(extrinsic.partialFee)
+        : BigNumber(extrinsic.partialFee);
     case "IN":
     case "SLASH":
       return BigNumber(extrinsic.amount);
