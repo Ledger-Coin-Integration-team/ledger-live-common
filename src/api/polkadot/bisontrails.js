@@ -13,6 +13,13 @@ const agent = new https.Agent({
 
 const LIMIT = 200;
 
+const getBaseApiUrl = () => "https://polkadot.indexer.dev.stagebison.net"; // FIXME: env
+
+const getAccountOperationUrl = (addr, offset, startAt, limit = LIMIT) =>
+  `${getBaseApiUrl()}/accounts/${addr}/operations?limit=${limit}${
+    offset ? `&offset=${offset}` : ``
+  }${startAt ? `&startAt=${startAt}` : ``}`;
+
 const getExtra = (type, extrinsic) => {
   let extra = {
     palletMethod: `${extrinsic.section}.${extrinsic.method}`,
@@ -61,11 +68,6 @@ const getExtra = (type, extrinsic) => {
 
   return extra;
 };
-
-const getAccountOperation = (addr, offset, startAt, limit = LIMIT) =>
-  `https://polkadot.indexer.dev.stagebison.net/accounts/${addr}/operations?limit=${limit}${
-    offset ? `&offset=${offset}` : ``
-  }${startAt ? `&startAt=${startAt}` : ``}`;
 
 const getValue = (extrinsic, type) => {
   if (!extrinsic.isSuccess) {
@@ -160,7 +162,7 @@ const fetchOperationList = async (
 ) => {
   const { data } = await network({
     method: "GET",
-    url: getAccountOperation(addr, offset, startAt),
+    url: getAccountOperationUrl(addr, offset, startAt),
     httpsAgent: agent,
   });
 
