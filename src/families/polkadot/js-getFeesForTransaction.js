@@ -21,7 +21,7 @@ export const getEstimatedFeesFromUnsignedTx = async (
   a: Account,
   unsignedTx: string,
   txInfo: any
-) => {
+): Promise<BigNumber> => {
   const { txOptions } = txInfo;
 
   const signature = u8aConcat(
@@ -49,7 +49,7 @@ export const getEstimatedFees = async (
   a: Account,
   t: Transaction,
   txInfo: any
-) => {
+): Promise<BigNumber> => {
   return getEstimatedFeesFromUnsignedTx(
     a,
     await buildTransaction(a, t, txInfo),
