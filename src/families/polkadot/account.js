@@ -89,6 +89,12 @@ function formatAccountSpecifics(account: Account): string {
 }
 
 export function fromOperationExtraRaw(extra: ?Object) {
+  if (extra && extra.transferAmount) {
+    extra = {
+      ...extra,
+      transferAmount: extra.transferAmount.toString(),
+    };
+  }
   if (extra && extra.bondedAmount) {
     return {
       ...extra,
@@ -98,19 +104,26 @@ export function fromOperationExtraRaw(extra: ?Object) {
   if (extra && extra.unbondedAmount) {
     return {
       ...extra,
-      bondedAmount: BigNumber(extra.unbondedAmount),
+      unbondedAmount: BigNumber(extra.unbondedAmount),
     };
   }
+  // for subscan reward & slash
   if (extra && extra.amount) {
     return {
       ...extra,
-      bondedAmount: BigNumber(extra.amount),
+      amount: BigNumber(extra.amount),
     };
   }
   return extra;
 }
 
 export function toOperationExtraRaw(extra: ?Object) {
+  if (extra && extra.transferAmount) {
+    extra = {
+      ...extra,
+      transferAmount: extra.transferAmount.toString(),
+    };
+  }
   if (extra && extra.bondedAmount) {
     return {
       ...extra,
@@ -120,13 +133,14 @@ export function toOperationExtraRaw(extra: ?Object) {
   if (extra && extra.unbondedAmount) {
     return {
       ...extra,
-      bondedAmount: extra.unbondedAmount.toString(),
+      unbondedAmount: extra.unbondedAmount.toString(),
     };
   }
+  // for subscan reward & slash
   if (extra && extra.amount) {
     return {
       ...extra,
-      bondedAmount: extra.amount.toString(),
+      amount: extra.amount.toString(),
     };
   }
   return extra;

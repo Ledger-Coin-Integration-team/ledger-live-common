@@ -19,15 +19,26 @@ const getExtra = (type, extrinsic) => {
   };
 
   switch (type) {
+    case "IN":
+    case "OUT":
+      if (extrinsic.amount) {
+        extra = { ...extra, transferAmount: BigNumber(extrinsic.amount) };
+      }
+      break;
+
     case "BOND":
-      extra = { ...extra, bondedAmount: BigNumber(extrinsic.amount) };
+      if (extrinsic.amount) {
+        extra = { ...extra, bondedAmount: BigNumber(extrinsic.amount) };
+      }
       break;
 
     case "UNBOND":
-      extra = {
-        ...extra,
-        unbondedAmount: BigNumber(extrinsic.amount),
-      };
+      if (extrinsic.amount) {
+        extra = {
+          ...extra,
+          unbondedAmount: BigNumber(extrinsic.amount),
+        };
+      }
       break;
 
     case "REWARD":
