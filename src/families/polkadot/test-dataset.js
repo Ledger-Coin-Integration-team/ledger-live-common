@@ -10,9 +10,19 @@ import {
   NotEnoughBalanceBecauseDestinationNotCreated,
 } from "@ledgerhq/errors";
 
+import {
+  PolkadotUnauthorizedOperation,
+  PolkadotNotValidator,
+} from "../../errors";
+
 import type { DatasetTest } from "../../types";
 import { fromTransactionRaw } from "./transaction";
 import type { Transaction } from "./types";
+
+const ACCOUNT_SAME_STASHCONTROLLER = "";
+const ACCOUNT_STASH = "13SGsuG6S1SeLfenuSauQMCzctr3z9SNKr8gbnXsEtyYijkT";
+const ACCOUNT_CONTROLLER = "15FwDL7TkRJFyGK9o6iYiqjFM1Mrq6VXXvdFQ9a7m5TQayUY";
+const ACCOUNT_EMPTY = "15B3b91znpx4RsBs3stqF6CmsMucA7zxY7K3LBR74mxgk9vE";
 
 const dataset: DatasetTest<Transaction> = {
   implementations: ["js"],
@@ -34,31 +44,32 @@ const dataset: DatasetTest<Transaction> = {
           <= bc54dd82d1a0a63e2290bb8d24b106a6d32208ec6444027264e3ba4ab0d6024c31354677444c37546b524a4679474b396f36695969716a464d314d727136565858766446513961376d355451617955599000
           => 90010000142c00008062010080040000800000008000000080
           <= b89a1a114ff8d16a9cb1da919a74a728b02c75f4f7a47641b280df2b0a816942313542336239317a6e70783452734273337374714636436d734d756341377a7859374b334c425237346d78676b3976459000
-          `
+          `,
         },
       ],
       accounts: [
         {
           // Account which is stash and controller
-        raw: {
-          id: 'js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44',
-          seedIdentifier: '12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS',
-          name: "Polkadot 1",
-          derivationMode: "polkadotbip44",
-          index: 0,
-          freshAddress: '12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS',
-          freshAddressPath: "44'/354'/0'/0'/0'",
-          freshAddresses: [],
-          blockHeight: 0,
-          operations: [],
-          pendingOperations: [],
-          currencyId: "polkadot",
-          unitMagnitude: 10,
-          lastSyncDate: "",
-          balance: "21000310",
-        },
-        transactions: [
-          {
+          raw: {
+            id:
+              "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
+            seedIdentifier: "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
+            name: "Polkadot 1",
+            derivationMode: "polkadotbip44",
+            index: 0,
+            freshAddress: "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
+            freshAddressPath: "44'/354'/0'/0'/0'",
+            freshAddresses: [],
+            blockHeight: 0,
+            operations: [],
+            pendingOperations: [],
+            currencyId: "polkadot",
+            unitMagnitude: 10,
+            lastSyncDate: "",
+            balance: "21000310",
+          },
+          transactions: [
+            {
               name: "recipient and sender must not be the same",
               transaction: fromTransactionRaw({
                 family: "polkadot",
@@ -68,23 +79,180 @@ const dataset: DatasetTest<Transaction> = {
                 era: null,
                 validators: [],
                 fees: null,
-                rewardDestination: null
+                rewardDestination: null,
               }),
               expectedStatus: {
-                amount: BigNumber("10000000"),
-                estimatedFees: BigNumber("1"),
+                amount: BigNumber("100000000"),
                 errors: {
                   recipient: new InvalidAddressBecauseDestinationIsAlsoSource(),
                 },
                 warnings: {},
-                totalSpent: BigNumber("10000001"),
+                totalSpent: BigNumber("100000000"),
               },
             },
-        ]
-        }
-      ]
-    }
-  }
+            {
+              name: "Not a valid address",
+              transaction: fromTransactionRaw({
+                family: "polkadot",
+                recipient: "ewrererewrew",
+                amount: "100000000",
+                mode: "send",
+                era: null,
+                validators: [],
+                fees: null,
+                rewardDestination: null,
+              }),
+              expectedStatus: {
+                errors: {
+                  recipient: new InvalidAddress(),
+                },
+                warnings: {},
+              },
+            },
+            {
+              name: "Amount Required",
+              transaction: fromTransactionRaw({
+                family: "polkadot",
+                recipient: ACCOUNT_CONTROLLER,
+                amount: "0",
+                mode: "send",
+                era: null,
+                validators: [],
+                fees: null,
+                rewardDestination: null,
+              }),
+              expectedStatus: {
+                errors: {
+                  amount: new AmountRequired(),
+                },
+                warnings: {},
+              },
+            },
+            {
+              name: "Not enough spendable",
+              transaction: fromTransactionRaw({
+                family: "polkadot",
+                recipient: ACCOUNT_CONTROLLER,
+                amount: "100000000000000000",
+                mode: "send",
+                era: null,
+                validators: [],
+                fees: null,
+                rewardDestination: null,
+              }),
+              expectedStatus: {
+                errors: {
+                  amount: new NotEnoughBalance(),
+                },
+                warnings: {},
+              },
+            },
+            {
+              name: "Not created account and deposit not existing",
+              transaction: fromTransactionRaw({
+                family: "polkadot",
+                recipient: ACCOUNT_EMPTY,
+                amount: "1000000",
+                mode: "send",
+                era: null,
+                validators: [],
+                fees: null,
+                rewardDestination: null,
+              }),
+              expectedStatus: {
+                errors: {
+                  amount: new NotEnoughBalanceBecauseDestinationNotCreated(),
+                },
+                warnings: {},
+              },
+            },
+            {
+              name: "New account and suffisent deposit",
+              transaction: fromTransactionRaw({
+                family: "polkadot",
+                recipient: ACCOUNT_EMPTY,
+                amount: "10000000000",
+                mode: "send",
+                era: null,
+                validators: [],
+                fees: null,
+                rewardDestination: null,
+              }),
+              expectedStatus: {
+                amount: BigNumber("10000000000"),
+                errors: {},
+                warnings: {},
+              },
+            },
+            {
+              name: "nominate without true validator",
+              transaction: fromTransactionRaw({
+                family: "polkadot",
+                recipient: "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
+                amount: "0",
+                mode: "nominate",
+                era: null,
+                validators: [
+                  "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
+                ],
+                fees: null,
+                rewardDestination: null,
+              }),
+              expectedStatus: {
+                errors: {
+                  staking: new PolkadotNotValidator(),
+                },
+                warnings: {},
+              },
+            },
+          ],
+        },
+        {
+          raw: {
+            id:
+              "js:2:polkadot:13SGsuG6S1SeLfenuSauQMCzctr3z9SNKr8gbnXsEtyYijkT:polkadotbip44",
+            seedIdentifier: ACCOUNT_STASH,
+            name: "Polkadot 2",
+            derivationMode: "polkadotbip44",
+            index: 0,
+            freshAddress: ACCOUNT_STASH,
+            freshAddressPath: "44'/354'/2'/0'/0'",
+            freshAddresses: [],
+            blockHeight: 0,
+            operations: [],
+            pendingOperations: [],
+            currencyId: "polkadot",
+            unitMagnitude: 10,
+            lastSyncDate: "",
+            balance: "11000000000",
+          },
+          transactions: [
+            {
+              name: "stash can't nominate",
+              transaction: fromTransactionRaw({
+                family: "polkadot",
+                recipient: "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
+                amount: "0",
+                mode: "nominate",
+                era: null,
+                validators: [
+                  "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
+                ],
+                fees: null,
+                rewardDestination: null,
+              }),
+              expectedStatus: {
+                errors: {
+                  staking: new PolkadotUnauthorizedOperation(),
+                },
+                warnings: {},
+              },
+            },
+          ],
+        },
+      ],
+    },
+  },
 };
 
 export default dataset;
