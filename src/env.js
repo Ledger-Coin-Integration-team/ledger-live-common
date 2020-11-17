@@ -68,6 +68,11 @@ const envDefinitions = {
     def: "ws://localhost:9944",
     desc: "Polkadot Node WS url",
   },
+  API_POLKADOT_SIDECAR: {
+    parser: stringParser,
+    def: "http://localhost:8000",
+    desc: "Polkadot Sidecar API url",
+  },
   API_TEZOS_BAKER: {
     parser: stringParser,
     def: "https://tezos-bakers.api.live.ledger.com",
