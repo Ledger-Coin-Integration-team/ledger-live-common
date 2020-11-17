@@ -4,7 +4,7 @@ export { getOperations } from "./bisontrails";
 
 export {
   isElectionClosed,
-  getValidatorsStashesAddresses,
+  verifyValidatorAddresses,
   isNewAccount,
   isControllerAddress,
   getAccount,
