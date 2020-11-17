@@ -1,5 +1,6 @@
 // @flow
 
+import invariant from "invariant";
 import { BigNumber } from "bignumber.js";
 import {
   NotEnoughBalance,
@@ -185,6 +186,20 @@ const dataset: DatasetTest<Transaction> = {
               },
             },
             {
+              name: "[send] use all amount all",
+              transaction: (t) => ({
+                ...t,
+                useAllAmount: true,
+                mode: "send",
+                recipient: ACCOUNT_EMPTY,
+              }),
+              expectedStatus: (account) => ({
+                errors: {},
+                warnings: {},
+                totalSpent: account.spendableBalance,
+              }),
+            },
+            {
               name: "nominate without true validator",
               transaction: fromTransactionRaw({
                 family: "polkadot",
@@ -204,6 +219,74 @@ const dataset: DatasetTest<Transaction> = {
                 },
                 warnings: {},
               },
+            },
+            {
+              name: "bond extra - success",
+              transaction: fromTransactionRaw({
+                family: "polkadot",
+                recipient: "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
+                amount: "2000000",
+                mode: "bond",
+                era: null,
+                validators: null,
+                fees: null,
+                rewardDestination: null,
+              }),
+              expectedStatus: {
+                errors: {},
+                warnings: {},
+                amount: BigNumber("2000000"),
+              },
+            },
+            {
+              name: "bond extra - not enought spendable",
+              transaction: fromTransactionRaw({
+                family: "polkadot",
+                recipient: "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
+                amount: "2000000000000000000",
+                mode: "bond",
+                era: null,
+                validators: null,
+                fees: null,
+                rewardDestination: null,
+              }),
+              expectedStatus: {
+                errors: {
+                  amount: new NotEnoughBalance(),
+                },
+                warnings: {},
+              },
+            },
+            {
+              name: "[Bond] New controller and suffisent deposit",
+              transaction: fromTransactionRaw({
+                family: "polkadot",
+                recipient: ACCOUNT_EMPTY,
+                amount: "10000000000",
+                mode: "bond",
+                era: null,
+                validators: [],
+                fees: null,
+                rewardDestination: null,
+              }),
+              expectedStatus: {
+                amount: BigNumber("10000000000"),
+                errors: {},
+                warnings: {},
+              },
+            },
+            {
+              name: "[bond] use all amount all",
+              transaction: (t) => ({
+                ...t,
+                useAllAmount: true,
+                mode: "bond",
+              }),
+              expectedStatus: (account) => ({
+                errors: {},
+                warnings: {},
+                totalSpent: account.spendableBalance,
+              }),
             },
           ],
         },
@@ -245,6 +328,123 @@ const dataset: DatasetTest<Transaction> = {
                 errors: {
                   staking: new PolkadotUnauthorizedOperation(),
                 },
+                warnings: {},
+              },
+            },
+          ],
+        },
+        {
+          raw: {
+            id:
+              "js:2:polkadot:15FwDL7TkRJFyGK9o6iYiqjFM1Mrq6VXXvdFQ9a7m5TQayUY:polkadotbip44",
+            seedIdentifier: ACCOUNT_CONTROLLER,
+            name: "Polkadot 3",
+            derivationMode: "polkadotbip44",
+            index: 0,
+            freshAddress: ACCOUNT_CONTROLLER,
+            freshAddressPath: "44'/354'/3'/0'/0'",
+            freshAddresses: [],
+            blockHeight: 0,
+            operations: [],
+            pendingOperations: [],
+            currencyId: "polkadot",
+            unitMagnitude: 10,
+            lastSyncDate: "",
+            balance: "11000000000",
+          },
+          transactions: [
+            {
+              name: "[bond] no recipient",
+              transaction: fromTransactionRaw({
+                family: "polkadot",
+                recipient: "",
+                amount: "0",
+                mode: "bond",
+                era: null,
+                validators: [],
+                fees: null,
+                rewardDestination: null,
+              }),
+              expectedStatus: {
+                errors: {
+                  recipient: new RecipientRequired(),
+                },
+                warnings: {},
+              },
+            },
+            {
+              name: "[bond] recipient with invalid address",
+              transaction: fromTransactionRaw({
+                family: "polkadot",
+                recipient: "not a valid address",
+                amount: "0",
+                mode: "bond",
+                era: null,
+                validators: [],
+                fees: null,
+                rewardDestination: null,
+              }),
+              expectedStatus: {
+                errors: {
+                  recipient: new InvalidAddress(),
+                },
+                warnings: {},
+              },
+            },
+            {
+              name: "[bond] is already controller",
+              transaction: fromTransactionRaw({
+                family: "polkadot",
+                recipient: ACCOUNT_CONTROLLER,
+                amount: "100000000",
+                mode: "bond",
+                era: null,
+                validators: [],
+                fees: null,
+                rewardDestination: null,
+              }),
+              expectedStatus: {
+                errors: {
+                  recipient: new PolkadotUnauthorizedOperation(
+                    "Recipient is already a controller"
+                  ),
+                },
+                warnings: {},
+              },
+            },
+            {
+              name: "[bond] not minimum amount",
+              transaction: fromTransactionRaw({
+                family: "polkadot",
+                recipient: ACCOUNT_CONTROLLER,
+                amount: "1000000",
+                mode: "bond",
+                era: null,
+                validators: [],
+                fees: null,
+                rewardDestination: null,
+              }),
+              expectedStatus: {
+                errors: {
+                  amount: new NotEnoughBalanceBecauseDestinationNotCreated(),
+                },
+                warnings: {},
+              },
+            },
+            {
+              name: "[bond] success",
+              transaction: fromTransactionRaw({
+                family: "polkadot",
+                recipient: ACCOUNT_CONTROLLER,
+                amount: "10000000000",
+                mode: "bond",
+                era: null,
+                validators: [],
+                fees: null,
+                rewardDestination: null,
+              }),
+              expectedStatus: {
+                errors: {},
                 warnings: {},
               },
             },

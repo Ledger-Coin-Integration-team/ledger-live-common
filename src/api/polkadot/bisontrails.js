@@ -100,7 +100,10 @@ const extrinsicToOperation = (addr, accountId, extrinsic) => {
   return {
     id: `${accountId}-${extrinsic.hash}-${type}`,
     accountId,
-    fee: BigNumber(extrinsic.partialFee || 0),
+    fee:
+      extrinsic.signer !== addr
+        ? BigNumber(0)
+        : BigNumber(extrinsic.partialFee || 0),
     value: getValue(extrinsic, type),
     type,
     hash: extrinsic.hash,
@@ -180,7 +183,11 @@ const fetchOperationList = async (
 
   const mergedOp = [...prevOperations, ...operations, ...rewards, ...slashes];
 
-  if (operations.length < LIMIT && rewards.length < LIMIT) {
+  if (
+    operations.length < LIMIT &&
+    rewards.length < LIMIT &&
+    slashes.length < LIMIT
+  ) {
     return mergedOp.sort((a, b) => b.date - a.date);
   }
 

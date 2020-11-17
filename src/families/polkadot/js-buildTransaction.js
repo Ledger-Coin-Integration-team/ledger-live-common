@@ -37,7 +37,7 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
             {
               controller: t.recipient,
               value: t.amount.toString(),
-              payee: t.rewardDestination,
+              payee: t.rewardDestination || t.recipient,
             },
             txBaseInfo,
             txOptions

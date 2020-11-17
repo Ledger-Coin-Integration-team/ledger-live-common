@@ -61,7 +61,11 @@ const getSendTransactionStatus = async (
 
   let estimatedFees = BigNumber(0);
   if (!errors.recipient) {
-    estimatedFees = await getEstimatedFees(a, t, txInfo);
+    estimatedFees = await getEstimatedFees(
+      a,
+      { ...t, amount: t.useAllAmount ? a.spendableBalance : t.amount },
+      txInfo
+    );
   }
 
   const totalSpent = useAllAmount
@@ -120,8 +124,6 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
   const useAllAmount = !!t.useAllAmount;
 
   const txInfo = await getTxInfo(a);
-  const estimatedFees = await getEstimatedFees(a, t, txInfo);
-  let totalSpent = estimatedFees;
 
   const unlockingBalance =
     a.polkadotResources?.unlockingBalance || BigNumber(0);
@@ -133,21 +135,6 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
 
   switch (t.mode) {
     case "bond":
-      amount = useAllAmount
-        ? a.spendableBalance.minus(estimatedFees)
-        : BigNumber(t.amount);
-
-      totalSpent = useAllAmount
-        ? a.spendableBalance
-        : BigNumber(t.amount).plus(estimatedFees);
-
-      if (amount.lte(0) && !useAllAmount) {
-        errors.amount = new AmountRequired();
-      }
-      if (amount.gt(a.spendableBalance)) {
-        errors.amount = new NotEnoughBalance();
-      }
-
       if (!isStash(a)) {
         // Not a stash yet -> bond method sets the controller
         if (!t.recipient) {
@@ -238,6 +225,31 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
         errors.staking = new PolkadotNoNominations();
       }
       break;
+  }
+
+  // Estimated fees and totalSpent should be at the end
+  // We can't manage error like incorrect recipient in the transaction builder
+  const estimatedFees =
+    !errors.staking && !errors.amount && !errors.recipient
+      ? await getEstimatedFees(a, t, txInfo)
+      : BigNumber(0);
+  let totalSpent = estimatedFees;
+
+  if (t.mode === "bond") {
+    amount = useAllAmount
+      ? a.spendableBalance.minus(estimatedFees)
+      : BigNumber(t.amount);
+
+    totalSpent = useAllAmount
+      ? a.spendableBalance
+      : BigNumber(t.amount).plus(estimatedFees);
+
+    if (amount.lte(0) && !useAllAmount) {
+      errors.amount = new AmountRequired();
+    }
+    if (amount.gt(a.spendableBalance)) {
+      errors.amount = new NotEnoughBalance();
+    }
   }
 
   if (totalSpent.gt(a.spendableBalance)) {

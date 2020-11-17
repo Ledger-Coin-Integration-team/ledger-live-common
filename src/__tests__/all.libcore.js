@@ -39,7 +39,6 @@ const maybeFamilyToOnlyRun =
 const shouldExcludeFamilies =
   maybeFamilyToOnlyRun && families.includes(maybeFamilyToOnlyRun);
 
-console.log("families", families);
 // covers all bridges through many different accounts
 // to test the common shared properties of bridges.
 // const all =
