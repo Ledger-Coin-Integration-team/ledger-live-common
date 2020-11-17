@@ -26,7 +26,7 @@ import {
   isElectionClosed,
   isNewAccount,
   isControllerAddress,
-  getValidatorsStashesAddresses,
+  verifyValidatorAddresses,
 } from "../../api/polkadot";
 
 import type { Transaction } from "./types";
@@ -200,13 +200,15 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
       } else if (!t.validators || t.validators?.length === 0) {
         errors.staking = new PolkadotUnauthorizedOperation();
       } else {
-        const validators = await getValidatorsStashesAddresses();
+        const notValidators = await verifyValidatorAddresses(
+          t.validators || []
+        );
 
-        for (const validator of t.validators || []) {
-          if (!validators.includes(validator)) {
-            errors.staking = new PolkadotNotValidator(null, { validator });
-            break;
-          }
+        if (notValidators.length) {
+          errors.staking = new PolkadotNotValidator(null, {
+            validators: notValidators,
+          });
+          break;
         }
       }
       break;
