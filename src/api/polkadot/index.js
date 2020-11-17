@@ -2,11 +2,26 @@
 
 export { getOperations } from "./bisontrails";
 
+// export {
+// isElectionClosed,
+// isNewAccount,
+// isControllerAddress,
+// verifyValidatorAddresses,
+// getAccount,
+// getTransactionParams,
+// submitExtrinsic,
+// paymentInfo,
+// getValidators,
+// getStakingProgress,
+// disconnect,
+// } from "./websocket";
+
+// commented until we got a sidecar public url
 export {
   isElectionClosed,
-  verifyValidatorAddresses,
   isNewAccount,
   isControllerAddress,
+  verifyValidatorAddresses,
   getAccount,
   getTransactionParams,
   submitExtrinsic,
@@ -14,15 +29,4 @@ export {
   getValidators,
   getStakingProgress,
   disconnect,
-} from "./websocket";
-
-// commented until we got a sidecar public url
-// export {
-//   getAccount,
-//   paymentInfo,
-//   isElectionClosed,
-//   submitExtrinsic,
-//   getTransactionParams,
-//   isNewAccount,
-//   isControllerAddress,
-// } from "./sidecar";
+} from "./sidecar";
