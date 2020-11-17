@@ -106,16 +106,6 @@ export const isElectionClosed = async (): Promise<Boolean> =>
   });
 
 /**
- * Get all validators addresses to check for validity.
- */
-export const getValidatorsStashesAddresses = async (): Promise<string[]> =>
-  withApi(async (api: typeof ApiPromise) => {
-    const list = await api.derive.staking.stashes();
-
-    return list.map((v) => v.toString());
-  });
-
-/**
  * Returns true if the address is a new account with no balance
  *
  * @param {*} addr
@@ -142,6 +132,32 @@ export const isControllerAddress = async (address: string): Promise<Boolean> =>
     return ledgetOpt.isSome;
   });
 
+/**
+ * Get all validators addresses to check for validity.
+ */
+const getValidatorsStashesAddresses = async (): Promise<string[]> =>
+  withApi(async (api: typeof ApiPromise) => {
+    const list = await api.derive.staking.stashes();
+
+    return list.map((v) => v.toString());
+  });
+
+/**
+ * Returns all addresses that are not validators
+ */
+export const verifyValidatorAddresses = async (
+  validators: string[]
+): Promise<string[]> => {
+  const allValidators = await getValidatorsStashesAddresses();
+
+  return validators.filter((v) => !allValidators.includes(v));
+};
+
+/**
+ * Get all account-related data
+ *
+ * @param {*} addr
+ */
 export const getAccount = async (addr: string) =>
   withApi(async () => {
     const balances = await getBalances(addr);
@@ -156,7 +172,7 @@ export const getAccount = async (addr: string) =>
   });
 
 /**
- * WIP - Returns all the balances for an account
+ * Returns all the balances for an account
  *
  * @param {*} addr - the account address
  */
@@ -172,6 +188,11 @@ export const getBalances = async (addr: string) =>
     };
   });
 
+/**
+ * Returns all staking-related data for an account
+ *
+ * @param {*} addr
+ */
 export const getStakingInfo = async (addr: string) =>
   withApi(async (api: typeof ApiPromise) => {
     const [controlledLedgerOpt, bonded] = await Promise.all([
@@ -241,6 +262,11 @@ export const getStakingInfo = async (addr: string) =>
     };
   });
 
+/**
+ * Returns nominations for an account including validator address, status and associated stake.
+ *
+ * @param {*} addr
+ */
 export const getNominations = async (addr: string) =>
   withApi(async (api: typeof ApiPromise) => {
     const [{ activeEra }, nominationsOpt] = await Promise.all([
@@ -308,7 +334,7 @@ export const getTransactionParams = async () =>
   });
 
 /**
- * The broadcast function on Substrate
+ * Broadcast the transaction to the substrate node
  *
  * @param {string} extrinsic - the encoded extrinsic to send
  */
