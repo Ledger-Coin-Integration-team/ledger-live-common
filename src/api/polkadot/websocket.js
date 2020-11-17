@@ -487,7 +487,9 @@ const mapValidator = (
 /**
  * List all validators for the current era, and their exposure, and identity.
  */
-export const getValidators = async (stashes: string | string[] = "elected") =>
+export const getValidators = async (
+  stashes: string | string[] = "elected"
+): Promise<PolkadotValidator> =>
   withApi(async (api: typeof ApiPromise) => {
     const [allStashes, elected] = await Promise.all([
       api.derive.staking.stashes(),
