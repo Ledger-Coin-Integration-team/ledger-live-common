@@ -11,7 +11,6 @@ import { AccountId, Registration } from "@polkadot/types/interfaces";
 import { Data, Option } from "@polkadot/types";
 import type { ITuple } from "@polkadot/types/types";
 import type { PolkadotValidator } from "../../families/polkadot/types";
-import { makeLRUCache } from "../../cache";
 
 type AsyncApiFunction = (api: typeof ApiPromise) => Promise<any>;
 
@@ -439,15 +438,10 @@ const mapValidator = (
   };
 };
 
-const cacheValidators = makeLRUCache(
-  async (stashes: string) => fetchValidators(stashes),
-  () => ""
-);
-
 /**
  * List all validators for the current era, and their exposure, and identity.
  */
-const fetchValidators = async (stashes: string | string[] = "elected") =>
+export const fetchValidators = async (stashes: string | string[] = "elected") =>
   withApi(async (api: typeof ApiPromise) => {
     const [allStashes, elected] = await Promise.all([
       api.derive.staking.stashes(),
@@ -489,7 +483,3 @@ const fetchValidators = async (stashes: string | string[] = "elected") =>
       )
     );
   });
-
-export const getValidators = async (stashes: string) => {
-  return await cacheValidators(stashes);
-};

@@ -1,3 +1,11 @@
-import { getValidators } from "../../api/polkadot";
+import { fetchValidators } from "../../api/polkadot";
+import { makeLRUCache } from "../../cache";
 
-export { getValidators };
+const cacheValidators = makeLRUCache(
+  async (stashes: string) => await fetchValidators(stashes),
+  () => ""
+);
+
+export const getValidators = async (stashes: string) => {
+  return await cacheValidators(stashes);
+};
