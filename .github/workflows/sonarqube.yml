@@ -1,0 +1,71 @@
+name: SonarQube (Linux)
+
+on:
+  push:
+    branches:
+      - sonarqube
+
+env:
+  scanner_directory: '.scannerwork'
+
+jobs:
+
+  prepare:
+      runs-on: [self-hosted, linux, x64]
+      steps:
+        -
+          name: Check runner environment
+          run: |
+            npm -v
+            node -v
+            yarn --version
+            yalc --version
+            npx -v
+            python -v
+            sonar-scanner -v
+
+  release:
+    needs: prepare
+    runs-on: [self-hosted, linux, x64]
+    steps:
+      -
+        name: Checkout code
+        uses: actions/checkout@v2
+        with:
+          path: ${{env.source_path}}
+          fetch-depth: 0
+          clean: true
+      -
+        name: Install dependencies
+        run: |
+            yarn --frozen-lockfile
+            yarn ci-setup-cli
+      - 
+        name: Run tests
+        run: |
+          npx cross-env VERBOSE_FILE=tests_output.txt yarn ci-test-common &&
+          cat tests_output.txt
+        timeout-minutes: 60
+        continue-on-error: true
+      - 
+        name: Coverage summary
+        run: |
+          ls ${{ github.workspace }}/coverage &&
+          lcov \
+            --summary \
+            ${{ github.workspace }}/coverage/lcov.info
+        continue-on-error: true
+      -
+        name: Run SonarQube analysis
+        run: |
+          sonar-scanner \
+            -Dsonar.projectKey=${{ secrets.SONARQUBE_PROJECTKEY }} \
+            -Dsonar.sources=. \
+            -Dsonar.host.url=https://sonarqube.aws.sbx.ldg-tech.com \
+            -Dsonar.login=${{ secrets.SONARQUBE_TOKEN }}
+      - 
+        name: Clean workspace
+        if: ${{ always() }}
+        run: |
+          rm -rfv "${{ github.workspace }}/${{env.scanner_directory}}"
+          rm -rfv "${{ github.workspace }}/coverage"
