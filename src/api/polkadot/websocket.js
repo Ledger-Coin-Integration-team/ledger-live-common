@@ -10,7 +10,10 @@ import { u8aToString } from "@polkadot/util";
 import { AccountId, Registration } from "@polkadot/types/interfaces";
 import { Data, Option } from "@polkadot/types";
 import type { ITuple } from "@polkadot/types/types";
-import type { PolkadotValidator } from "../../families/polkadot/types";
+import type {
+  PolkadotValidator,
+  PolkadotStakingProgress,
+} from "../../families/polkadot/types";
 
 type AsyncApiFunction = (api: typeof ApiPromise) => Promise<any>;
 
@@ -439,7 +442,7 @@ const mapValidator = (
 /**
  * List all validators for the current era, and their exposure, and identity.
  */
-export const fetchValidators = async (stashes: string | string[] = "elected") =>
+export const getValidators = async (stashes: string | string[] = "elected") =>
   withApi(async (api: typeof ApiPromise) => {
     const [allStashes, elected] = await Promise.all([
       api.derive.staking.stashes(),
@@ -480,4 +483,22 @@ export const fetchValidators = async (stashes: string | string[] = "elected") =>
         api.consts.staking.maxNominatorRewardedPerValidator
       )
     );
+  });
+
+/**
+ * Get Active Era progress
+ */
+export const getStakingProgress = async (): Promise<PolkadotStakingProgress> =>
+  withApi(async (api: typeof ApiPromise) => {
+    const [activeEraOpt, status] = await Promise.all([
+      api.query.staking.activeEra(),
+      api.query.staking.eraElectionStatus(),
+    ]);
+
+    const { index: activeEra } = activeEraOpt.unwrapOrDefault();
+
+    return {
+      activeEra: activeEra.toNumber(),
+      electionClosed: !!status.isClose,
+    };
   });

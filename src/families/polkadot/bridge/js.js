@@ -19,11 +19,8 @@ import { getAccountShape } from "../synchronisation";
 
 import getTransactionStatus from "../js-getTransactionStatus";
 import signOperation from "../js-signOperation";
-import { getValidators } from "../validators";
-import {
-  setPolkadotPreloadData,
-  asSafePolkadotPreloadData,
-} from "../preloadedData";
+
+import { preload, hydrate } from "../preload";
 
 import { calculateFees } from "../js-getFeesForTransaction";
 import { patchOperationWithHash } from "../../../operation";
@@ -97,6 +94,12 @@ const broadcast = async ({
   return patchOperationWithHash(operation, hash);
 };
 
+const currencyBridge: CurrencyBridge = {
+  preload,
+  hydrate,
+  scanAccounts,
+};
+
 const accountBridge: AccountBridge<Transaction> = {
   estimateMaxSpendable,
   createTransaction,
@@ -107,26 +110,6 @@ const accountBridge: AccountBridge<Transaction> = {
   receive,
   signOperation,
   broadcast,
-};
-
-const currencyBridge: CurrencyBridge = {
-  preload: async () => {
-    const validators = await getValidators("all");
-    setPolkadotPreloadData({ validators });
-    return Promise.resolve({ validators });
-  },
-  hydrate: (data: mixed) => {
-    if (!data || typeof data !== "object") return;
-    const { validators } = data;
-    if (
-      !validators ||
-      typeof validators !== "object" ||
-      !Array.isArray(validators)
-    )
-      return;
-    setPolkadotPreloadData(asSafePolkadotPreloadData(data));
-  },
-  scanAccounts,
 };
 
 export default { currencyBridge, accountBridge };
