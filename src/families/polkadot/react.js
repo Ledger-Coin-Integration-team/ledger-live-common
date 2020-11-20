@@ -5,7 +5,7 @@ import useMemoOnce from "../../hooks/useMemoOnce";
 import {
   getCurrentPolkadotPreloadData,
   getPolkadotPreloadDataUpdates,
-} from "./preloadedData";
+} from "./preload";
 
 import type {
   PolkadotValidator,
