@@ -22,6 +22,8 @@ export const calculateFees: CacheRes<
   ({ a, t }) =>
     `${a.id}_${t.amount.toString()}_${t.recipient}_${String(t.useAllAmount)}_${
       t.mode
+    }_${t.validators?.join("-") || ""}_${t.rewardDestination || ""}_${
+      t.era || ""
     }`
 );
 
