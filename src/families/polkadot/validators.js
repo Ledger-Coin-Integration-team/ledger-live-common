@@ -1,3 +1,5 @@
+// @flow
+
 import { fetchValidators } from "../../api/polkadot";
 import { makeLRUCache } from "../../cache";
 

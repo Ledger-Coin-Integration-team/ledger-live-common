@@ -37,8 +37,7 @@ import {
   EXISTENTIAL_DEPOSIT,
   MINIMUM_BOND_AMOUNT,
 } from "./logic.js";
-import getTxInfo from "./js-getTransactionInfo";
-import { getEstimatedFees } from "./js-getFeesForTransaction";
+import { calculateFees } from "./js-getFeesForTransaction";
 
 // Should try to refacto
 const getSendTransactionStatus = async (
@@ -57,15 +56,12 @@ const getSendTransactionStatus = async (
     errors.recipient = new InvalidAddress("");
   }
 
-  const txInfo = await getTxInfo(a);
-
   let estimatedFees = BigNumber(0);
   if (!errors.recipient) {
-    estimatedFees = await getEstimatedFees(
+    estimatedFees = await calculateFees({
       a,
-      { ...t, amount: t.useAllAmount ? a.spendableBalance : t.amount },
-      txInfo
-    );
+      t: { ...t, amount: t.useAllAmount ? a.spendableBalance : t.amount },
+    });
   }
 
   const totalSpent = useAllAmount
@@ -102,13 +98,12 @@ const getSendTransactionStatus = async (
     errors,
     warnings,
     estimatedFees,
-    amount,
+    amount: amount.lt(0) ? BigNumber(0) : amount,
     totalSpent,
   });
 };
 
 const getTransactionStatus = async (a: Account, t: Transaction) => {
-  console.log("TRANSACTION", t);
   const errors = {};
   const warnings = {};
 
@@ -122,8 +117,6 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
 
   let amount = t.amount;
   const useAllAmount = !!t.useAllAmount;
-
-  const txInfo = await getTxInfo(a);
 
   const unlockingBalance =
     a.polkadotResources?.unlockingBalance || BigNumber(0);
@@ -231,7 +224,7 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
   // We can't manage error like incorrect recipient in the transaction builder
   const estimatedFees =
     !errors.staking && !errors.amount && !errors.recipient
-      ? await getEstimatedFees(a, t, txInfo)
+      ? await calculateFees({ a, t })
       : BigNumber(0);
   let totalSpent = estimatedFees;
 
@@ -260,7 +253,7 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
     errors,
     warnings,
     estimatedFees,
-    amount,
+    amount: amount.lt(0) ? BigNumber(0) : amount,
     totalSpent,
   });
 };

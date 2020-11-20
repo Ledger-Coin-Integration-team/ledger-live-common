@@ -5,8 +5,25 @@ import { createSignedTx } from "@substrate/txwrapper";
 
 import type { Account } from "../../types";
 import type { Transaction } from "./types";
+import type { CacheRes } from "../../cache";
+import getTxInfo from "./js-getTransactionInfo";
+import { makeLRUCache } from "../../cache";
 import { paymentInfo } from "../../api/polkadot";
 import buildTransaction from "./js-buildTransaction";
+
+export const calculateFees: CacheRes<
+  Array<{ a: Account, t: Transaction }>,
+  BigNumber
+> = makeLRUCache(
+  async ({ a, t }): Promise<BigNumber> => {
+    const txInfo = await getTxInfo(a);
+    return await getEstimatedFees(a, t, txInfo);
+  },
+  ({ a, t }) =>
+    `${a.id}_${t.amount.toString()}_${t.recipient}_${String(t.useAllAmount)}_${
+      t.mode
+    }`
+);
 
 /**
  * Fetch transactions fees for an unsigned extrinsic.

@@ -45,7 +45,7 @@ export const getAccountShape: GetAccountShape = async (info) => {
       nominations,
     },
   };
-  console.log("getAccountShape", JSON.stringify(shape, null, 2));
+  // console.log("getAccountShape", JSON.stringify(shape, null, 2));
 
   return { ...shape, operations };
 };

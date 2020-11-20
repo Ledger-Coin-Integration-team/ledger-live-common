@@ -5,7 +5,6 @@ import type { Account } from "../../types";
 
 export const EXISTENTIAL_DEPOSIT = BigNumber(10000000000);
 export const MINIMUM_BOND_AMOUNT = BigNumber(10000000000);
-export const ESTIMATED_FEES = BigNumber(154000000);
 export const MAX_NOMINATIONS = 16;
 export const MAX_UNLOCKINGS = 32;
 

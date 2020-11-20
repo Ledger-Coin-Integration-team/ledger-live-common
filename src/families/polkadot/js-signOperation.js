@@ -101,10 +101,16 @@ const signOperation = ({
         // Sign by device
 
         const txInfo = await getTxInfo(account);
+        const tmpTransaction = {
+          ...transaction,
+          amount: transaction.useAllAmount
+            ? account.spendableBalance.minus(transaction.fees || 0)
+            : transaction.amount,
+        };
 
         const unsignedTransaction = await buildTransaction(
           account,
-          transaction,
+          tmpTransaction,
           txInfo
         );
 
@@ -136,7 +142,11 @@ const signOperation = ({
           txInfo
         );
 
-        const operation = buildOptimisticOperation(account, transaction, fee);
+        const operation = buildOptimisticOperation(
+          account,
+          tmpTransaction,
+          fee
+        );
 
         o.next({
           type: "signed",

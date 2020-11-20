@@ -1,6 +1,5 @@
 // @flow
 
-import invariant from "invariant";
 import { BigNumber } from "bignumber.js";
 import {
   NotEnoughBalance,
@@ -20,7 +19,7 @@ import type { DatasetTest } from "../../types";
 import { fromTransactionRaw } from "./transaction";
 import type { Transaction } from "./types";
 
-const ACCOUNT_SAME_STASHCONTROLLER = "";
+// const ACCOUNT_SAME_STASHCONTROLLER = "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS";
 const ACCOUNT_STASH = "13SGsuG6S1SeLfenuSauQMCzctr3z9SNKr8gbnXsEtyYijkT";
 const ACCOUNT_CONTROLLER = "15FwDL7TkRJFyGK9o6iYiqjFM1Mrq6VXXvdFQ9a7m5TQayUY";
 const ACCOUNT_EMPTY = "15B3b91znpx4RsBs3stqF6CmsMucA7zxY7K3LBR74mxgk9vE";
@@ -186,7 +185,7 @@ const dataset: DatasetTest<Transaction> = {
               },
             },
             {
-              name: "[send] use all amount all",
+              name: "[send] use all amount",
               transaction: (t) => ({
                 ...t,
                 useAllAmount: true,
@@ -276,7 +275,7 @@ const dataset: DatasetTest<Transaction> = {
               },
             },
             {
-              name: "[bond] use all amount all",
+              name: "[bond] use all amount",
               transaction: (t) => ({
                 ...t,
                 useAllAmount: true,

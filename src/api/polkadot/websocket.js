@@ -295,8 +295,6 @@ export const submitExtrinsic = async (extrinsic: string) =>
     const tx = api.tx(extrinsic);
     const hash = await api.rpc.author.submitExtrinsic(tx);
 
-    console.log("broadcast", hash);
-
     return hash;
   });
 

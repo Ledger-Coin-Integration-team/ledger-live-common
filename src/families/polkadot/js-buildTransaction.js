@@ -37,7 +37,10 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
             {
               controller: t.recipient,
               value: t.amount.toString(),
-              payee: t.rewardDestination || t.recipient,
+              /**
+               * The rewards destination. Can be "Stash", "Staked", "Controller" or "{ Account: accountId }"".
+               */
+              payee: t.rewardDestination || "Stash",
             },
             txBaseInfo,
             txOptions
