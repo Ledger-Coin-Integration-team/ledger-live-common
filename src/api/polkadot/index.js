@@ -14,6 +14,7 @@ export {
   getTransactionParams,
   submitExtrinsic,
   paymentInfo,
-  fetchValidators,
+  getValidators,
+  getStakingProgress,
   disconnect,
 } from "./websocket";
