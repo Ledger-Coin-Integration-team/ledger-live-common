@@ -87,7 +87,7 @@ export type PolkadotValidator = {|
   address: string,
   identity: string,
   nominatorsCount: number,
-  rewardPoints: number,
+  rewardPoints: BigNumber | null,
   commission: BigNumber,
   totalBonded: BigNumber,
   selfBonded: BigNumber,
@@ -97,10 +97,15 @@ export type PolkadotValidator = {|
 
 export type PolkadotNominationInfo = string;
 
-// by convention preload would return a Promise of CosmosPreloadData
-export type PolkadotPreloadData = {
+export type PolkadotStakingProgress = {|
+  activeEra: number,
+  electionClosed: boolean,
+|};
+
+export type PolkadotPreloadData = {|
   validators: PolkadotValidator[],
-};
+  staking: PolkadotStakingProgress | null,
+|};
 
 export type PolkadotSearchFilter = (
   query: string
