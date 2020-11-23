@@ -1,0 +1,101 @@
+// @flow
+
+import type { Transaction } from "./types";
+import type { Account } from "../../types";
+
+import { methods } from "@substrate/txwrapper";
+import { isStash } from "./logic";
+
+const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
+  const { txBaseInfo, txOptions } = txInfo;
+  const validator = t.validators ? t.validators[0] : null;
+
+  let transaction;
+  switch (t.mode) {
+    case "send":
+      transaction = methods.balances.transferKeepAlive(
+        {
+          dest: t.recipient,
+          value: t.amount.toString(),
+        },
+        txBaseInfo,
+        txOptions
+      );
+      break;
+
+    // still not sure about this rule should get more info about that
+    case "bond":
+      transaction = isStash(a)
+        ? methods.staking.bondExtra(
+            {
+              maxAdditional: t.amount.toString(),
+            },
+            txBaseInfo,
+            txOptions
+          )
+        : methods.staking.bond(
+            {
+              controller: t.recipient,
+              value: t.amount.toString(),
+              /**
+               * The rewards destination. Can be "Stash", "Staked", "Controller" or "{ Account: accountId }"".
+               */
+              payee: t.rewardDestination || "Stash",
+            },
+            txBaseInfo,
+            txOptions
+          );
+      break;
+
+    case "unbond":
+      transaction = methods.staking.unbond(
+        { value: t.amount.toString() },
+        txBaseInfo,
+        txOptions
+      );
+      break;
+
+    case "rebond":
+      transaction = methods.staking.rebond(
+        { value: t.amount.toNumber() },
+        txBaseInfo,
+        txOptions
+      );
+      break;
+
+    case "withdrawUnbonded":
+      transaction = methods.staking.withdrawUnbonded(
+        { numSlashingSpans: 0 },
+        txBaseInfo,
+        txOptions
+      );
+      break;
+
+    case "nominate":
+      transaction = methods.staking.nominate(
+        { targets: t.validators },
+        txBaseInfo,
+        txOptions
+      );
+      break;
+
+    case "chill":
+      transaction = methods.staking.chill({}, txBaseInfo, txOptions);
+      break;
+
+    case "claimReward":
+      transaction = methods.staking.payoutStakers(
+        { validatorStash: validator, era: t.era },
+        txBaseInfo,
+        txOptions
+      );
+      break;
+
+    default:
+      throw new Error("Unknown mode in transaction");
+  }
+
+  return transaction;
+};
+
+export default buildTransaction;

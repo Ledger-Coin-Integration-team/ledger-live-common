@@ -14,6 +14,12 @@ import specifics from "../generated/test-specifics";
 import type { DatasetTest } from "../types";
 import { disconnectAll } from "../api";
 
+// Polkadot Api is very verbose...
+jest.mock("@polkadot/util/logger.js", () =>
+  require("./__mocks__/@polkadot/util/logger.js")
+);
+
+// Disconnect all api clients that could be open.
 afterAll(async () => {
   await disconnectAll();
 });
