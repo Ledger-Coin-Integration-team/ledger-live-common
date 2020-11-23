@@ -8,9 +8,6 @@ export {
   isNewAccount,
   isControllerAddress,
   getAccount,
-  getBalances,
-  getStakingInfo,
-  getNominations,
   getTransactionParams,
   submitExtrinsic,
   paymentInfo,
@@ -18,3 +15,14 @@ export {
   getStakingProgress,
   disconnect,
 } from "./websocket";
+
+// commented until we got a sidecar public url
+// export {
+//   getAccount,
+//   paymentInfo,
+//   isElectionClosed,
+//   submitExtrinsic,
+//   getTransactionParams,
+//   isNewAccount,
+//   isControllerAddress,
+// } from "./sidecar";
