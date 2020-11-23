@@ -78,6 +78,8 @@
     "@ledgerhq/hw-transport-mocker": "^5.30.0",
     "@ledgerhq/hw-transport-node-speculos": "^5.30.0",
     "@ledgerhq/logs": "5.30.0",
+    "@polkadot/api": "2.7.1",
+    "@substrate/txwrapper": "3.10.3",
     "async": "^3.2.0",
     "axios": "0.21.0",
     "bchaddrjs": "^0.4.9",
