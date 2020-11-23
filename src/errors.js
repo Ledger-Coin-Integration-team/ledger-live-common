@@ -159,3 +159,29 @@ export const AlgorandASANotOptInInRecipient = createCustomErrorClass(
 export const CompoundLowerAllowanceOfActiveAccountError = createCustomErrorClass(
   "CompoundLowerAllowanceOfActiveAccountError"
 );
+
+/* POLKADOT SPECIFIC */
+
+export const PolkadotUnauthorizedOperation = createCustomErrorClass(
+  "PolkadotUnauthorizedOperation"
+);
+
+export const PolkadotElectionClosed = createCustomErrorClass(
+  "PolkadotElectionClosed"
+);
+
+export const PolkadotNotValidator = createCustomErrorClass(
+  "PolkadotNotValidator"
+);
+
+export const PolkadotLowBondedBalance = createCustomErrorClass(
+  "PolkadotLowBondedBalance"
+);
+
+export const PolkadotNoUnlockedBalance = createCustomErrorClass(
+  "PolkadotNoUnlockedBalance"
+);
+
+export const PolkadotNoNominations = createCustomErrorClass(
+  "PolkadotNoNominations"
+);

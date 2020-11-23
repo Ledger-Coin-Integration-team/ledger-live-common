@@ -83,17 +83,23 @@ export function getOperationAmountNumber(op: Operation): BigNumber {
     case "OUT":
     case "REVEAL":
     case "CREATE":
+    case "FEES":
     case "DELEGATE":
     case "REDELEGATE":
     case "UNDELEGATE":
-    case "FEES":
     case "OPT_IN":
     case "OPT_OUT":
     case "REDEEM":
+    case "SLASH":
       return op.value.negated();
     case "FREEZE":
     case "UNFREEZE":
     case "VOTE":
+    case "BOND":
+    case "UNBOND":
+    case "WITHDRAW_UNBONDED":
+    case "NOMINATE":
+    case "CHILL":
       return op.fee.negated();
     default:
       return BigNumber(0);
