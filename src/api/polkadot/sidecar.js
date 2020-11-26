@@ -195,6 +195,7 @@ const getBalances = async (addr: string) => {
     : balance.minus(totalLocked);
 
   return {
+    blockHeight: balanceInfo.at?.height ? Number(balanceInfo.at.height) : null,
     balance,
     spendableBalance,
     nonce: Number(balanceInfo.nonce),
