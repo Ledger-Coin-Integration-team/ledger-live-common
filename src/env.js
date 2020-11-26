@@ -70,7 +70,7 @@ const envDefinitions = {
   },
   API_POLKADOT_SIDECAR: {
     parser: stringParser,
-    def: "http://localhost:8000",
+    def: "http://localhost:8080",
     desc: "Polkadot Sidecar API url",
   },
   API_TEZOS_BAKER: {
