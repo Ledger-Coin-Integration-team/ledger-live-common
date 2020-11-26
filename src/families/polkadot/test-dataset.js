@@ -22,12 +22,15 @@ import type { Transaction } from "./types";
 // const ACCOUNT_SAME_STASHCONTROLLER = "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS";
 const ACCOUNT_STASH = "13SGsuG6S1SeLfenuSauQMCzctr3z9SNKr8gbnXsEtyYijkT";
 const ACCOUNT_CONTROLLER = "15FwDL7TkRJFyGK9o6iYiqjFM1Mrq6VXXvdFQ9a7m5TQayUY";
-const ACCOUNT_EMPTY = "15B3b91znpx4RsBs3stqF6CmsMucA7zxY7K3LBR74mxgk9vE";
+const ACCOUNT_EMPTY = "1Z4QdzRrpVbggYoGK5pfbeMyzpVVDK7WxheVjWFxfv6sxjV";
 
 const dataset: DatasetTest<Transaction> = {
   implementations: ["js"],
   currencies: {
     polkadot: {
+      FIXME_ignoreAccountFields: [
+        "polkadotResources.unlockings", // Due to completion date that change everyday (estimated time)
+      ],
       scanAccounts: [
         {
           name: "polkadot seed 1",
