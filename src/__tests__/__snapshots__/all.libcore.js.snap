@@ -62552,12 +62552,13 @@ Array [
       "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
       "blockHeight": 1680813,
       "extra": Object {
+        "amount": "3686109",
         "palletMethod": "staking.Reward",
         "validatorStash": "145Vw57NN3Y4tqFNidLTmkhaMLD4HPoRtU91vioXrKcTcirS",
       },
       "fee": "0",
       "hash": "0x259e189c00354382c67f644d3427a31f6f2e73f1d7ab3060f9a6990d4bb62fec",
-      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0x259e189c00354382c67f644d3427a31f6f2e73f1d7ab3060f9a6990d4bb62fec-REWARD",
+      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0x259e189c00354382c67f644d3427a31f6f2e73f1d7ab3060f9a6990d4bb62fec+9-REWARD",
       "recipients": Array [
         "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
       ],
@@ -62876,12 +62877,13 @@ Array [
       "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
       "blockHeight": 1822169,
       "extra": Object {
+        "amount": "3301543",
         "palletMethod": "staking.Reward",
         "validatorStash": "",
       },
       "fee": "0",
       "hash": "0x522f10157884400cf674ea3bf5b500a99c1aa6a6f3104cccd8110e5ba2b3ac1e",
-      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0x522f10157884400cf674ea3bf5b500a99c1aa6a6f3104cccd8110e5ba2b3ac1e-REWARD",
+      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0x522f10157884400cf674ea3bf5b500a99c1aa6a6f3104cccd8110e5ba2b3ac1e+564-REWARD",
       "recipients": Array [
         "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
       ],
@@ -62893,12 +62895,13 @@ Array [
       "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
       "blockHeight": 1636470,
       "extra": Object {
+        "amount": "4302769",
         "palletMethod": "staking.Reward",
         "validatorStash": "14xKzzU1ZYDnzFj7FgdtDAYSMJNARjDc2gNw4XAFDgr4uXgp",
       },
       "fee": "0",
       "hash": "0x54341ea4a28fca8e295de314fb5b1c77168409acc1e365ef52b321414af2b4da",
-      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0x54341ea4a28fca8e295de314fb5b1c77168409acc1e365ef52b321414af2b4da-REWARD",
+      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0x54341ea4a28fca8e295de314fb5b1c77168409acc1e365ef52b321414af2b4da+12-REWARD",
       "recipients": Array [
         "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
       ],
@@ -62949,12 +62952,13 @@ Array [
       "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
       "blockHeight": 2507612,
       "extra": Object {
+        "amount": "3997855",
         "palletMethod": "staking.Reward",
         "validatorStash": "14Y4s6V1PWrwBLvxW47gcYgZCGTYekmmzvFsK1kiqNH2d84t",
       },
       "fee": "0",
       "hash": "0x5fef62a30bb1ea10245199bafafcc75c2e26516e8685a7fe701e1ee9b7c9de3f",
-      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0x5fef62a30bb1ea10245199bafafcc75c2e26516e8685a7fe701e1ee9b7c9de3f-REWARD",
+      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0x5fef62a30bb1ea10245199bafafcc75c2e26516e8685a7fe701e1ee9b7c9de3f+7-REWARD",
       "recipients": Array [
         "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
       ],
@@ -63064,12 +63068,13 @@ Array [
       "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
       "blockHeight": 1993242,
       "extra": Object {
+        "amount": "3887049",
         "palletMethod": "staking.Reward",
         "validatorStash": "",
       },
       "fee": "0",
       "hash": "0x720ae74cacb6e478b599a32cac553aeb29c3d787b1b19f97781486c11cd6ef66",
-      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0x720ae74cacb6e478b599a32cac553aeb29c3d787b1b19f97781486c11cd6ef66-REWARD",
+      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0x720ae74cacb6e478b599a32cac553aeb29c3d787b1b19f97781486c11cd6ef66+688-REWARD",
       "recipients": Array [
         "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
       ],
@@ -63174,12 +63179,13 @@ Array [
       "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
       "blockHeight": 1993677,
       "extra": Object {
+        "amount": "1076627",
         "palletMethod": "staking.Reward",
         "validatorStash": "",
       },
       "fee": "0",
       "hash": "0x7e86f5ee149291462278e28dba84227be19ba19b6e651f8a4ae4634724aa2bde",
-      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0x7e86f5ee149291462278e28dba84227be19ba19b6e651f8a4ae4634724aa2bde-REWARD",
+      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0x7e86f5ee149291462278e28dba84227be19ba19b6e651f8a4ae4634724aa2bde+794-REWARD",
       "recipients": Array [
         "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
       ],
@@ -63288,12 +63294,13 @@ Array [
       "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
       "blockHeight": 1622374,
       "extra": Object {
+        "amount": "3518037",
         "palletMethod": "staking.Reward",
         "validatorStash": "14xKzzU1ZYDnzFj7FgdtDAYSMJNARjDc2gNw4XAFDgr4uXgp",
       },
       "fee": "0",
       "hash": "0x866ca536ddff7a98027465ff2f468e44719fe631ebaaa8c9e4a081ffd611b17b",
-      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0x866ca536ddff7a98027465ff2f468e44719fe631ebaaa8c9e4a081ffd611b17b-REWARD",
+      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0x866ca536ddff7a98027465ff2f468e44719fe631ebaaa8c9e4a081ffd611b17b+12-REWARD",
       "recipients": Array [
         "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
       ],
@@ -63515,31 +63522,13 @@ Array [
       "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
       "blockHeight": 2529232,
       "extra": Object {
+        "amount": "3083742",
         "palletMethod": "staking.Reward",
         "validatorStash": "14Y4s6V1PWrwBLvxW47gcYgZCGTYekmmzvFsK1kiqNH2d84t",
       },
       "fee": "0",
       "hash": "0xb6be63a0aab4badc966572f847f8ef2a708f20a5ede9c7c579a6b31702a01ec8",
-      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0xb6be63a0aab4badc966572f847f8ef2a708f20a5ede9c7c579a6b31702a01ec8-REWARD",
-      "recipients": Array [
-        "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
-      ],
-      "senders": Array [
-        "14Y4s6V1PWrwBLvxW47gcYgZCGTYekmmzvFsK1kiqNH2d84t",
-      ],
-      "type": "REWARD",
-      "value": "3648785",
-    },
-    Object {
-      "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
-      "blockHeight": 2529232,
-      "extra": Object {
-        "palletMethod": "staking.Reward",
-        "validatorStash": "14Y4s6V1PWrwBLvxW47gcYgZCGTYekmmzvFsK1kiqNH2d84t",
-      },
-      "fee": "0",
-      "hash": "0xb6be63a0aab4badc966572f847f8ef2a708f20a5ede9c7c579a6b31702a01ec8",
-      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0xb6be63a0aab4badc966572f847f8ef2a708f20a5ede9c7c579a6b31702a01ec8-REWARD",
+      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0xb6be63a0aab4badc966572f847f8ef2a708f20a5ede9c7c579a6b31702a01ec8+63-REWARD",
       "recipients": Array [
         "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
       ],
@@ -63548,6 +63537,26 @@ Array [
       ],
       "type": "REWARD",
       "value": "3083742",
+    },
+    Object {
+      "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
+      "blockHeight": 2529232,
+      "extra": Object {
+        "amount": "3648785",
+        "palletMethod": "staking.Reward",
+        "validatorStash": "14Y4s6V1PWrwBLvxW47gcYgZCGTYekmmzvFsK1kiqNH2d84t",
+      },
+      "fee": "0",
+      "hash": "0xb6be63a0aab4badc966572f847f8ef2a708f20a5ede9c7c579a6b31702a01ec8",
+      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0xb6be63a0aab4badc966572f847f8ef2a708f20a5ede9c7c579a6b31702a01ec8+9-REWARD",
+      "recipients": Array [
+        "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
+      ],
+      "senders": Array [
+        "14Y4s6V1PWrwBLvxW47gcYgZCGTYekmmzvFsK1kiqNH2d84t",
+      ],
+      "type": "REWARD",
+      "value": "3648785",
     },
     Object {
       "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
@@ -63573,12 +63582,13 @@ Array [
       "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
       "blockHeight": 2466622,
       "extra": Object {
+        "amount": "3598936",
         "palletMethod": "staking.Reward",
         "validatorStash": "14Y4s6V1PWrwBLvxW47gcYgZCGTYekmmzvFsK1kiqNH2d84t",
       },
       "fee": "0",
       "hash": "0xb7dc439bc24e84a971bdc690db4402a9924f3ce71070e86ca7f4d374c7136d79",
-      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0xb7dc439bc24e84a971bdc690db4402a9924f3ce71070e86ca7f4d374c7136d79-REWARD",
+      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0xb7dc439bc24e84a971bdc690db4402a9924f3ce71070e86ca7f4d374c7136d79+9-REWARD",
       "recipients": Array [
         "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
       ],
@@ -63612,12 +63622,13 @@ Array [
       "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
       "blockHeight": 1650909,
       "extra": Object {
+        "amount": "4257159",
         "palletMethod": "staking.Reward",
         "validatorStash": "",
       },
       "fee": "0",
       "hash": "0xc53efdaf4ded013d11010ab323808803edc21118d93115f9c90ccf7356348a1b",
-      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0xc53efdaf4ded013d11010ab323808803edc21118d93115f9c90ccf7356348a1b-REWARD",
+      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0xc53efdaf4ded013d11010ab323808803edc21118d93115f9c90ccf7356348a1b+62-REWARD",
       "recipients": Array [
         "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
       ],
@@ -63687,12 +63698,13 @@ Array [
       "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
       "blockHeight": 1822047,
       "extra": Object {
+        "amount": "942713",
         "palletMethod": "staking.Reward",
         "validatorStash": "",
       },
       "fee": "0",
       "hash": "0xcb563226ff0b76e98edac552d8544e76110bf8f7af3ef5bce68bafec6a9f9280",
-      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0xcb563226ff0b76e98edac552d8544e76110bf8f7af3ef5bce68bafec6a9f9280-REWARD",
+      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0xcb563226ff0b76e98edac552d8544e76110bf8f7af3ef5bce68bafec6a9f9280+56-REWARD",
       "recipients": Array [
         "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
       ],
@@ -63818,12 +63830,13 @@ Array [
       "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
       "blockHeight": 1699075,
       "extra": Object {
+        "amount": "5331427",
         "palletMethod": "staking.Reward",
         "validatorStash": "145Vw57NN3Y4tqFNidLTmkhaMLD4HPoRtU91vioXrKcTcirS",
       },
       "fee": "0",
       "hash": "0xdcd024158ba39788f1f07a94f1fc1e3defa85036896a49a4f9f2dea56a01b9d1",
-      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0xdcd024158ba39788f1f07a94f1fc1e3defa85036896a49a4f9f2dea56a01b9d1-REWARD",
+      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0xdcd024158ba39788f1f07a94f1fc1e3defa85036896a49a4f9f2dea56a01b9d1+5-REWARD",
       "recipients": Array [
         "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
       ],
@@ -63877,12 +63890,13 @@ Array [
       "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
       "blockHeight": 1979116,
       "extra": Object {
+        "amount": "931191",
         "palletMethod": "staking.Reward",
         "validatorStash": "14Y4s6V1PWrwBLvxW47gcYgZCGTYekmmzvFsK1kiqNH2d84t",
       },
       "fee": "0",
       "hash": "0xe5db442d176d82f020b75576a3886b7483334012b4aa277a373f00a5a50ffba9",
-      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0xe5db442d176d82f020b75576a3886b7483334012b4aa277a373f00a5a50ffba9-REWARD",
+      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0xe5db442d176d82f020b75576a3886b7483334012b4aa277a373f00a5a50ffba9+46-REWARD",
       "recipients": Array [
         "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
       ],
@@ -63916,12 +63930,13 @@ Array [
       "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
       "blockHeight": 1722119,
       "extra": Object {
+        "amount": "3261017",
         "palletMethod": "staking.Reward",
         "validatorStash": "",
       },
       "fee": "0",
       "hash": "0xebbcb6a169a957c26f65c8f9d43c20445119551dba1f9803d221cb2ca9c13473",
-      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0xebbcb6a169a957c26f65c8f9d43c20445119551dba1f9803d221cb2ca9c13473-REWARD",
+      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0xebbcb6a169a957c26f65c8f9d43c20445119551dba1f9803d221cb2ca9c13473+61-REWARD",
       "recipients": Array [
         "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
       ],
@@ -63968,12 +63983,13 @@ Array [
       "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
       "blockHeight": 1665559,
       "extra": Object {
+        "amount": "3730991",
         "palletMethod": "staking.Reward",
         "validatorStash": "14xKzzU1ZYDnzFj7FgdtDAYSMJNARjDc2gNw4XAFDgr4uXgp",
       },
       "fee": "0",
       "hash": "0xf925f3037b1ac93fc574b0ec4d873cd91bab2d219e39f0345c64dfcf7c6745eb",
-      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0xf925f3037b1ac93fc574b0ec4d873cd91bab2d219e39f0345c64dfcf7c6745eb-REWARD",
+      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0xf925f3037b1ac93fc574b0ec4d873cd91bab2d219e39f0345c64dfcf7c6745eb+15-REWARD",
       "recipients": Array [
         "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
       ],
@@ -63987,12 +64003,13 @@ Array [
       "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
       "blockHeight": 1983983,
       "extra": Object {
+        "amount": "4347849",
         "palletMethod": "staking.Reward",
         "validatorStash": "",
       },
       "fee": "0",
       "hash": "0xfc42d5d847d304f254efbcea3509991b473c4e4e0863f84b79076aaf41abd11a",
-      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0xfc42d5d847d304f254efbcea3509991b473c4e4e0863f84b79076aaf41abd11a-REWARD",
+      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0xfc42d5d847d304f254efbcea3509991b473c4e4e0863f84b79076aaf41abd11a+48-REWARD",
       "recipients": Array [
         "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
       ],
@@ -64021,12 +64038,13 @@ Array [
       "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
       "blockHeight": 2495278,
       "extra": Object {
+        "amount": "3352305",
         "palletMethod": "staking.Reward",
         "validatorStash": "14Y4s6V1PWrwBLvxW47gcYgZCGTYekmmzvFsK1kiqNH2d84t",
       },
       "fee": "0",
       "hash": "0xfed0748acc9cd26aa8abb1944217de6336d8458f113fccd38b47f9d380b092f1",
-      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0xfed0748acc9cd26aa8abb1944217de6336d8458f113fccd38b47f9d380b092f1-REWARD",
+      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0xfed0748acc9cd26aa8abb1944217de6336d8458f113fccd38b47f9d380b092f1+10-REWARD",
       "recipients": Array [
         "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
       ],
