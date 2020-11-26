@@ -28,6 +28,18 @@ export const isController = (a: Account): boolean => {
   return !!a.polkadotResources?.stash;
 };
 
+// returns true if account is controlled by an external account (not self)
+export const hasExternalController = (a: Account): boolean =>
+  a.polkadotResources?.controller
+    ? a.polkadotResources?.controller !== a.freshAddress
+    : false;
+
+// returns true if accoutn controls an external stash (not self)
+export const hasExternalStash = (a: Account): boolean =>
+  a.polkadotResources?.stash
+    ? a.polkadotResources?.stash !== a.freshAddress
+    : false;
+
 // Must have the minimum balance to bond
 export const canBond = (a: Account): boolean => {
   const { balance } = a;
