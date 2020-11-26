@@ -4,6 +4,7 @@ import https from "https";
 
 import { BigNumber } from "bignumber.js";
 
+import { getEnv } from "../../env";
 import { getOperationType } from "./common";
 
 // TMP
@@ -13,7 +14,7 @@ const agent = new https.Agent({
 
 const LIMIT = 200;
 
-const getBaseApiUrl = () => "https://polkadot.indexer.dev.stagebison.net"; // FIXME: env
+const getBaseApiUrl = () => getEnv("API_POLKADOT_INDEXER");
 
 const getAccountOperationUrl = (addr, offset, startAt, limit = LIMIT) =>
   `${getBaseApiUrl()}/accounts/${addr}/operations?limit=${limit}${
@@ -53,6 +54,7 @@ const getExtra = (type, extrinsic) => {
       extra = {
         ...extra,
         validatorStash: extrinsic.validatorStash,
+        amount: BigNumber(extrinsic.value),
       };
       break;
 
