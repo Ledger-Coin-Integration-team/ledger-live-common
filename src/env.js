@@ -54,7 +54,8 @@ const envDefinitions = {
   },
   API_POLKADOT_INDEXER: {
     parser: stringParser,
-    def: "https://polkadot.subscan.io",
+    def: "https://polkadot.indexer.dev.stagebison.net",
+    // def: "https://polkadot.subscan.io",
     desc: "explorer API for polkadot",
   },
   API_POLKADOT_NODE: {

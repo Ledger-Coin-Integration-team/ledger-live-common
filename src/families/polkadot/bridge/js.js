@@ -39,7 +39,7 @@ const estimateMaxSpendable = async ({
     ...transaction,
     recipient:
       transaction?.recipient ||
-      "15B3b91znpx4RsBs3stqF6CmsMucA7zxY7K3LBR74mxgk9vE", // need abandon seed
+      "1Z4QdzRrpVbggYoGK5pfbeMyzpVVDK7WxheVjWFxfv6sxjV", // need abandon seed and being empty
     useAllAmount: true,
   };
   const status = await getTransactionStatus(mainAccount, t);

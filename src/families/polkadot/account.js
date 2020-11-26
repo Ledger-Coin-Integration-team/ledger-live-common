@@ -35,10 +35,11 @@ function formatOperationSpecifics(op: Operation, unit: ?Unit): string {
             : unbondedAmount
         }`
       : validatorStash
-      ? `\n    validatorStash: ${validatorStash}` +
-        `\n    amount: ${
-          unit ? formatCurrencyUnit(unit, amount, formatConfig) : amount
-        }`
+      ? `\n    validatorStash: ${validatorStash}` + amount && !amount.isNaN()
+        ? `\n    amount: ${
+            unit ? formatCurrencyUnit(unit, amount, formatConfig) : amount
+          }`
+        : ""
       : "";
 
   return str;
