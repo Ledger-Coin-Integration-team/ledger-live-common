@@ -13,6 +13,7 @@ export const getAccountShape: GetAccountShape = async (info) => {
     : 0;
 
   const {
+    blockHeight,
     balance,
     spendableBalance,
     nonce,
@@ -26,7 +27,6 @@ export const getAccountShape: GetAccountShape = async (info) => {
   } = await getAccount(address);
   const newOperations = await getOperations(id, address, startAt);
   const operations = mergeOps(oldOperations, newOperations);
-  const blockHeight = operations.length ? operations[0].blockHeight || 0 : 0;
 
   const shape = {
     id,
