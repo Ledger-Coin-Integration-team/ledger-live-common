@@ -178,9 +178,15 @@ export const getAccount = async (addr: string) =>
  */
 export const getBalances = async (addr: string) =>
   withApi(async (api: typeof ApiPromise) => {
-    const balances = await api.derive.balances.all(addr);
+    const [finalizedHash, balances] = await Promise.all([
+      api.rpc.chain.getFinalizedHead(),
+      api.derive.balances.all(addr),
+    ]);
+
+    const { number } = await api.rpc.chain.getHeader(finalizedHash);
 
     return {
+      blockHeight: number.toNumber(),
       balance: BigNumber(balances.freeBalance),
       spendableBalance: BigNumber(balances.availableBalance),
       nonce: balances.accountNonce.toNumber(),
