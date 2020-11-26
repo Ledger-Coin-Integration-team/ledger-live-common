@@ -174,11 +174,32 @@ export const getBalances = async (addr: string) =>
 
 export const getStakingInfo = async (addr: string) =>
   withApi(async (api: typeof ApiPromise) => {
-    const [activeOpt, ledgerOpt, bonded] = await Promise.all([
-      api.query.staking.activeEra(),
+    const [controlledLedgerOpt, bonded] = await Promise.all([
       api.query.staking.ledger(addr),
       api.query.staking.bonded(addr),
     ]);
+
+    // NOTE: controlledLedgerOpt is not the current stash ledger...
+    const stash = controlledLedgerOpt.isSome
+      ? controlledLedgerOpt.unwrap().stash.toString()
+      : null;
+    const controller = bonded.isSome ? bonded.unwrap().toString() : null;
+
+    // If account is not a stash, no need to fetch corresponding ledger
+    if (!controller) {
+      return {
+        controller: null,
+        stash: stash || null,
+        unlockedBalance: BigNumber(0),
+        unlockingBalance: BigNumber(0),
+        unlockings: [],
+      };
+    }
+    const [activeOpt, ledgerOpt] = await Promise.all([
+      api.query.staking.activeEra(),
+      api.query.staking.ledger(controller),
+    ]);
+
     const now = new Date();
 
     const { index, start } = activeOpt.unwrapOrDefault();
@@ -193,8 +214,6 @@ export const getStakingInfo = async (addr: string) =>
       .toNumber();
 
     const ledger = ledgerOpt.isSome ? ledgerOpt.unwrap() : null;
-    const stash = ledger ? ledger.stash.toString() : null;
-    const controller = bonded.isSome ? bonded.unwrap().toString() : null;
     const unlockings = ledger
       ? ledger.unlocking.map((lock) => ({
           amount: BigNumber(lock.value),
