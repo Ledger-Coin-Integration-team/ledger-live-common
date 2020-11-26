@@ -125,12 +125,12 @@ const rewardToOperation = (addr, accountId, reward) => {
   const type = "REWARD";
 
   return {
-    id: `${accountId}-${hash}-${type}`,
+    id: `${accountId}-${hash}+${reward.index}-${type}`,
     accountId,
     fee: BigNumber(0),
     value: BigNumber(reward.value),
     type: type,
-    hash: hash,
+    hash,
     blockHeight: reward.blockNumber,
     date: new Date(reward.timestamp),
     extra: getExtra(type, reward),
