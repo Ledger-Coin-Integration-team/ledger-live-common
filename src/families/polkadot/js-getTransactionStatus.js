@@ -18,6 +18,7 @@ import {
   PolkadotLowBondedBalance,
   PolkadotNoUnlockedBalance,
   PolkadotNoNominations,
+  PolkadotBondAllFundsWarning,
 } from "../../errors";
 
 import { formatCurrencyUnit } from "../../currencies";
@@ -116,9 +117,8 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
     errors.staking = new PolkadotElectionClosed();
   }
 
-  let amount = t.amount;
   const useAllAmount = !!t.useAllAmount;
-
+  let amount = estimateAmount({ a, t });
   const unlockingBalance =
     a.polkadotResources?.unlockingBalance || BigNumber(0);
 
@@ -150,6 +150,10 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
               { showCode: true }
             ),
           });
+        }
+
+        if (t.useAllAmount) {
+          warnings.amount = new PolkadotBondAllFundsWarning();
         }
       }
 
@@ -229,7 +233,7 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
     !errors.staking && !errors.amount && !errors.recipient
       ? await calculateFees({
           a,
-          t: { ...t, amount: estimateAmount({ a, t }) },
+          t: { ...t, amount },
         })
       : BigNumber(0);
   let totalSpent = estimatedFees;

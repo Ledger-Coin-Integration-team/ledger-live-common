@@ -2,7 +2,6 @@
 import { BigNumber } from "bignumber.js";
 
 // import invariant from "invariant";
-
 import type { Account, Operation, SignedOperation } from "../../../types";
 import type { Transaction } from "../types";
 
@@ -55,7 +54,7 @@ const sameFees = (a, b) => (!a || !b ? a === b : a.eq(b));
 const prepareTransaction = async (a, t) => {
   let fees = t.fees;
 
-  if (t.useAllAmount && (await isValidAddress(t.recipient))) {
+  if (t.useAllAmount && t.recipient && isValidAddress(t.recipient)) {
     fees = await calculateFees({ a, t });
   }
 

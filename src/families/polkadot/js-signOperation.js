@@ -5,6 +5,8 @@ import { createSignedTx } from "@substrate/txwrapper";
 import type { Transaction } from "./types";
 import type { Account, Operation, SignOperationEvent } from "../../types";
 
+import { FeeNotLoaded } from "@ledgerhq/errors";
+
 import { open, close } from "../../hw";
 import { Polkadot } from "./ledger-app/Polkadot";
 
@@ -106,6 +108,10 @@ const signOperation = ({
           ...transaction,
           amount: estimateAmount({ a: account, t: transaction }),
         };
+
+        if (!transaction.fees) {
+          throw new FeeNotLoaded();
+        }
 
         const unsignedTransaction = await buildTransaction(
           account,
