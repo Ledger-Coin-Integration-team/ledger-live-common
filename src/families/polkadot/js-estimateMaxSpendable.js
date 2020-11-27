@@ -33,14 +33,14 @@ const estimateMaxSpendable = async ({
   return status.amount;
 };
 
-export const estimateMaxUnbond = (account: Account): BigNumber => {
+export const calculateMaxUnbond = (account: Account): BigNumber => {
   invariant(account.polkadotResources, "Should be a polkadot family");
   return account.polkadotResources.lockedBalance.minus(
     account.polkadotResources.unlockingBalance
   );
 };
 
-export const estimateMaxRebond = (account: Account): BigNumber => {
+export const getMaxRebond = (account: Account): BigNumber => {
   invariant(account.polkadotResources, "Should be a polkadot family");
   return account.polkadotResources.unlockingBalance;
 };
@@ -55,10 +55,10 @@ export const estimateAmount = ({
   if (t.useAllAmount) {
     switch (t.mode) {
       case "unbond":
-        return estimateMaxUnbond(a);
+        return calculateMaxUnbond(a);
 
       case "rebond":
-        return estimateMaxRebond(a);
+        return getMaxRebond(a);
 
       default:
         return a.spendableBalance.minus(t.fees || 0);

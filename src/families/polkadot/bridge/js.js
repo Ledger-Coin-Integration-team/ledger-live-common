@@ -16,14 +16,15 @@ import { submitExtrinsic } from "../../../api/polkadot";
 import { getAccountShape } from "../synchronisation";
 
 import getTransactionStatus from "../js-getTransactionStatus";
-import estimateMaxSpendable from "../js-estimateMaxSpendable";
+import estimateMaxSpendable, {
+  estimateAmount,
+} from "../js-estimateMaxSpendable";
 import signOperation from "../js-signOperation";
 
 import { preload, hydrate } from "../preload";
 
 import { calculateFees } from "../js-getFeesForTransaction";
 import { patchOperationWithHash } from "../../../operation";
-import { isValidAddress } from "../logic";
 
 const receive = makeAccountBridgeReceive();
 
@@ -54,9 +55,14 @@ const sameFees = (a, b) => (!a || !b ? a === b : a.eq(b));
 const prepareTransaction = async (a, t) => {
   let fees = t.fees;
 
-  if (t.useAllAmount && t.recipient && isValidAddress(t.recipient)) {
-    fees = await calculateFees({ a, t });
-  }
+  fees = await calculateFees({
+    a,
+    t: {
+      ...t,
+      recipient: "1Z4QdzRrpVbggYoGK5pfbeMyzpVVDK7WxheVjWFxfv6sxjV", //Empty account to calculate fees
+      amount: estimateAmount({ a, t }),
+    },
+  });
 
   if (!sameFees(t.fees, fees)) {
     return { ...t, fees };
