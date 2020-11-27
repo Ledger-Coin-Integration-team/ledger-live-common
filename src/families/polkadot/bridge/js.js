@@ -8,7 +8,6 @@ import type { Transaction } from "../types";
 
 import type { AccountBridge, CurrencyBridge } from "../../../types";
 // import { isInvalidRecipient } from "../../../bridge/mockHelpers";
-import { getMainAccount } from "../../../account";
 import {
   makeSync,
   makeScanAccounts,
@@ -18,6 +17,7 @@ import { submitExtrinsic } from "../../../api/polkadot";
 import { getAccountShape } from "../synchronisation";
 
 import getTransactionStatus from "../js-getTransactionStatus";
+import estimateMaxSpendable from "../js-estimateMaxSpendable";
 import signOperation from "../js-signOperation";
 
 import { preload, hydrate } from "../preload";
@@ -28,24 +28,6 @@ import { isValidAddress } from "../logic";
 
 const receive = makeAccountBridgeReceive();
 
-const estimateMaxSpendable = async ({
-  account,
-  parentAccount,
-  transaction,
-}) => {
-  const mainAccount = getMainAccount(account, parentAccount);
-  const t = {
-    ...createTransaction(),
-    ...transaction,
-    recipient:
-      transaction?.recipient ||
-      "1Z4QdzRrpVbggYoGK5pfbeMyzpVVDK7WxheVjWFxfv6sxjV", // need abandon seed and being empty
-    useAllAmount: true,
-  };
-  const status = await getTransactionStatus(mainAccount, t);
-  return status.amount;
-};
-
 const postSync = (initial: Account, parent: Account) => {
   return parent;
 };
@@ -54,7 +36,7 @@ const scanAccounts = makeScanAccounts(getAccountShape);
 
 const sync = makeSync(getAccountShape, postSync);
 
-const createTransaction = (): Transaction => ({
+export const createTransaction = (): Transaction => ({
   family: "polkadot",
   mode: "send",
   amount: BigNumber(0),
