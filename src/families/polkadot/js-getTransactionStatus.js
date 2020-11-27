@@ -151,10 +151,10 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
             ),
           });
         }
+      }
 
-        if (t.useAllAmount) {
-          warnings.amount = new PolkadotBondAllFundsWarning();
-        }
+      if (t.useAllAmount) {
+        warnings.amount = new PolkadotBondAllFundsWarning();
       }
 
       break;
