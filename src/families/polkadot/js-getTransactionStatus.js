@@ -18,6 +18,7 @@ import {
   PolkadotLowBondedBalance,
   PolkadotNoUnlockedBalance,
   PolkadotNoNominations,
+  PolkadotBondAllFundsWarning,
 } from "../../errors";
 
 import { formatCurrencyUnit } from "../../currencies";
@@ -37,6 +38,7 @@ import {
   EXISTENTIAL_DEPOSIT,
   MINIMUM_BOND_AMOUNT,
 } from "./logic.js";
+import { estimateAmount } from "./js-estimateMaxSpendable";
 import { calculateFees } from "./js-getFeesForTransaction";
 
 // Should try to refacto
@@ -60,7 +62,7 @@ const getSendTransactionStatus = async (
   if (!errors.recipient) {
     estimatedFees = await calculateFees({
       a,
-      t: { ...t, amount: t.useAllAmount ? a.spendableBalance : t.amount },
+      t: { ...t, amount: estimateAmount({ a, t }) },
     });
   }
 
@@ -115,9 +117,8 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
     errors.staking = new PolkadotElectionClosed();
   }
 
-  let amount = t.amount;
   const useAllAmount = !!t.useAllAmount;
-
+  let amount = estimateAmount({ a, t });
   const unlockingBalance =
     a.polkadotResources?.unlockingBalance || BigNumber(0);
 
@@ -150,6 +151,10 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
             ),
           });
         }
+      }
+
+      if (t.useAllAmount) {
+        warnings.amount = new PolkadotBondAllFundsWarning();
       }
 
       break;
@@ -226,7 +231,10 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
   // We can't manage error like incorrect recipient in the transaction builder
   const estimatedFees =
     !errors.staking && !errors.amount && !errors.recipient
-      ? await calculateFees({ a, t })
+      ? await calculateFees({
+          a,
+          t: { ...t, amount },
+        })
       : BigNumber(0);
   let totalSpent = estimatedFees;
 
@@ -245,6 +253,8 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
     if (amount.gt(a.spendableBalance)) {
       errors.amount = new NotEnoughBalance();
     }
+  } else if (t.mode === "unbond" || t.mode === "rebond") {
+    amount = estimateAmount({ a, t });
   }
 
   if (totalSpent.gt(a.spendableBalance)) {
