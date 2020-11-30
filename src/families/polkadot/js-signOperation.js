@@ -5,12 +5,15 @@ import { createSignedTx } from "@substrate/txwrapper";
 import type { Transaction } from "./types";
 import type { Account, Operation, SignOperationEvent } from "../../types";
 
+import { FeeNotLoaded } from "@ledgerhq/errors";
+
 import { open, close } from "../../hw";
 import { Polkadot } from "./ledger-app/Polkadot";
 
 import getTxInfo from "./js-getTransactionInfo";
 import { getEstimatedFeesFromUnsignedTx } from "./js-getFeesForTransaction";
 import buildTransaction from "./js-buildTransaction";
+import { estimateAmount } from "./js-estimateMaxSpendable";
 
 const MODE_TO_TYPE = {
   send: "OUT",
@@ -103,10 +106,12 @@ const signOperation = ({
         const txInfo = await getTxInfo(account);
         const tmpTransaction = {
           ...transaction,
-          amount: transaction.useAllAmount
-            ? account.spendableBalance.minus(transaction.fees || 0)
-            : transaction.amount,
+          amount: estimateAmount({ a: account, t: transaction }),
         };
+
+        if (!transaction.fees) {
+          throw new FeeNotLoaded();
+        }
 
         const unsignedTransaction = await buildTransaction(
           account,
