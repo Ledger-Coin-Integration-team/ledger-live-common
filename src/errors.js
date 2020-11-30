@@ -185,3 +185,7 @@ export const PolkadotNoUnlockedBalance = createCustomErrorClass(
 export const PolkadotNoNominations = createCustomErrorClass(
   "PolkadotNoNominations"
 );
+
+export const PolkadotBondAllFundsWarning = createCustomErrorClass(
+  "PolkadotBondAllFundsWarning"
+);
