@@ -1,5 +1,6 @@
 // @flow
 import type { Transaction, TransactionRaw } from "./types";
+import { BigNumber } from "bignumber.js";
 import {
   fromTransactionCommonRaw,
   toTransactionCommonRaw,
@@ -33,7 +34,7 @@ export const fromTransactionRaw = (tr: TransactionRaw): Transaction => {
     ...common,
     family: tr.family,
     mode: tr.mode,
-    fees: null,
+    fees: tr.fees ? BigNumber(tr.fees) : null,
     validators: tr.validators,
     era: tr.era,
     rewardDestination: tr.rewardDestination,
@@ -46,7 +47,7 @@ export const toTransactionRaw = (t: Transaction): TransactionRaw => {
     ...common,
     family: t.family,
     mode: t.mode,
-    fees: null,
+    fees: t.fees?.toString() || null,
     validators: t.validators,
     era: t.era,
     rewardDestination: t.rewardDestination,
