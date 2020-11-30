@@ -67,7 +67,8 @@ export class Polkadot {
         INS.GET_ADDR_ED25519,
         requireConfirmation ? 1 : 0,
         0,
-        bip44Path
+        bip44Path,
+        [SW_OK, SW_CANCEL]
       )
       .then((response) => {
         const errorCodeData = response.slice(-2);
