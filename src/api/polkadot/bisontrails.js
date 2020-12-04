@@ -117,7 +117,7 @@ const extrinsicToOperation = (addr, accountId, extrinsic) => {
       Boolean
     ),
     transactionSequenceNumber:
-      extrinsic.signer !== addr ? extrinsic.nonce : undefined,
+      extrinsic.signer === addr ? extrinsic.nonce : undefined,
     hasFailed: !extrinsic.isSuccess,
   };
 };
