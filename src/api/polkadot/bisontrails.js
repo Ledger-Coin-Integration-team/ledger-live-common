@@ -116,6 +116,8 @@ const extrinsicToOperation = (addr, accountId, extrinsic) => {
     recipients: [extrinsic.affectedAddress1, extrinsic.affectedAddress2].filter(
       Boolean
     ),
+    transactionSequenceNumber:
+      extrinsic.signer === addr ? extrinsic.nonce : undefined,
     hasFailed: !extrinsic.isSuccess,
   };
 };

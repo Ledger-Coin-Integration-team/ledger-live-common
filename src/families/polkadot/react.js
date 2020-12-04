@@ -1,6 +1,8 @@
 // @flow
-import { useEffect, useState, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import useMemoOnce from "../../hooks/useMemoOnce";
+import type { Account } from "../../types";
+import { useBridgeSync } from "../../bridge/react";
 
 import {
   getCurrentPolkadotPreloadData,
@@ -59,4 +61,33 @@ export function useSortedValidators(
   );
 
   return sr;
+}
+
+export function usePolkadotBondLoading(account: Account) {
+  const controller = account.polkadotResources?.controller || 0;
+  const initialController = useRef(controller);
+  const initialAccount = useRef(account);
+  const [isLoading, setLoading] = useState(true);
+
+  useEffect(() => {
+    if (initialController.current !== controller) {
+      setLoading(false);
+    }
+  }, [controller]);
+
+  const sync = useBridgeSync();
+
+  useEffect(() => {
+    if (!isLoading) return;
+    const interval = setInterval(() => {
+      sync({
+        type: "SYNC_ONE_ACCOUNT",
+        priority: 10,
+        accountId: initialAccount.current.id,
+      });
+    }, 5000);
+    return () => clearInterval(interval);
+  }, [initialAccount, sync, isLoading]);
+
+  return isLoading;
 }
