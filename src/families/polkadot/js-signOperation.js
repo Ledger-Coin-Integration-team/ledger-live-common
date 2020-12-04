@@ -59,7 +59,8 @@ const getExtra = (type: string, account: Account, transaction: Transaction) => {
 const buildOptimisticOperation = (
   account: Account,
   transaction: Transaction,
-  fee: BigNumber
+  fee: BigNumber,
+  nonce: number
 ): Operation => {
   const type = MODE_TO_TYPE[transaction.mode] ?? MODE_TO_TYPE.default;
 
@@ -79,6 +80,7 @@ const buildOptimisticOperation = (
     senders: [account.freshAddress],
     recipients: [transaction.recipient],
     accountId: account.id,
+    transactionSequenceNumber: nonce,
     date: new Date(),
     extra,
   };
@@ -150,7 +152,8 @@ const signOperation = ({
         const operation = buildOptimisticOperation(
           account,
           tmpTransaction,
-          fee
+          fee,
+          txInfo.txBaseInfo.nonce
         );
 
         o.next({
