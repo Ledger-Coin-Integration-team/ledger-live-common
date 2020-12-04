@@ -165,6 +165,8 @@ const mapSubscanExtrinsic = (
     recipients: recipient ? [recipient] : [],
     extra: getExtra(type, extrinsic),
     hasFailed: !extrinsic.success,
+    transactionSequenceNumber:
+      extrinsic.signer === addr ? extrinsic.nonce : undefined,
   };
 };
 

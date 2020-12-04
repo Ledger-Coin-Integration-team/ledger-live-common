@@ -5,8 +5,17 @@ import type { Account } from "../../types";
 
 const ERA_PERIOD = 64; // number of blocks from checkpoint that transaction is valid
 
-const getNonce = (a: Account) => {
-  return (a.polkadotResources?.nonce || 0) + a.pendingOperations.length;
+const getNonce = (a: Account): number => {
+  const lastPendingOp = a.pendingOperations[0];
+
+  const nonce = Math.max(
+    a.polkadotResources?.nonce || 0,
+    lastPendingOp && typeof lastPendingOp.transactionSequenceNumber === 'number'
+      ? lastPendingOp.transactionSequenceNumber + 1
+      : 0
+  );
+
+  return nonce;
 };
 
 const getTxInfo = async (a: Account) => {
