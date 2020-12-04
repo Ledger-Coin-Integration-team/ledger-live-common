@@ -16,13 +16,11 @@ export type ExtraDeviceTransactionField = {
 const getSendFields = ({
   status: { amount },
   account,
-  recipient,
 }: {
   account: AccountLike,
   parentAccount: ?Account,
   transaction: Transaction,
   status: TransactionStatus,
-  recipient: string,
 }) => {
   const fields = [];
 
@@ -30,12 +28,6 @@ const getSendFields = ({
     type: "text",
     label: "Balances",
     value: "Transfer (keep alive)",
-  });
-
-  fields.push({
-    type: "address",
-    label: "Dest",
-    address: recipient,
   });
 
   fields.push({
@@ -75,7 +67,6 @@ function getDeviceTransactionConfig({
         status,
         parentAccount,
         account,
-        recipient,
       });
       break;
 
@@ -108,18 +99,18 @@ function getDeviceTransactionConfig({
 
         fields.push({
           type: "text",
-          label: "Payee",
-          value: rewardDestination || "Stash",
-        });
-
-        fields.push({
-          type: "text",
           label: "Value",
           value: formatCurrencyUnit(getAccountUnit(account), amount, {
             showCode: false,
             disableRounding: true,
             showAllDigits: true,
           }),
+        });
+
+        fields.push({
+          type: "text",
+          label: "Payee",
+          value: rewardDestination || "Stash",
         });
       } else {
         fields.push({

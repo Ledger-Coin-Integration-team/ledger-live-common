@@ -1,5 +1,7 @@
 // @flow
 import { BigNumber } from "bignumber.js";
+import querystring from "querystring";
+
 import { getEnv } from "../../env";
 import network from "../../network";
 
@@ -82,19 +84,19 @@ const fetchValidators = async (
   status: string = "all",
   addresses?: string[]
 ) => {
-  let params = "";
+  let params = {};
 
   if (status) {
-    params = `?status=${status}`;
+    params = { ...params, status };
   }
 
   if (addresses && addresses.length) {
-    params = `${params}${params ? "&" : "?"}addresses=${addresses.join(",")}`;
+    params = { ...params, addresses: addresses.join("-") };
   }
 
   const { data } = await network({
     method: "GET",
-    url: getSidecarUrl(`/validators${params}`),
+    url: getSidecarUrl(`/validators?${querystring.stringify(params)}`),
   });
 
   return data;
@@ -322,7 +324,6 @@ export const submitExtrinsic = async (extrinsic: string) => {
       tx: extrinsic,
     },
   });
-
   return data.hash;
 };
 

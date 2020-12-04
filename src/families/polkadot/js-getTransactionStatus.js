@@ -19,6 +19,7 @@ import {
   PolkadotNoUnlockedBalance,
   PolkadotNoNominations,
   PolkadotBondAllFundsWarning,
+  PolkadotBondNotEnoughBalanceBecauseDestinationNotCreated,
 } from "../../errors";
 
 import { formatCurrencyUnit } from "../../currencies";
@@ -143,13 +144,16 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
 
         // If not a stash yet, first bond must respect minimum amount of 1 DOT
         if (amount.lt(MINIMUM_BOND_AMOUNT)) {
-          errors.amount = new NotEnoughBalanceBecauseDestinationNotCreated("", {
-            minimalAmount: formatCurrencyUnit(
-              a.currency.units[0],
-              MINIMUM_BOND_AMOUNT,
-              { showCode: true }
-            ),
-          });
+          errors.amount = new PolkadotBondNotEnoughBalanceBecauseDestinationNotCreated(
+            "",
+            {
+              minimalAmount: formatCurrencyUnit(
+                a.currency.units[0],
+                MINIMUM_BOND_AMOUNT,
+                { showCode: true }
+              ),
+            }
+          );
         }
       }
 

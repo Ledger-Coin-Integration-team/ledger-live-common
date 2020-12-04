@@ -1,8 +1,10 @@
 //@flow
 import network from "../../network";
 import https from "https";
+import querystring from "querystring";
 
 import { BigNumber } from "bignumber.js";
+import { encodeOperationId } from "../../operation";
 
 import { getEnv } from "../../env";
 import { getOperationType } from "./common";
@@ -17,9 +19,11 @@ const LIMIT = 200;
 const getBaseApiUrl = () => getEnv("API_POLKADOT_INDEXER");
 
 const getAccountOperationUrl = (addr, offset, startAt, limit = LIMIT) =>
-  `${getBaseApiUrl()}/accounts/${addr}/operations?limit=${limit}${
-    offset ? `&offset=${offset}` : ``
-  }${startAt ? `&startAt=${startAt}` : ``}`;
+  `${getBaseApiUrl()}/accounts/${addr}/operations?${querystring.stringify({
+    limit,
+    offset,
+    startAt,
+  })}`;
 
 const getExtra = (type, extrinsic) => {
   let extra = {
@@ -99,13 +103,15 @@ const extrinsicToOperation = (addr, accountId, extrinsic) => {
   ) {
     type = "IN";
   }
+
+  if (type === "BOND" && extrinsic.signer !== addr) {
+    return null;
+  }
+
   return {
     id: `${accountId}-${extrinsic.hash}-${type}`,
     accountId,
-    fee:
-      extrinsic.signer !== addr
-        ? BigNumber(0)
-        : BigNumber(extrinsic.partialFee || 0),
+    fee: BigNumber(extrinsic.partialFee || 0),
     value: getValue(extrinsic, type),
     type,
     hash: extrinsic.hash,
@@ -127,7 +133,7 @@ const rewardToOperation = (addr, accountId, reward) => {
   const type = "REWARD";
 
   return {
-    id: `${accountId}-${hash}+${reward.index}-${type}`,
+    id: encodeOperationId(accountId, `${hash}+${reward.index}`, type),
     accountId,
     fee: BigNumber(0),
     value: BigNumber(reward.value),
@@ -142,11 +148,11 @@ const rewardToOperation = (addr, accountId, reward) => {
 };
 
 const slashToOperation = (addr, accountId, slash) => {
-  const hash = `${slash.blockNumber}-0`; // to be compatible with explorer
+  const hash = `${slash.blockNumber}  `; // to be compatible with explorer
   const type = "SLASH";
 
   return {
-    id: `${accountId}-${hash}-${type}`,
+    id: encodeOperationId(accountId, `${hash}+${slash.index}`, type),
     accountId,
     fee: BigNumber(0),
     value: BigNumber(slash.value),
@@ -173,16 +179,16 @@ const fetchOperationList = async (
     httpsAgent: agent,
   });
 
-  const operations = data.extrinsics.map(
-    extrinsicToOperation.bind(null, addr, accountId)
+  const operations = data.extrinsics.map((extrinsic) =>
+    extrinsicToOperation(addr, accountId, extrinsic)
   );
 
-  const rewards = data.rewards.map(
-    rewardToOperation.bind(null, addr, accountId)
+  const rewards = data.rewards.map((reward) =>
+    rewardToOperation(addr, accountId, reward)
   );
 
-  const slashes = data.slashes.map(
-    slashToOperation.bind(null, addr, accountId)
+  const slashes = data.slashes.map((slash) =>
+    slashToOperation(addr, accountId, slash)
   );
 
   const mergedOp = [...prevOperations, ...operations, ...rewards, ...slashes];
@@ -192,7 +198,7 @@ const fetchOperationList = async (
     rewards.length < LIMIT &&
     slashes.length < LIMIT
   ) {
-    return mergedOp.sort((a, b) => b.date - a.date);
+    return mergedOp.filter(Boolean).sort((a, b) => b.date - a.date);
   }
 
   return await fetchOperationList(
