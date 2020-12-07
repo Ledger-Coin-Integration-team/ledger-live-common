@@ -3,7 +3,17 @@
 import type { Transaction } from "./types";
 import type { Account } from "../../types";
 
-import { methods } from "@substrate/txwrapper";
+import {
+  transferKeepAlive,
+  bond,
+  bondExtra,
+  unbond,
+  rebond,
+  withdrawUnbonded,
+  nominate,
+  chill,
+  payoutStakers
+} from "./transactions";
 import { isFirstBond } from "./logic";
 
 const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
@@ -13,7 +23,7 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
   let transaction;
   switch (t.mode) {
     case "send":
-      transaction = methods.balances.transferKeepAlive(
+      transaction = transferKeepAlive(
         {
           dest: t.recipient,
           value: t.amount.toString(),
@@ -26,29 +36,25 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
     // still not sure about this rule should get more info about that
     case "bond":
       transaction = isFirstBond(a)
-        ? methods.staking.bond(
+        ? bond(
             {
               controller: t.recipient,
               value: t.amount.toString(),
-              /**
-               * The rewards destination. Can be "Stash", "Staked", "Controller" or "{ Account: accountId }"".
-               */
+              // The rewards destination. Can be "Stash", "Staked", "Controller" or "{ Account: accountId }"".
               payee: t.rewardDestination || "Stash",
             },
             txBaseInfo,
             txOptions
           )
-        : methods.staking.bondExtra(
-            {
-              maxAdditional: t.amount.toString(),
-            },
+        : bondExtra(
+            { maxAdditional: t.amount.toString() },
             txBaseInfo,
             txOptions
           );
       break;
 
     case "unbond":
-      transaction = methods.staking.unbond(
+      transaction = unbond(
         { value: t.amount.toString() },
         txBaseInfo,
         txOptions
@@ -56,7 +62,7 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
       break;
 
     case "rebond":
-      transaction = methods.staking.rebond(
+      transaction = rebond(
         { value: t.amount.toNumber() },
         txBaseInfo,
         txOptions
@@ -64,15 +70,15 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
       break;
 
     case "withdrawUnbonded":
-      transaction = methods.staking.withdrawUnbonded(
-        { numSlashingSpans: 0 },
+      transaction = withdrawUnbonded(
+        { numSlashingSpans: 0},
         txBaseInfo,
         txOptions
       );
       break;
 
     case "nominate":
-      transaction = methods.staking.nominate(
+      transaction = nominate(
         { targets: t.validators },
         txBaseInfo,
         txOptions
@@ -80,11 +86,11 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
       break;
 
     case "chill":
-      transaction = methods.staking.chill({}, txBaseInfo, txOptions);
+      transaction = chill({}, txBaseInfo, txOptions);
       break;
 
     case "claimReward":
-      transaction = methods.staking.payoutStakers(
+      transaction = payoutStakers(
         { validatorStash: validator, era: t.era },
         txBaseInfo,
         txOptions

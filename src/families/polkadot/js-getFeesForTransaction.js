@@ -1,7 +1,7 @@
 // @flow
 import { BigNumber } from "bignumber.js";
 import { u8aConcat } from "@polkadot/util";
-import { createSignedTx } from "@substrate/txwrapper";
+import { createSignedTx } from "./transactions";
 
 import type { Account } from "../../types";
 import type { Transaction } from "./types";

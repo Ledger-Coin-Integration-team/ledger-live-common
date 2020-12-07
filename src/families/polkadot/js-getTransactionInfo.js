@@ -1,5 +1,5 @@
 // @flow
-import { getRegistry } from "@substrate/txwrapper";
+import { getRegistry } from "./transactions";
 import { getTransactionParams } from "./api";
 import type { Account } from "../../types";
 
@@ -30,7 +30,7 @@ const getTxInfo = async (a: Account) => {
     metadataRpc,
   } = await getTransactionParams();
 
-  const registry = getRegistry(chainName, specName, specVersion);
+  const registry = getRegistry(specName, specVersion, metadataRpc);
 
   const txBaseInfo = {
     address: a.freshAddress,

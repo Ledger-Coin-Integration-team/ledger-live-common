@@ -1,7 +1,7 @@
 // @flow
 import { BigNumber } from "bignumber.js";
 import { Observable } from "rxjs";
-import { createSignedTx } from "@substrate/txwrapper";
+import { createSignedTx } from "./transactions";
 import type { Transaction } from "./types";
 import type { Account, Operation, SignOperationEvent } from "../../types";
 
