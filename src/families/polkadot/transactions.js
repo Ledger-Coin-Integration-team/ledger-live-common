@@ -1,27 +1,20 @@
 // @flow
 
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
-const Types = require("@polkadot/types");
-const TypesKnown = require("@polkadot/types-known");
 const Util = require("@polkadot/util");
-const Memoizee = __importDefault(require("memoizee"));
-const Decorated = __importDefault(require("@polkadot/metadata/Decorated"));
 
+import { TypeRegistry } from '@polkadot/types';
+import { ModulesWithCalls } from '@polkadot/types/types';
+import { extrinsicsFromMeta } from '@polkadot/metadata/decorate';
+import { stringCamelCase } from '@polkadot/util';
+
+import { getSpecTypes } from '@polkadot/types-known';
+import { Metadata } from '@polkadot/metadata';
+import memoizee from 'memoizee';
 
 const POLKADOT_CHAIN_NAME = "Polkadot";
 
 // Prefix for SS58-encoded addresses on Polkadot.
 const POLKADOT_SS58_FORMAT = 0;
-
-const EXTRINSIC_VERSION = 4;
-
-// Default values for tx info, if the user doesn't specify any
-const DEFAULTS = {
-    tip: 0,
-    eraPeriod: 64,
-};
 
 // Hardcode some chain properties of Polkadot. These are normally returned
 // by `system_properties` call, but since they don't change much, it's pretty
@@ -32,17 +25,23 @@ const defaultPolkadotProperties = {
     tokenSymbol: 'DOT',
 };
 
-function createDecorated(registry, metadataRpc) {
-    return new Decorated.default(registry, createMetadata(registry, metadataRpc));
+const EXTRINSIC_VERSION = 4;
+
+// Default values for tx parameters, if the user doesn't specify any
+const DEFAULTS = {
+    tip: 0,
+    eraPeriod: 64,
+};
+
+function createDecoratedTxs(registry: TypeRegistry, metadataRpc: string): ModulesWithCalls {
+    return extrinsicsFromMeta(registry, createMetadata(registry, metadataRpc));
 }
 
-function createMetadataUnmemoized(registry, metadataRpc) {
-    return new Types.Metadata(registry, metadataRpc);
+function createMetadataUnmemoized(registry: TypeRegistry, metadataRpc: string): Metadata {
+    return new Metadata(registry, metadataRpc);
 }
 
-const createMetadata = Memoizee.default(createMetadataUnmemoized, {
-    length: 2,
-});
+export const createMetadata = memoizee(createMetadataUnmemoized, { length: 2 });
 
 /**
  * Given a a spec name, and a spec version, return the corresponding type registry for Polkadot.
@@ -55,14 +54,15 @@ const createMetadata = Memoizee.default(createMetadataUnmemoized, {
  * @param metadataRpc - Used to run `registry.setMetadata()`
  */
 export const getRegistry = (specName: string, specVersion: string, metadataRpc: any) => {
-    const registry = new Types.TypeRegistry();
+    console.log("XXXXX - getRegistry");
+    const registry = new TypeRegistry();
     // Register types specific to chain/runtimeVersion
-    registry.register(TypesKnown.getSpecTypes(registry, POLKADOT_CHAIN_NAME, specName, specVersion));
+    registry.register(getSpecTypes(registry, POLKADOT_CHAIN_NAME, specName, specVersion));
     // Register the chain properties for this registry
     registry.setChainProperties(registry.createType('ChainProperties', defaultPolkadotProperties));
     registry.setMetadata(createMetadata(registry, metadataRpc));
     return registry;
-};
+}
 
 /**
  * Serialize a signed transaction in a format that can be submitted over the
@@ -88,13 +88,13 @@ export const createSignedTx = (unsigned: any, signature: any, options: any) => {
  */
 function createMethod(info: any, options: any) {
     const { metadataRpc, registry } = options;
-    const metadata = createDecorated(registry, metadataRpc);
-    const methodFunction = metadata.tx[info.method.pallet][info.method.name];
+    const metadata = createDecoratedTxs(registry, metadataRpc);
+    const methodFunction = metadata[info.method.pallet][info.method.name];
     const method = methodFunction(...methodFunction.meta.args.map((arg) => {
-        if (info.method.args[Util.stringCamelCase(arg.name.toString())] === undefined) {
+        if (info.method.args[stringCamelCase(arg.name.toString())] === undefined) {
             throw new Error(`Method ${info.method.pallet}::${info.method.name} expects argument ${arg.toString()}, but got undefined`);
         }
-        return info.method.args[Util.stringCamelCase(arg.name.toString())];
+        return info.method.args[stringCamelCase(arg.name.toString())];
     })).toHex();
 
     const eraPeriod = DEFAULTS.eraPeriod
