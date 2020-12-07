@@ -13,7 +13,7 @@ import {
 import {
   PolkadotUnauthorizedOperation,
   PolkadotNotValidator,
-  PolkadotBondNotEnoughBalanceBecauseDestinationNotCreated,
+  PolkadotBondMinimumAmount,
 } from "../../errors";
 
 import type { DatasetTest } from "../../types";
@@ -433,7 +433,7 @@ const dataset: DatasetTest<Transaction> = {
               }),
               expectedStatus: {
                 errors: {
-                  amount: new PolkadotBondNotEnoughBalanceBecauseDestinationNotCreated(),
+                  amount: new PolkadotBondMinimumAmount(),
                 },
                 warnings: {},
               },

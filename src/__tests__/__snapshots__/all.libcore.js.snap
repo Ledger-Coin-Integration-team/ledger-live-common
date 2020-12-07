@@ -62072,7 +62072,7 @@ Array [
 exports[`polkadot currency bridge scanAccounts polkadot seed 1 1`] = `
 Array [
   Object {
-    "balance": "49995346325",
+    "balance": "49874346325",
     "currencyId": "polkadot",
     "derivationMode": "polkadotbip44",
     "freshAddress": "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
@@ -62086,7 +62086,7 @@ Array [
     "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
     "index": 0,
     "name": "Polkadot 1",
-    "operationsCount": 103,
+    "operationsCount": 104,
     "pendingOperations": Array [],
     "polkadotResources": Object {
       "controller": "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
@@ -62113,13 +62113,13 @@ Array [
           "value": "0",
         },
       ],
-      "nonce": 69,
+      "nonce": 70,
       "stash": "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
       "unlockedBalance": "1100000000",
-      "unlockingBalance": "1600000000",
+      "unlockingBalance": "1700000000",
     },
     "seedIdentifier": "7001f89e1fccbbd92e6c5fc9b6ae4f442d791450eb8d03c1e42392dda5f1d408",
-    "spendableBalance": "37995346325",
+    "spendableBalance": "37874346325",
     "starred": false,
     "swapHistory": Array [],
     "unitMagnitude": 10,
@@ -62950,6 +62950,25 @@ Array [
       "transactionSequenceNumber": 48,
       "type": "OUT",
       "value": "10154000000",
+    },
+    Object {
+      "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
+      "blockHeight": 2793170,
+      "extra": Object {
+        "palletMethod": "staking.unbond",
+        "unbondedAmount": "100000000",
+      },
+      "fee": "121000000",
+      "hasFailed": false,
+      "hash": "0x41f1d46d4fef22bfe8b34c0f3beab504bc7fa106300c7cc68b9a0da19e5b6381",
+      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0x41f1d46d4fef22bfe8b34c0f3beab504bc7fa106300c7cc68b9a0da19e5b6381-UNBOND",
+      "recipients": Array [],
+      "senders": Array [
+        "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
+      ],
+      "transactionSequenceNumber": 69,
+      "type": "UNBOND",
+      "value": "121000000",
     },
     Object {
       "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",

@@ -148,7 +148,7 @@ const rewardToOperation = (addr, accountId, reward) => {
 };
 
 const slashToOperation = (addr, accountId, slash) => {
-  const hash = `${slash.blockNumber}  `; // to be compatible with explorer
+  const hash = `${slash.blockNumber}`;
   const type = "SLASH";
 
   return {

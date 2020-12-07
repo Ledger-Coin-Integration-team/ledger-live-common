@@ -32,10 +32,7 @@ export const getOperationType = (pallet: string, palletMethod: string) => {
       return "FEES";
 
     default:
-      log(
-        "polkadot/pallet",
-        `Unhandled operation type ${pallet}.${palletMethod}`
-      );
+      log("polkadot/api", `Unhandled operation type ${pallet}.${palletMethod}`);
       return "FEES";
   }
 };

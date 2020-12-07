@@ -190,6 +190,6 @@ export const PolkadotBondAllFundsWarning = createCustomErrorClass(
   "PolkadotBondAllFundsWarning"
 );
 
-export const PolkadotBondNotEnoughBalanceBecauseDestinationNotCreated = createCustomErrorClass(
-  "PolkadotBondNotEnoughBalanceBecauseDestinationNotCreated"
+export const PolkadotBondMinimumAmount = createCustomErrorClass(
+  "PolkadotBondMinimumAmount"
 );
