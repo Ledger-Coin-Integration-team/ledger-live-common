@@ -1,5 +1,5 @@
 // @flow
-import { getRegistry } from "./transactions";
+import { getRegistry } from "./registry";
 import { getTransactionParams } from "./api";
 import type { Account } from "../../types";
 
