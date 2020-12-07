@@ -38,7 +38,7 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
       transaction = isFirstBond(a)
         ? bond(
             {
-              controller: t.recipient,
+              controller: !!t.recipient ? t.recipient : a.freshAddress,
               value: t.amount.toString(),
               // The rewards destination. Can be "Stash", "Staked", "Controller" or "{ Account: accountId }"".
               payee: t.rewardDestination || "Stash",
