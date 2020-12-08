@@ -1,7 +1,7 @@
 // @flow
 import { BigNumber } from "bignumber.js";
 import { Observable } from "rxjs";
-import { createSignedTx } from "./transactions";
+import { createUnsignedTx, createSignedTx } from "./transactions";
 import type { Transaction } from "./types";
 import type { Account, Operation, SignOperationEvent } from "../../types";
 
@@ -122,24 +122,18 @@ const signOperation = ({
           txInfo
         );
 
-        const payload = txInfo.txOptions.registry.createType(
-          "ExtrinsicPayload",
-          unsignedTransaction,
-          {
-            version: unsignedTransaction.version,
-          }
-        );
+        const payload = createUnsignedTx(unsignedTransaction, txInfo.registry);
 
         const polkadot = new Polkadot(transport);
         const r = await polkadot.sign(
           account.freshAddressPath,
-          payload.toU8a({ method: true })
+          payload
         );
 
         const signature = createSignedTx(
           unsignedTransaction,
           r.signature,
-          txInfo.txOptions
+          txInfo.registry
         );
 
         o.next({ type: "device-signature-granted" });
@@ -154,7 +148,7 @@ const signOperation = ({
           account,
           tmpTransaction,
           fee,
-          txInfo.txBaseInfo.nonce
+          txInfo.nonce
         );
 
         o.next({

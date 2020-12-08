@@ -17,7 +17,6 @@ import {
 import { isFirstBond } from "./logic";
 
 const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
-  const { txBaseInfo, txOptions } = txInfo;
   const validator = t.validators ? t.validators[0] : null;
 
   let transaction;
@@ -28,8 +27,7 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
           dest: t.recipient,
           value: t.amount.toString(),
         },
-        txBaseInfo,
-        txOptions
+        txInfo,
       );
       break;
 
@@ -43,57 +41,50 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
               // The rewards destination. Can be "Stash", "Staked", "Controller" or "{ Account: accountId }"".
               payee: t.rewardDestination || "Stash",
             },
-            txBaseInfo,
-            txOptions
+            txInfo,
           )
         : bondExtra(
             { maxAdditional: t.amount.toString() },
-            txBaseInfo,
-            txOptions
+            txInfo,
           );
       break;
 
     case "unbond":
       transaction = unbond(
         { value: t.amount.toString() },
-        txBaseInfo,
-        txOptions
+        txInfo
       );
       break;
 
     case "rebond":
       transaction = rebond(
         { value: t.amount.toNumber() },
-        txBaseInfo,
-        txOptions
+        txInfo
       );
       break;
 
     case "withdrawUnbonded":
       transaction = withdrawUnbonded(
         { numSlashingSpans: 0},
-        txBaseInfo,
-        txOptions
+        txInfo
       );
       break;
 
     case "nominate":
       transaction = nominate(
         { targets: t.validators },
-        txBaseInfo,
-        txOptions
+        txInfo
       );
       break;
 
     case "chill":
-      transaction = chill({}, txBaseInfo, txOptions);
+      transaction = chill({}, txInfo);
       break;
 
     case "claimReward":
       transaction = payoutStakers(
         { validatorStash: validator, era: t.era },
-        txBaseInfo,
-        txOptions
+        txInfo
       );
       break;
 

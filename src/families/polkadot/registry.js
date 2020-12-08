@@ -36,7 +36,6 @@ export const createMetadata = memoizee(createMetadataUnmemoized, { length: 2 });
  * @param metadataRpc - Used to run `registry.setMetadata()`
  */
 export const getRegistry = (specName: string, specVersion: string, metadataRpc: any) => {
-    console.log("XXXXX - getRegistry");
     const registry = new TypeRegistry();
     // Register types specific to chain/runtimeVersion
     registry.register(getSpecTypes(registry, POLKADOT_CHAIN_NAME, specName, specVersion));

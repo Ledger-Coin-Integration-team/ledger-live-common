@@ -19,16 +19,26 @@ function createDecoratedTxs(registry: TypeRegistry, metadataRpc: string): Module
 }
 
 /**
+ * Serialize an unsigned transaction in a format that can be signed.
+ *
+ * @param unsigned - The JSON representing the unsigned transaction.
+ * @param registry - Registry used for constructing the payload.
+ */
+export const createUnsignedTx = (unsigned: any, registry: any) => {
+    const payload = registry.createType("ExtrinsicPayload", unsigned, { version: unsigned.version });
+    return payload.toU8a({ method: true });
+}
+
+/**
  * Serialize a signed transaction in a format that can be submitted over the
  * Node RPC Interface from the signing payload and signature produced by the
  * remote signer.
  *
  * @param unsigned - The JSON representing the unsigned transaction.
  * @param signature - Signature of the signing payload produced by the remote signer.
- * @param options - Registry and metadata used for constructing the method.
+ * @param registry - Registry and metadata used for constructing the payload.
  */
-export const createSignedTx = (unsigned: any, signature: any, options: any) => {
-    const { registry } = options;
+export const createSignedTx = (unsigned: any, signature: any, registry: any) => {
     const extrinsic = registry.createType('Extrinsic', { method: unsigned.method }, { version: unsigned.version });
     extrinsic.addSignature(unsigned.address, signature, unsigned);
     return extrinsic.toHex();
@@ -37,18 +47,18 @@ export const createSignedTx = (unsigned: any, signature: any, options: any) => {
 /**
  * Helper function to construct an offline method.
  *
- * @param info - Information required to construct the transaction.
- * @param options - Registry and metadata used for constructing the method.
+ * @param params - Parameters required to construct the transaction.
+ * @param info - Registry and metadata used for constructing the method.
  */
-function createMethod(info: any, options: any) {
-    const { metadataRpc, registry } = options;
+function createMethod(params: any, info: any) {
+    const { metadataRpc, registry } = info;
     const metadata = createDecoratedTxs(registry, metadataRpc);
-    const methodFunction = metadata[info.method.pallet][info.method.name];
+    const methodFunction = metadata[params.pallet][params.name];
     const method = methodFunction(...methodFunction.meta.args.map((arg) => {
-        if (info.method.args[stringCamelCase(arg.name.toString())] === undefined) {
-            throw new Error(`Method ${info.method.pallet}::${info.method.name} expects argument ${arg.toString()}, but got undefined`);
+        if (params.args[stringCamelCase(arg.name.toString())] === undefined) {
+            throw new Error(`Method ${params.pallet}::${params.name} expects argument ${arg.toString()}, but got undefined`);
         }
-        return info.method.args[stringCamelCase(arg.name.toString())];
+        return params.args[stringCamelCase(arg.name.toString())];
     })).toHex();
 
     const eraPeriod = DEFAULTS.eraPeriod
@@ -79,89 +89,89 @@ function createMethod(info: any, options: any) {
 }
 
 // Construct a balance transfer transaction offline.
-export const transferKeepAlive = (args: any, info: any, options: any) => {
-    return createMethod(Object.assign({ method: {
+export const transferKeepAlive = (args: any, info: any) => {
+    return createMethod({
         args,
         name: 'transferKeepAlive',
         pallet: 'balances',
-    } }, info), options);
+    }, info);
 }
 
 // Construct a transaction to bond funds and create a Stash account.
-export const bond = (args: any, info: any, options: any) => {
-    return createMethod(Object.assign({ method: {
+export const bond = (args: any, info: any) => {
+    return createMethod({
         args,
         name: 'bond',
         pallet: 'staking',
-    } }, info), options);
+    }, info);
 }
 
 // Add some extra amount from the stash `free_balance` into the staking balance.
 // Can only be called when `EraElectionStatus` is `Closed`.
-export const bondExtra = (args: any, info: any, options: any) => {
-    return createMethod(Object.assign({ method: {
+export const bondExtra = (args: any, info: any) => {
+    return createMethod({
         args,
         name: 'bondExtra',
         pallet: 'staking',
-    } }, info), options);
+    }, info);
 }
 
 // Construct a transaction to unbond funds from a Stash account.
 // Must be signed by the controller, and can be only called when `EraElectionStatus` is `Closed`.
-export const unbond = (args: any, info: any, options: any) => {
-    return createMethod(Object.assign({ method: {
+export const unbond = (args: any, info: any) => {
+    return createMethod({
         args,
         name: 'unbond',
         pallet: 'staking',
-    } }, info), options);
+    }, info);
 }
 
 // Rebond a portion of the stash scheduled to be unlocked.
 // Must be signed by the controller, and can be only called when `EraElectionStatus` is `Closed`.
-export const rebond = (args: any, info: any, options: any) => {
-    return createMethod(Object.assign({ method: {
+export const rebond = (args: any, info: any) => {
+    return createMethod({
         args,
         name: 'rebond',
         pallet: 'staking',
-    } }, info), options);
+    }, info);
 }
 
 // Remove any unlocked chunks from the `unlocking` queue from our management
-export const withdrawUnbonded = (args: any, info: any, options: any) => {
-    return createMethod(Object.assign({ method: {
-        args,
-        name: 'withdrawUnbonded',
+export const withdrawUnbonded = (args: any, info: any) => {
+    return createMethod({
         pallet: 'staking',
-    } }, info), options);
+        name: 'withdrawUnbonded',
+        args,
+    }, info);
 }
 
 // Construct a transaction to nominate. This must be called by the _Controller_ account.
 // Can only be called when `EraElectionStatus` is `Closed`.
-export const nominate = (args: any, info: any, options: any) => {
-    return createMethod(Object.assign({ method: {
+export const nominate = (args: any, info: any) => {
+    return createMethod({
         args,
         name: 'nominate',
         pallet: 'staking',
-    } }, info), options);
+    }, info);
 }
 
 // Declare the desire to cease validating or nominating. Does not unbond funds.
 // Can only be called when `EraElectionStatus` is `Closed`.
-export const chill = (args: any, info: any, options: any) => {
-    return createMethod(Object.assign({ method: {
+export const chill = (args: any, info: any) => {
+    return createMethod({
         args,
         name: 'chill',
         pallet: 'staking',
-    } }, info), options);
+    }, info);
 }
 
 // Pay out all the stakers behind a single validator for a single era.
 // Any account can call this function, even if it is not one of the stakers.
 // Can only be called when `EraElectionStatus` is `Closed`.
-export const payoutStakers = (args: any, info: any, options: any) =>  {
-    return createMethod(Object.assign({ method: {
+export const payoutStakers = (args: any, info: any) =>  {
+    return createMethod({
         args,
         name: 'payoutStakers',
         pallet: 'staking',
-    } }, info), options);
+    }, info);
 }

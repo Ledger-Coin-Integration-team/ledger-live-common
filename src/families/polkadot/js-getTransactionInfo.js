@@ -1,9 +1,13 @@
 // @flow
-import { getRegistry } from "./registry";
-import { getTransactionParams } from "./api";
 import type { Account } from "../../types";
+import { getTransactionParams } from "./api";
+import { getRegistry } from "./registry";
 
-const ERA_PERIOD = 64; // number of blocks from checkpoint that transaction is valid
+// Default values for tx info, if the user doesn't specify any
+const DEFAULTS = {
+  tip: 0,
+  eraPeriod: 64, // number of blocks from checkpoint that transaction is valid
+};
 
 const getNonce = (a: Account): number => {
   const lastPendingOp = a.pendingOperations[0];
@@ -23,7 +27,6 @@ const getTxInfo = async (a: Account) => {
     blockHash,
     blockNumber,
     genesisHash,
-    chainName,
     specName,
     specVersion,
     transactionVersion,
@@ -32,25 +35,20 @@ const getTxInfo = async (a: Account) => {
 
   const registry = getRegistry(specName, specVersion, metadataRpc);
 
-  const txBaseInfo = {
+  return {
     address: a.freshAddress,
+    nonce: getNonce(a),
+    tip: DEFAULTS.tip,
+    eraPeriod: DEFAULTS.eraPeriod,
     blockHash,
     blockNumber,
     genesisHash,
-    metadataRpc,
-    nonce: getNonce(a),
+    specName,
     specVersion,
-    tip: 0,
-    eraPeriod: ERA_PERIOD,
     transactionVersion,
-  };
-
-  const txOptions = {
     metadataRpc,
     registry,
   };
-
-  return { txBaseInfo, txOptions };
 };
 
 export default getTxInfo;

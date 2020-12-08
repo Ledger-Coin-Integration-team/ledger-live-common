@@ -41,14 +41,13 @@ export const getEstimatedFeesFromUnsignedTx = async (
   unsignedTx: string,
   txInfo: any
 ): Promise<BigNumber> => {
-  const { txOptions } = txInfo;
 
   const signature = u8aConcat(
     new Uint8Array([1]),
     new Uint8Array(64).fill(0x42)
   );
 
-  const fakeSignedTx = createSignedTx(unsignedTx, signature, txOptions);
+  const fakeSignedTx = createSignedTx(unsignedTx, signature, txInfo.registry);
 
   const payment = await paymentInfo(fakeSignedTx);
 
@@ -64,7 +63,7 @@ export const getEstimatedFeesFromUnsignedTx = async (
  * @param {Transaction} t
  * @param {*} txInfo
  */
-export const getEstimatedFees = async (
+const getEstimatedFees = async (
   a: Account,
   t: Transaction,
   txInfo: any
