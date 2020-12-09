@@ -4,7 +4,7 @@ import type { Transaction } from "./types";
 import type { Account } from "../../types";
 
 import { methods } from "@substrate/txwrapper";
-import { isStash } from "./logic";
+import { isFirstBond } from "./logic";
 
 const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
   const { txBaseInfo, txOptions } = txInfo;
@@ -25,15 +25,8 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
 
     // still not sure about this rule should get more info about that
     case "bond":
-      transaction = isStash(a)
-        ? methods.staking.bondExtra(
-            {
-              maxAdditional: t.amount.toString(),
-            },
-            txBaseInfo,
-            txOptions
-          )
-        : methods.staking.bond(
+      transaction = isFirstBond(a)
+        ? methods.staking.bond(
             {
               controller: t.recipient,
               value: t.amount.toString(),
@@ -41,6 +34,13 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
                * The rewards destination. Can be "Stash", "Staked", "Controller" or "{ Account: accountId }"".
                */
               payee: t.rewardDestination || "Stash",
+            },
+            txBaseInfo,
+            txOptions
+          )
+        : methods.staking.bondExtra(
+            {
+              maxAdditional: t.amount.toString(),
             },
             txBaseInfo,
             txOptions
