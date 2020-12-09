@@ -38,7 +38,7 @@ export type PolkadotUnlocking = {|
 
 export type PolkadotUnlockingRaw = {|
   amount: string,
-  completionDate: Date,
+  completionDate: string,
 |};
 
 export type PolkadotResources = {|

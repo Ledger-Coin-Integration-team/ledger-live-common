@@ -394,7 +394,7 @@ export const fetchRewardPoints = async () =>
  */
 function dataAsString(data: typeof Data): string {
   return data.isRaw
-    ? u8aToString(data.asRaw.toU8a(true))
+    ? u8aToString(data.asRaw.toU8a(true)).trim()
     : data.isNone
     ? ""
     : data.toHex();
