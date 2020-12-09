@@ -33,7 +33,7 @@ import {
 import type { Transaction } from "./types";
 import {
   isValidAddress,
-  isStash,
+  isFirstBond,
   isController,
   EXISTENTIAL_DEPOSIT,
   MINIMUM_BOND_AMOUNT,
@@ -129,7 +129,7 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
 
   switch (t.mode) {
     case "bond":
-      if (!isStash(a)) {
+      if (isFirstBond(a)) {
         // Not a stash yet -> bond method sets the controller
         if (!t.recipient) {
           errors.recipient = new RecipientRequired("");
