@@ -364,6 +364,7 @@ export const getValidators = async (
       ? [v.identity.displayParent, v.identity.display]
           .filter(Boolean)
           .join(" - ")
+          .trim()
       : "",
     nominatorsCount: Number(v.nominatorsCount),
     rewardPoints: v.rewardPoints ? BigNumber(v.rewardPoints) : null,

@@ -16,7 +16,7 @@ export function toPolkadotResourcesRaw(
     unlockingBalance: r.unlockingBalance.toString(),
     unlockings: r.unlockings?.map((u) => ({
       amount: u.amount.toString(),
-      completionDate: u.completionDate,
+      completionDate: u.completionDate.toISOString(),
     })),
     nominations: r.nominations?.map((n) => ({
       address: n.address,
@@ -39,7 +39,7 @@ export function fromPolkadotResourcesRaw(
     unlockingBalance: BigNumber(r.unlockingBalance),
     unlockings: r.unlockings?.map((u) => ({
       amount: BigNumber(u.amount),
-      completionDate: u.completionDate,
+      completionDate: new Date(u.completionDate),
     })),
     nominations: r.nominations?.map((n) => ({
       address: n.address,
