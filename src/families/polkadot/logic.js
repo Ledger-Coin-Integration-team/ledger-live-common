@@ -63,3 +63,6 @@ export const canUnbond = (a: Account): boolean => {
 
 // returns true if an account can nominate
 export const canNominate = (a: Account): boolean => isController(a);
+
+// returns true if account must do a first bond - false for a bond extra
+export const isFirstBond = (a: Account): boolean => !isStash(a);
