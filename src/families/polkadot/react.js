@@ -15,6 +15,8 @@ import type {
   PolkadotSearchFilter,
 } from "./types";
 
+const SYNC_REFRESH_RATE = 6000; // 6s - block time
+
 export function usePolkadotPreloadData() {
   const [state, setState] = useState(getCurrentPolkadotPreloadData);
   useEffect(() => {
@@ -63,14 +65,18 @@ export function useSortedValidators(
   return sr;
 }
 
+/**
+ * Sync account until "controller" is set - following a first bond.
+ *
+ * @param {*} account
+ */
 export function usePolkadotBondLoading(account: Account) {
-  const controller = account.polkadotResources?.controller || 0;
-  const initialController = useRef(controller);
+  const controller = account.polkadotResources?.controller || null;
   const initialAccount = useRef(account);
-  const [isLoading, setLoading] = useState(true);
+  const [isLoading, setLoading] = useState(!controller);
 
   useEffect(() => {
-    if (initialController.current !== controller) {
+    if (controller) {
       setLoading(false);
     }
   }, [controller]);
@@ -85,7 +91,7 @@ export function usePolkadotBondLoading(account: Account) {
         priority: 10,
         accountId: initialAccount.current.id,
       });
-    }, 5000);
+    }, SYNC_REFRESH_RATE);
     return () => clearInterval(interval);
   }, [initialAccount, sync, isLoading]);
 
