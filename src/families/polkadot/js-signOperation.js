@@ -8,6 +8,7 @@ import type { Account, Operation, SignOperationEvent } from "../../types";
 import { FeeNotLoaded } from "@ledgerhq/errors";
 
 import { open, close } from "../../hw";
+import { encodeOperationId } from "../../operation";
 import { Polkadot } from "./ledger-app/Polkadot";
 
 import getTxInfo from "./js-getTransactionInfo";
@@ -70,7 +71,7 @@ const buildOptimisticOperation = (
   const extra = getExtra(type, account, transaction);
 
   const operation: $Exact<Operation> = {
-    id: `${account.id}--${type}`,
+    id: encodeOperationId(account.id, "", type),
     hash: "",
     type,
     value,

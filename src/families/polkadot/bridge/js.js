@@ -4,6 +4,7 @@ import { BigNumber } from "bignumber.js";
 // import invariant from "invariant";
 import type { Account, Operation, SignedOperation } from "../../../types";
 import type { Transaction } from "../types";
+import { getAbandonSeedAddress } from "@ledgerhq/cryptoassets";
 
 import type { AccountBridge, CurrencyBridge } from "../../../types";
 // import { isInvalidRecipient } from "../../../bridge/mockHelpers";
@@ -59,7 +60,9 @@ const prepareTransaction = async (a, t) => {
     a,
     t: {
       ...t,
-      recipient: "1Z4QdzRrpVbggYoGK5pfbeMyzpVVDK7WxheVjWFxfv6sxjV", //Empty account to calculate fees
+      recipient:
+        "111111111111111111111111111111111HC1" ||
+        getAbandonSeedAddress(a.currency.id),
       amount: estimateAmount({ a, t }),
     },
   });
