@@ -1,5 +1,7 @@
 // @flow
 
+import { log } from "@ledgerhq/logs";
+
 // camelCase is for BisonTrails
 // snake_case for Subscan
 
@@ -30,7 +32,7 @@ export const getOperationType = (pallet: string, palletMethod: string) => {
       return "FEES";
 
     default:
-      console.warn(`Unhandled operation type ${pallet}.${palletMethod}`);
+      log("polkadot/api", `Unhandled operation type ${pallet}.${palletMethod}`);
       return "FEES";
   }
 };

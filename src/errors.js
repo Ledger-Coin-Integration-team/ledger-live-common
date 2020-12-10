@@ -196,3 +196,7 @@ export const PolkadotNoNominations = createCustomErrorClass(
 export const PolkadotBondAllFundsWarning = createCustomErrorClass(
   "PolkadotBondAllFundsWarning"
 );
+
+export const PolkadotBondMinimumAmount = createCustomErrorClass(
+  "PolkadotBondMinimumAmount"
+);
