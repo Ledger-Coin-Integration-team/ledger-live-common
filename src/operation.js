@@ -78,6 +78,7 @@ export function getOperationAmountNumber(op: Operation): BigNumber {
   switch (op.type) {
     case "IN":
     case "REWARD":
+    case "REWARD_PAYOUT":
     case "SUPPLY":
       return op.value;
     case "OUT":
