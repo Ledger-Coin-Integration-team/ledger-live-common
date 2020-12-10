@@ -2,6 +2,7 @@
 
 import { BigNumber } from "bignumber.js";
 import invariant from "invariant";
+import { getAbandonSeedAddress } from "@ledgerhq/cryptoassets";
 
 import type { AccountLike, Account } from "../../types";
 import type { Transaction } from "./types";
@@ -25,7 +26,8 @@ const estimateMaxSpendable = async ({
     ...transaction,
     recipient:
       transaction?.recipient ||
-      "1Z4QdzRrpVbggYoGK5pfbeMyzpVVDK7WxheVjWFxfv6sxjV", // need abandon seed and being empty
+      "111111111111111111111111111111111HC1" ||
+      getAbandonSeedAddress(mainAccount.currency.id),
     useAllAmount: true,
   };
 

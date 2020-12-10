@@ -10,7 +10,7 @@ const getNonce = (a: Account): number => {
 
   const nonce = Math.max(
     a.polkadotResources?.nonce || 0,
-    lastPendingOp && typeof lastPendingOp.transactionSequenceNumber === 'number'
+    lastPendingOp && typeof lastPendingOp.transactionSequenceNumber === "number"
       ? lastPendingOp.transactionSequenceNumber + 1
       : 0
   );
