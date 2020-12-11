@@ -54,7 +54,7 @@ const getExtra = (type, extrinsic) => {
       break;
 
     case "SLASH":
-    case "REWARD":
+    case "REWARD_PAYOUT":
       extra = {
         ...extra,
         validatorStash: encodePolkadotAddr(
@@ -87,7 +87,7 @@ const subscanAmountToPlanck = (amount, blockHeight) => {
 };
 
 const mapSubscanReward = ({ accountId }, reward): $Shape<Operation> => {
-  const type = reward.event_id === "Reward" ? "REWARD" : "SLASH";
+  const type = reward.event_id === "Reward" ? "REWARD_PAYOUT" : "SLASH";
   const hash = reward.extrinsic_hash || reward.event_index; // Slashes are not extrinsics
 
   return {
