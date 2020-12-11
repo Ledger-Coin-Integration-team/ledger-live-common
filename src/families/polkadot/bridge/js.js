@@ -13,6 +13,7 @@ import {
   makeScanAccounts,
   makeAccountBridgeReceive,
 } from "../../../bridge/jsHelpers";
+import { PRELOAD_MAX_AGE } from "../logic";
 import { submitExtrinsic } from "../../../api/polkadot";
 import { getAccountShape } from "../synchronisation";
 
@@ -84,7 +85,12 @@ const broadcast = async ({
   return patchOperationWithHash(operation, hash);
 };
 
+const getPreloadStrategy = (_currency) => ({
+  preloadMaxAge: PRELOAD_MAX_AGE,
+});
+
 const currencyBridge: CurrencyBridge = {
+  getPreloadStrategy,
   preload,
   hydrate,
   scanAccounts,
