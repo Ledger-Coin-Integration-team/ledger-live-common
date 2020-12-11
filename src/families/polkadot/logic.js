@@ -67,3 +67,7 @@ export const canNominate = (a: Account): boolean => isController(a);
 
 // returns true if account must do a first bond - false for a bond extra
 export const isFirstBond = (a: Account): boolean => !isStash(a);
+
+// return true if some BOND operation is pending and not yet synchronized
+export const hasPendingBond = (a: Account): boolean =>
+  a.pendingOperations?.some((op) => op.type === "BOND") ?? false;
