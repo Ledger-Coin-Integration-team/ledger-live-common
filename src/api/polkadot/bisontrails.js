@@ -53,7 +53,7 @@ const getExtra = (type, extrinsic) => {
       }
       break;
 
-    case "REWARD":
+    case "REWARD_PAYOUT":
     case "SLASH":
       extra = {
         ...extra,
@@ -130,7 +130,7 @@ const extrinsicToOperation = (addr, accountId, extrinsic) => {
 
 const rewardToOperation = (addr, accountId, reward) => {
   const hash = reward.extrinsicHash;
-  const type = "REWARD";
+  const type = "REWARD_PAYOUT";
 
   return {
     id: encodeOperationId(accountId, `${hash}+${reward.index}`, type),
