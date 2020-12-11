@@ -91,7 +91,7 @@ const fetchValidators = async (
   }
 
   if (addresses && addresses.length) {
-    params = { ...params, addresses: addresses.join("-") };
+    params = { ...params, addresses: addresses.join(",") };
   }
 
   const { data } = await network({
