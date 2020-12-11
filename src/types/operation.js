@@ -20,6 +20,7 @@ export type OperationType =
   | "VOTE"
 
   // POLKADOT
+  | "REWARD_PAYOUT"
   | "BOND"
   | "UNBOND"
   | "WITHDRAW_UNBONDED"

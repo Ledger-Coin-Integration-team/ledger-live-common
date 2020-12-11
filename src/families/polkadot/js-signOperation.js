@@ -24,7 +24,7 @@ const MODE_TO_TYPE = {
   withdrawUnbonded: "WITHDRAW_UNBONDED",
   nominate: "NOMINATE",
   chill: "CHILL",
-  claimReward: "REWARD",
+  claimReward: "REWARD_PAYOUT",
   default: "FEES",
 };
 
