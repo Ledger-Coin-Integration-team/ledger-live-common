@@ -4,7 +4,6 @@ import { TypeRegistry } from '@polkadot/types';
 import { getSpecTypes } from '@polkadot/types-known';
 import { Metadata } from '@polkadot/metadata';
 import { extrinsicsFromMeta } from '@polkadot/metadata/decorate';
-import memoizee from 'memoizee';
 
 const POLKADOT_CHAIN_NAME = "Polkadot";
 
@@ -20,11 +19,9 @@ const defaultPolkadotProperties = {
     tokenSymbol: 'DOT',
 };
 
-function createMetadataUnmemoized(registry: TypeRegistry, metadataRpc: string): Metadata {
+function createMetadata(registry: TypeRegistry, metadataRpc: string): Metadata {
     return new Metadata(registry, metadataRpc);
 }
-
-export const createMetadata = memoizee(createMetadataUnmemoized, { length: 2 });
 
 // TODO Call this only once per session
 export const createDecoratedTxs = (registry: TypeRegistry, metadataRpc: string) => {
