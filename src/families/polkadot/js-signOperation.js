@@ -1,7 +1,7 @@
 // @flow
 import { BigNumber } from "bignumber.js";
 import { Observable } from "rxjs";
-import { createUnsignedTx, createSignedTx } from "./transactions";
+import { createSerializedUnsignedTx, createSerializedSignedTx } from "./transactions";
 import type { Transaction } from "./types";
 import type { Account, Operation, SignOperationEvent } from "../../types";
 
@@ -116,22 +116,22 @@ const signOperation = ({
           throw new FeeNotLoaded();
         }
 
-        const unsignedTransaction = await buildTransaction(
+        const rawPayload = await buildTransaction(
           account,
           tmpTransaction,
           txInfo
         );
 
-        const payload = createUnsignedTx(unsignedTransaction, txInfo.registry);
+        const serializedUnsignedPayload = createSerializedUnsignedTx(rawPayload, txInfo.registry);
 
         const polkadot = new Polkadot(transport);
         const r = await polkadot.sign(
           account.freshAddressPath,
-          payload
+          serializedUnsignedPayload
         );
 
-        const signature = createSignedTx(
-          unsignedTransaction,
+        const serializedSignedPayload = createSerializedSignedTx(
+          rawPayload,
           r.signature,
           txInfo.registry
         );
@@ -140,7 +140,7 @@ const signOperation = ({
 
         const fee = await getEstimatedFeesFromUnsignedTx(
           account,
-          unsignedTransaction,
+          rawPayload,
           txInfo
         );
 
@@ -155,7 +155,7 @@ const signOperation = ({
           type: "signed",
           signedOperation: {
             operation,
-            signature,
+            signature: serializedSignedPayload,
             expirationDate: null,
           },
         });

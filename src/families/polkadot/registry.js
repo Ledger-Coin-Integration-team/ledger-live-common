@@ -3,6 +3,7 @@
 import { TypeRegistry } from '@polkadot/types';
 import { getSpecTypes } from '@polkadot/types-known';
 import { Metadata } from '@polkadot/metadata';
+import { extrinsicsFromMeta } from '@polkadot/metadata/decorate';
 import memoizee from 'memoizee';
 
 const POLKADOT_CHAIN_NAME = "Polkadot";
@@ -24,6 +25,11 @@ function createMetadataUnmemoized(registry: TypeRegistry, metadataRpc: string): 
 }
 
 export const createMetadata = memoizee(createMetadataUnmemoized, { length: 2 });
+
+// TODO Call this only once per session
+export const createDecoratedTxs = (registry: TypeRegistry, metadataRpc: string) => {
+    return extrinsicsFromMeta(registry, createMetadata(registry, metadataRpc));
+}
 
 /**
  * Given a a spec name, and a spec version, return the corresponding type registry for Polkadot.

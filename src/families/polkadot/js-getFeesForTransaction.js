@@ -1,7 +1,6 @@
 // @flow
 import { BigNumber } from "bignumber.js";
 import { u8aConcat } from "@polkadot/util";
-import { createSignedTx } from "./transactions";
 
 import type { Account } from "../../types";
 import type { Transaction } from "./types";
@@ -10,6 +9,7 @@ import getTxInfo from "./js-getTransactionInfo";
 import { makeLRUCache } from "../../cache";
 import { paymentInfo } from "./api";
 import buildTransaction from "./js-buildTransaction";
+import { createSerializedSignedTx } from "./transactions";
 
 export const calculateFees: CacheRes<
   Array<{ a: Account, t: Transaction }>,
@@ -47,7 +47,7 @@ export const getEstimatedFeesFromUnsignedTx = async (
     new Uint8Array(64).fill(0x42)
   );
 
-  const fakeSignedTx = createSignedTx(unsignedTx, signature, txInfo.registry);
+  const fakeSignedTx = createSerializedSignedTx(unsignedTx, signature, txInfo.registry);
 
   const payment = await paymentInfo(fakeSignedTx);
 
