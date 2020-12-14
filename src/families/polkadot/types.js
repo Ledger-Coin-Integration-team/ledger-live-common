@@ -17,7 +17,7 @@ export type CoreOperationSpecifics = {};
 export type CoreCurrencySpecifics = {};
 
 
-export type PolkadotNominationStatus = "active" | "inactive" | "waiting";
+export type PolkadotNominationStatus = "active" | "inactive" | "waiting" | null;
 
 export type PolkadotNomination = {|
   address: string,
