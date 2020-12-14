@@ -283,9 +283,14 @@ export const getNominations = async (addr: string) =>
 
     const targets = nominationsOpt.unwrap().targets;
 
-    const exposures = await api.query.staking.erasStakers.multi(
-      targets.map((target) => [activeEra, target])
-    );
+    const [exposures, stashes] = await Promise.all([
+      api.query.staking.erasStakers.multi(
+        targets.map((target) => [activeEra, target])
+      ),
+      api.derive.staking.stashes(),
+    ]);
+
+    const allStashes = stashes.map((stash) => stash.toString());
 
     return targets.map((target, index) => {
       const exposure = exposures[index];
@@ -301,7 +306,9 @@ export const getNominations = async (addr: string) =>
         ? individualExposure
           ? "active"
           : "inactive"
-        : "waiting";
+        : allStashes.includes(target.toString())
+        ? "waiting"
+        : null;
 
       return {
         address: target.toString(),
