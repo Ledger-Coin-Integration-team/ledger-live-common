@@ -1603,14 +1603,6 @@
   dependencies:
     "@sinonjs/commons" "^1.7.0"
 
-"@substrate/txwrapper@3.10.3":
-  version "3.10.3"
-  resolved "https://registry.yarnpkg.com/@substrate/txwrapper/-/txwrapper-3.10.3.tgz#4cd900e4496d48fd156cc477143e1e576a73ff7e"
-  integrity sha512-HwqXJyba6BR9QD2IbLnw7flG1rujf9j1kQ/bUbiBCqimVDdPE2ZLLz97YJBwhp7NZOtLTVXJREFFgOxvMmL5hw==
-  dependencies:
-    "@polkadot/api" "2.7.1"
-    "@types/memoizee" "^0.4.3"
-
 "@testing-library/react-hooks@^3.7.0":
   version "3.7.0"
   resolved "https://registry.yarnpkg.com/@testing-library/react-hooks/-/react-hooks-3.7.0.tgz#6d75c5255ef49bce39b6465bf6b49e2dac84919e"
