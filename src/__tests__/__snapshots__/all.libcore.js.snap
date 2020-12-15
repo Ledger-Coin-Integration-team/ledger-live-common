@@ -62072,7 +62072,7 @@ Array [
 exports[`polkadot currency bridge scanAccounts polkadot seed 1 1`] = `
 Array [
   Object {
-    "balance": "48684346325",
+    "balance": "33374346325",
     "currencyId": "polkadot",
     "derivationMode": "polkadotbip44",
     "freshAddress": "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
@@ -62086,7 +62086,7 @@ Array [
     "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
     "index": 0,
     "name": "Polkadot 1",
-    "operationsCount": 111,
+    "operationsCount": 113,
     "pendingOperations": Array [],
     "polkadotResources": Object {
       "controller": "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
@@ -62123,13 +62123,13 @@ Array [
           "value": "0",
         },
       ],
-      "nonce": 77,
+      "nonce": 79,
       "stash": "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
       "unlockedBalance": "0",
       "unlockingBalance": "650000000",
     },
     "seedIdentifier": "7001f89e1fccbbd92e6c5fc9b6ae4f442d791450eb8d03c1e42392dda5f1d408",
-    "spendableBalance": "36784346325",
+    "spendableBalance": "21474346325",
     "starred": false,
     "swapHistory": Array [],
     "unitMagnitude": 10,
@@ -63280,6 +63280,27 @@ Array [
     },
     Object {
       "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
+      "blockHeight": 2909403,
+      "extra": Object {
+        "palletMethod": "balances.transferKeepAlive",
+        "transferAmount": "15000000000",
+      },
+      "fee": "155000000",
+      "hasFailed": false,
+      "hash": "0x62a22f8a9a07f55c5fce9b4c3f375b79b400a228fb5597a0e22b56209d3329b3",
+      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0x62a22f8a9a07f55c5fce9b4c3f375b79b400a228fb5597a0e22b56209d3329b3-OUT",
+      "recipients": Array [
+        "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
+      ],
+      "senders": Array [
+        "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
+      ],
+      "transactionSequenceNumber": 77,
+      "type": "OUT",
+      "value": "155000000",
+    },
+    Object {
+      "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
       "blockHeight": 1645645,
       "extra": Object {
         "palletMethod": "balances.transferKeepAlive",
@@ -64299,6 +64320,27 @@ Array [
       "transactionSequenceNumber": 62,
       "type": "UNBOND",
       "value": "120000000",
+    },
+    Object {
+      "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
+      "blockHeight": 2909700,
+      "extra": Object {
+        "palletMethod": "balances.transferKeepAlive",
+        "transferAmount": "15000000000",
+      },
+      "fee": "155000000",
+      "hasFailed": false,
+      "hash": "0xd197a9b4f751d343c98c045578c175d895cf40a0889fba9d61930b2e63fd0415",
+      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0xd197a9b4f751d343c98c045578c175d895cf40a0889fba9d61930b2e63fd0415-OUT",
+      "recipients": Array [
+        "13ct8FVepVxkFURLFTT38hEa5qqpTcCs18VfGqSMEwpPZnNB",
+      ],
+      "senders": Array [
+        "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
+      ],
+      "transactionSequenceNumber": 78,
+      "type": "OUT",
+      "value": "15155000000",
     },
     Object {
       "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
