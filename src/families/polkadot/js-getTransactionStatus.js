@@ -20,6 +20,7 @@ import {
   PolkadotNoNominations,
   PolkadotBondAllFundsWarning,
   PolkadotBondMinimumAmount,
+  PolkadotMaxUnbonding,
 } from "../../errors";
 
 import { formatCurrencyUnit } from "../../currencies";
@@ -36,6 +37,7 @@ import {
   isValidAddress,
   isFirstBond,
   isController,
+  canUnbond,
   EXISTENTIAL_DEPOSIT,
   MINIMUM_BOND_AMOUNT,
 } from "./logic.js";
@@ -163,6 +165,10 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
     case "unbond":
       if (!isController(a)) {
         errors.staking = new PolkadotUnauthorizedOperation();
+      }
+
+      if (!canUnbond(a)) {
+        errors.unbondings = new PolkadotMaxUnbonding();
       }
 
       if (amount.lte(0)) {

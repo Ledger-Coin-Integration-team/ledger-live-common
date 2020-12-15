@@ -6,6 +6,10 @@ import { deviceActionFlow } from "../../bot/specs";
 const acceptTransaction: DeviceAction<Transaction, *> = deviceActionFlow({
   steps: [
     {
+      title: "Staking",
+      button: "Rr",
+    },
+    {
       title: "Balances",
       button: "Rr",
     },
@@ -32,6 +36,22 @@ const acceptTransaction: DeviceAction<Transaction, *> = deviceActionFlow({
     },
     {
       title: "Tip",
+      button: "Rr",
+    },
+    {
+      title: "Controller",
+      button: "Rr",
+    },
+    {
+      title: "Payee",
+      button: "Rr",
+    },
+    {
+      title: "Max additional",
+      button: "Rr",
+    },
+    {
+      title: "Targets",
       button: "Rr",
     },
     {

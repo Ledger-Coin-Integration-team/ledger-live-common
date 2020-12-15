@@ -61,9 +61,7 @@ const prepareTransaction = async (a, t) => {
     a,
     t: {
       ...t,
-      recipient:
-        "111111111111111111111111111111111HC1" ||
-        getAbandonSeedAddress(a.currency.id),
+      recipient: getAbandonSeedAddress(a.currency.id),
       amount: estimateAmount({ a, t }),
     },
   });

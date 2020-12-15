@@ -14,6 +14,7 @@ import {
   PolkadotUnauthorizedOperation,
   PolkadotNotValidator,
   PolkadotBondMinimumAmount,
+  PolkadotMaxUnbonding,
 } from "../../errors";
 
 import type { DatasetTest } from "../../types";
@@ -228,6 +229,25 @@ const dataset: DatasetTest<Transaction> = {
               },
             },
             {
+              name: "nominate is empty",
+              transaction: fromTransactionRaw({
+                family: "polkadot",
+                recipient: "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
+                amount: "0",
+                mode: "nominate",
+                era: null,
+                validators: [],
+                fees: null,
+                rewardDestination: null,
+              }),
+              expectedStatus: {
+                errors: {
+                  staking: new PolkadotUnauthorizedOperation(),
+                },
+                warnings: {},
+              },
+            },
+            {
               name: "bond extra - success",
               transaction: fromTransactionRaw({
                 family: "polkadot",
@@ -295,6 +315,63 @@ const dataset: DatasetTest<Transaction> = {
                 totalSpent: account.spendableBalance,
               }),
             },
+            {
+              name: "[unbond] no amount",
+              transaction: fromTransactionRaw({
+                family: "polkadot",
+                recipient: "",
+                amount: "0",
+                mode: "unbond",
+                era: null,
+                validators: [],
+                fees: null,
+                rewardDestination: null,
+              }),
+              expectedStatus: {
+                errors: {
+                  amount: new AmountRequired(),
+                },
+                warnings: {},
+              },
+            },
+            {
+              name: "[unbond] not enough locked balance",
+              transaction: fromTransactionRaw({
+                family: "polkadot",
+                recipient: "",
+                amount: "2000000000000000",
+                mode: "unbond",
+                era: null,
+                validators: [],
+                fees: null,
+                rewardDestination: null,
+              }),
+              expectedStatus: {
+                errors: {
+                  amount: new NotEnoughBalance(),
+                },
+                warnings: {},
+              },
+            },
+            {
+              name: "[rebond] no amount",
+              transaction: fromTransactionRaw({
+                family: "polkadot",
+                recipient: "",
+                amount: "0",
+                mode: "rebond",
+                era: null,
+                validators: [],
+                fees: null,
+                rewardDestination: null,
+              }),
+              expectedStatus: {
+                errors: {
+                  amount: new AmountRequired(),
+                },
+                warnings: {},
+              },
+            },
           ],
         },
         {
@@ -328,6 +405,63 @@ const dataset: DatasetTest<Transaction> = {
                 validators: [
                   "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
                 ],
+                fees: null,
+                rewardDestination: null,
+              }),
+              expectedStatus: {
+                errors: {
+                  staking: new PolkadotUnauthorizedOperation(),
+                },
+                warnings: {},
+              },
+            },
+            {
+              name: "[chill] unauthorized",
+              transaction: fromTransactionRaw({
+                family: "polkadot",
+                recipient: "",
+                amount: "1000",
+                mode: "chill",
+                era: null,
+                validators: [],
+                fees: null,
+                rewardDestination: null,
+              }),
+              expectedStatus: {
+                errors: {
+                  staking: new PolkadotUnauthorizedOperation(),
+                },
+                warnings: {},
+              },
+            },
+            {
+              name: "[rebond] unauthorized",
+              transaction: fromTransactionRaw({
+                family: "polkadot",
+                recipient: "",
+                amount: "1000",
+                mode: "rebond",
+                era: null,
+                validators: [],
+                fees: null,
+                rewardDestination: null,
+              }),
+              expectedStatus: {
+                errors: {
+                  staking: new PolkadotUnauthorizedOperation(),
+                },
+                warnings: {},
+              },
+            },
+            {
+              name: "[withdrawUnbonded] unauthorized",
+              transaction: fromTransactionRaw({
+                family: "polkadot",
+                recipient: "",
+                amount: "1000",
+                mode: "withdrawUnbonded",
+                era: null,
+                validators: [],
                 fees: null,
                 rewardDestination: null,
               }),
@@ -452,6 +586,25 @@ const dataset: DatasetTest<Transaction> = {
               }),
               expectedStatus: {
                 errors: {},
+                warnings: {},
+              },
+            },
+            {
+              name: "[unbond] max unbonding",
+              transaction: fromTransactionRaw({
+                family: "polkadot",
+                recipient: "",
+                amount: "100000",
+                mode: "unbond",
+                era: null,
+                validators: [],
+                fees: null,
+                rewardDestination: null,
+              }),
+              expectedStatus: {
+                errors: {
+                  unbondings: new PolkadotMaxUnbonding(),
+                },
                 warnings: {},
               },
             },
