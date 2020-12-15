@@ -25,9 +25,7 @@ const estimateMaxSpendable = async ({
     ...createTransaction(),
     ...transaction,
     recipient:
-      transaction?.recipient ||
-      "111111111111111111111111111111111HC1" ||
-      getAbandonSeedAddress(mainAccount.currency.id),
+      transaction?.recipient || getAbandonSeedAddress(mainAccount.currency.id),
     useAllAmount: true,
   };
 

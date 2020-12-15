@@ -103,7 +103,7 @@ const extrinsicToOperation = (addr, accountId, extrinsic) => {
   }
 
   return {
-    id: `${accountId}-${extrinsic.hash}-${type}`,
+    id: encodeOperationId(accountId, extrinsic.hash, type),
     accountId,
     fee: BigNumber(extrinsic.partialFee || 0),
     value: getValue(extrinsic, type),
