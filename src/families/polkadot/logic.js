@@ -48,18 +48,20 @@ export const canBond = (a: Account): boolean => {
   return EXISTENTIAL_DEPOSIT.lte(balance);
 };
 
+export const haveMaxUnlockings = (a: Account) => {
+  const { unlockings = [] } = a.polkadotResources || {};
+  return (unlockings?.length || 0) < MAX_UNLOCKINGS;
+};
+
+export const haveEnoughLockedBalance = (a: Account) => {
+  const { lockedBalance = BigNumber(0), unlockingBalance = BigNumber(0) } =
+    a.polkadotResources || {};
+  return lockedBalance.minus(unlockingBalance).gt(0);
+};
+
 // Must have locked Balance
 export const canUnbond = (a: Account): boolean => {
-  const {
-    lockedBalance = BigNumber(0),
-    unlockingBalance = BigNumber(0),
-    unlockings = [],
-  } = a.polkadotResources || {};
-
-  return (
-    lockedBalance.minus(unlockingBalance).gt(0) &&
-    (unlockings?.length || 0) < MAX_UNLOCKINGS
-  );
+  return haveEnoughLockedBalance(a) && haveMaxUnlockings(a);
 };
 
 // returns true if an account can nominate

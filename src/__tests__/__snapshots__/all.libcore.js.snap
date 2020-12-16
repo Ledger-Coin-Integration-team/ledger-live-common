@@ -62072,7 +62072,7 @@ Array [
 exports[`polkadot currency bridge scanAccounts polkadot seed 1 1`] = `
 Array [
   Object {
-    "balance": "33374346325",
+    "balance": "33253346325",
     "currencyId": "polkadot",
     "derivationMode": "polkadotbip44",
     "freshAddress": "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
@@ -62086,50 +62086,18 @@ Array [
     "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
     "index": 0,
     "name": "Polkadot 1",
-    "operationsCount": 113,
+    "operationsCount": 114,
     "pendingOperations": Array [],
     "polkadotResources": Object {
       "controller": "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
       "lockedBalance": "11900000000",
-      "nominations": Array [
-        Object {
-          "address": "14Y4s6V1PWrwBLvxW47gcYgZCGTYekmmzvFsK1kiqNH2d84t",
-          "status": "inactive",
-          "value": "0",
-        },
-        Object {
-          "address": "16Dgcx1qJzp8kme1CWsySDf3JWd1oKtbChYVm2yAYqM44woY",
-          "status": "waiting",
-          "value": "0",
-        },
-        Object {
-          "address": "1VrKDfXunzstY5uxPpjArUbZekirGXcpMDYvCBJmjV1KdEm",
-          "status": "waiting",
-          "value": "0",
-        },
-        Object {
-          "address": "12Yz9HPcF66pAGpwEW5cyFZ59TFeXFGVnkuxTphC3Lrap29z",
-          "status": "waiting",
-          "value": "0",
-        },
-        Object {
-          "address": "1zugca4o1sdz8absH67YGJ9n187D8kZoHPrh8Htma66GTYx",
-          "status": null,
-          "value": "0",
-        },
-        Object {
-          "address": "1zugcaJqxKFSNpL3JeQTvFijyrfAcE3egygTjhV5ShGGvoT",
-          "status": null,
-          "value": "0",
-        },
-      ],
-      "nonce": 79,
+      "nonce": 80,
       "stash": "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
-      "unlockedBalance": "0",
-      "unlockingBalance": "650000000",
+      "unlockedBalance": "200000000",
+      "unlockingBalance": "750000000",
     },
     "seedIdentifier": "7001f89e1fccbbd92e6c5fc9b6ae4f442d791450eb8d03c1e42392dda5f1d408",
-    "spendableBalance": "21474346325",
+    "spendableBalance": "21353346325",
     "starred": false,
     "swapHistory": Array [],
     "unitMagnitude": 10,
@@ -62154,7 +62122,6 @@ Array [
     "polkadotResources": Object {
       "controller": "15FwDL7TkRJFyGK9o6iYiqjFM1Mrq6VXXvdFQ9a7m5TQayUY",
       "lockedBalance": "11000000000",
-      "nominations": Array [],
       "nonce": 6,
       "stash": "13SGsuG6S1SeLfenuSauQMCzctr3z9SNKr8gbnXsEtyYijkT",
       "unlockedBalance": "0",
@@ -62186,7 +62153,6 @@ Array [
     "polkadotResources": Object {
       "controller": "13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6",
       "lockedBalance": "15000000000",
-      "nominations": Array [],
       "nonce": 5,
       "stash": null,
       "unlockedBalance": "0",
@@ -62218,7 +62184,6 @@ Array [
     "polkadotResources": Object {
       "controller": null,
       "lockedBalance": "0",
-      "nominations": Array [],
       "nonce": 2,
       "stash": "13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6",
       "unlockedBalance": "0",
@@ -62250,38 +62215,6 @@ Array [
     "polkadotResources": Object {
       "controller": "15B3b91znpx4RsBs3stqF6CmsMucA7zxY7K3LBR74mxgk9vE",
       "lockedBalance": "10000000000",
-      "nominations": Array [
-        Object {
-          "address": "14Y4s6V1PWrwBLvxW47gcYgZCGTYekmmzvFsK1kiqNH2d84t",
-          "status": "inactive",
-          "value": "0",
-        },
-        Object {
-          "address": "16Dgcx1qJzp8kme1CWsySDf3JWd1oKtbChYVm2yAYqM44woY",
-          "status": "waiting",
-          "value": "0",
-        },
-        Object {
-          "address": "1VrKDfXunzstY5uxPpjArUbZekirGXcpMDYvCBJmjV1KdEm",
-          "status": "waiting",
-          "value": "0",
-        },
-        Object {
-          "address": "12Yz9HPcF66pAGpwEW5cyFZ59TFeXFGVnkuxTphC3Lrap29z",
-          "status": "waiting",
-          "value": "0",
-        },
-        Object {
-          "address": "16NCSbjNt8PnpccX3UDAzJTAEuDLScZTLvJFZ5U68hrowQx6",
-          "status": "inactive",
-          "value": "0",
-        },
-        Object {
-          "address": "1REAJ1k691g5Eqqg9gL7vvZCBG7FCCZ8zgQkZWd4va5ESih",
-          "status": "inactive",
-          "value": "0",
-        },
-      ],
       "nonce": 9,
       "stash": "15B3b91znpx4RsBs3stqF6CmsMucA7zxY7K3LBR74mxgk9vE",
       "unlockedBalance": "0",
@@ -62313,28 +62246,6 @@ Array [
     "polkadotResources": Object {
       "controller": "1Z4QdzRrpVbggYoGK5pfbeMyzpVVDK7WxheVjWFxfv6sxjV",
       "lockedBalance": "10000000000",
-      "nominations": Array [
-        Object {
-          "address": "1FCu68ZwBHNzZLcGa92eHwvR61hk3MpjrhiqN96xF9vWS1Q",
-          "status": "inactive",
-          "value": "0",
-        },
-        Object {
-          "address": "1REAJ1k691g5Eqqg9gL7vvZCBG7FCCZ8zgQkZWd4va5ESih",
-          "status": "inactive",
-          "value": "0",
-        },
-        Object {
-          "address": "1zugcajKZ8XwjWvC5QZWcrpjfnjZZ9FfxRB9f5Hy6GdXBpZ",
-          "status": "inactive",
-          "value": "0",
-        },
-        Object {
-          "address": "14xKzzU1ZYDnzFj7FgdtDAYSMJNARjDc2gNw4XAFDgr4uXgp",
-          "status": "inactive",
-          "value": "0",
-        },
-      ],
       "nonce": 2,
       "stash": "1Z4QdzRrpVbggYoGK5pfbeMyzpVVDK7WxheVjWFxfv6sxjV",
       "unlockedBalance": "0",
@@ -62366,7 +62277,6 @@ Array [
     "polkadotResources": Object {
       "controller": null,
       "lockedBalance": "0",
-      "nominations": Array [],
       "nonce": 0,
       "stash": null,
       "unlockedBalance": "0",
@@ -64018,6 +63928,25 @@ Array [
       "transactionSequenceNumber": 20,
       "type": "CHILL",
       "value": "116000000",
+    },
+    Object {
+      "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
+      "blockHeight": 2924746,
+      "extra": Object {
+        "palletMethod": "staking.unbond",
+        "unbondedAmount": "100000000",
+      },
+      "fee": "121000000",
+      "hasFailed": false,
+      "hash": "0xb386d61f79a6624b289eb7776c71afac1ce6a14af710857fa4ebe76f45b3594b",
+      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0xb386d61f79a6624b289eb7776c71afac1ce6a14af710857fa4ebe76f45b3594b-UNBOND",
+      "recipients": Array [],
+      "senders": Array [
+        "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
+      ],
+      "transactionSequenceNumber": 79,
+      "type": "UNBOND",
+      "value": "121000000",
     },
     Object {
       "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",

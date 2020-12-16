@@ -32,6 +32,7 @@ const dataset: DatasetTest<Transaction> = {
     polkadot: {
       FIXME_ignoreAccountFields: [
         "polkadotResources.unlockings", // Due to completion date that change everyday (estimated time)
+        "polkadotResources.nominations", // TODO: try to only ignore status
       ],
       scanAccounts: [
         {
@@ -590,7 +591,7 @@ const dataset: DatasetTest<Transaction> = {
               },
             },
             {
-              name: "[unbond] max unbonding",
+              name: "[unbond] haveEnoughLockedBalance",
               transaction: fromTransactionRaw({
                 family: "polkadot",
                 recipient: "",
@@ -603,7 +604,8 @@ const dataset: DatasetTest<Transaction> = {
               }),
               expectedStatus: {
                 errors: {
-                  unbondings: new PolkadotMaxUnbonding(),
+                  amount: new NotEnoughBalance(),
+                  staking: new PolkadotUnauthorizedOperation(),
                 },
                 warnings: {},
               },

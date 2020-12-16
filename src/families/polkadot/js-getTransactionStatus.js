@@ -37,9 +37,10 @@ import {
   isValidAddress,
   isFirstBond,
   isController,
-  canUnbond,
   EXISTENTIAL_DEPOSIT,
   MINIMUM_BOND_AMOUNT,
+  haveEnoughLockedBalance,
+  haveMaxUnlockings,
 } from "./logic.js";
 import { estimateAmount } from "./js-estimateMaxSpendable";
 import { calculateFees } from "./js-getFeesForTransaction";
@@ -163,11 +164,11 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
       break;
 
     case "unbond":
-      if (!isController(a)) {
+      if (!isController(a) || !haveEnoughLockedBalance(a)) {
         errors.staking = new PolkadotUnauthorizedOperation();
       }
 
-      if (!canUnbond(a)) {
+      if (!haveMaxUnlockings(a)) {
         errors.unbondings = new PolkadotMaxUnbonding();
       }
 
