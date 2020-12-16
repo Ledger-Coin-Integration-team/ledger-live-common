@@ -14,7 +14,6 @@ import {
   PolkadotUnauthorizedOperation,
   PolkadotNotValidator,
   PolkadotBondMinimumAmount,
-  PolkadotMaxUnbonding,
 } from "../../errors";
 
 import type { DatasetTest } from "../../types";

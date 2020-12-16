@@ -17,7 +17,7 @@ export default () => {
           unlockingBalance: BigNumber(0),
           nominations: [],
           unlockings: [
-            ...Array(MAX_UNLOCKINGS - 1).map((a) => ({
+            ...Array(MAX_UNLOCKINGS - 1).map(() => ({
               amount: BigNumber(Math.random()),
               completionDate: new Date(),
             })),
@@ -38,7 +38,7 @@ export default () => {
           unlockingBalance: BigNumber(0),
           nominations: [],
           unlockings: [
-            ...Array(MAX_UNLOCKINGS).map((a) => ({
+            ...Array(MAX_UNLOCKINGS).map(() => ({
               amount: BigNumber(Math.random()),
               completionDate: new Date(),
             })),
@@ -60,7 +60,7 @@ export default () => {
           unlockingBalance: BigNumber(100),
           nominations: [],
           unlockings: [
-            ...Array(MAX_UNLOCKINGS).map((a) => ({
+            ...Array(MAX_UNLOCKINGS).map(() => ({
               amount: BigNumber(Math.random()),
               completionDate: new Date(),
             })),
