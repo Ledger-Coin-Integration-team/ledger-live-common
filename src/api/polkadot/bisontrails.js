@@ -1,6 +1,5 @@
 //@flow
 import network from "../../network";
-import https from "https";
 import querystring from "querystring";
 
 import { BigNumber } from "bignumber.js";
@@ -8,11 +7,6 @@ import { encodeOperationId } from "../../operation";
 
 import { getEnv } from "../../env";
 import { getOperationType } from "./common";
-
-// TMP
-const agent = new https.Agent({
-  rejectUnauthorized: false,
-});
 
 const LIMIT = 200;
 
@@ -176,7 +170,6 @@ const fetchOperationList = async (
   const { data } = await network({
     method: "GET",
     url: getAccountOperationUrl(addr, offset, startAt),
-    httpsAgent: agent,
   });
 
   const operations = data.extrinsics.map((extrinsic) =>
