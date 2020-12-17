@@ -170,7 +170,6 @@ const fetchOperationList = async (
   const { data } = await network({
     method: "GET",
     url: getAccountOperationUrl(addr, offset, startAt),
-    httpsAgent: agent,
   });
 
   const operations = data.extrinsics.map((extrinsic) =>
