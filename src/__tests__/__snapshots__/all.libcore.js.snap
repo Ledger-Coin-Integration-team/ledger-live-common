@@ -62072,7 +62072,7 @@ Array [
 exports[`polkadot currency bridge scanAccounts polkadot seed 1 1`] = `
 Array [
   Object {
-    "balance": "33253346325",
+    "balance": "20935346325",
     "currencyId": "polkadot",
     "derivationMode": "polkadotbip44",
     "freshAddress": "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
@@ -62086,24 +62086,24 @@ Array [
     "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
     "index": 0,
     "name": "Polkadot 1",
-    "operationsCount": 114,
+    "operationsCount": 116,
     "pendingOperations": Array [],
     "polkadotResources": Object {
       "controller": "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
       "lockedBalance": "11900000000",
-      "nonce": 80,
+      "nonce": 82,
       "stash": "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
       "unlockedBalance": "200000000",
       "unlockingBalance": "750000000",
     },
     "seedIdentifier": "7001f89e1fccbbd92e6c5fc9b6ae4f442d791450eb8d03c1e42392dda5f1d408",
-    "spendableBalance": "21353346325",
+    "spendableBalance": "9035346325",
     "starred": false,
     "swapHistory": Array [],
     "unitMagnitude": 10,
   },
   Object {
-    "balance": "20051000000",
+    "balance": "20061000000",
     "currencyId": "polkadot",
     "derivationMode": "polkadotbip44",
     "freshAddress": "13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6",
@@ -62117,7 +62117,7 @@ Array [
     "id": "js:2:polkadot:13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6:polkadotbip44",
     "index": 1,
     "name": "Polkadot 2",
-    "operationsCount": 14,
+    "operationsCount": 15,
     "pendingOperations": Array [],
     "polkadotResources": Object {
       "controller": "15FwDL7TkRJFyGK9o6iYiqjFM1Mrq6VXXvdFQ9a7m5TQayUY",
@@ -62128,7 +62128,7 @@ Array [
       "unlockingBalance": "11000000000",
     },
     "seedIdentifier": "7001f89e1fccbbd92e6c5fc9b6ae4f442d791450eb8d03c1e42392dda5f1d408",
-    "spendableBalance": "9051000000",
+    "spendableBalance": "9061000000",
     "starred": false,
     "swapHistory": Array [],
     "unitMagnitude": 10,
@@ -62258,7 +62258,7 @@ Array [
     "unitMagnitude": 10,
   },
   Object {
-    "balance": "0",
+    "balance": "12000000000",
     "currencyId": "polkadot",
     "derivationMode": "polkadotbip44",
     "freshAddress": "12DPyNwTpzEyEbUo8sZ1s5ZQF9gvwDdmbDmBZop9BwjMs7nN",
@@ -62272,6 +62272,37 @@ Array [
     "id": "js:2:polkadot:12DPyNwTpzEyEbUo8sZ1s5ZQF9gvwDdmbDmBZop9BwjMs7nN:polkadotbip44",
     "index": 6,
     "name": "Polkadot 7",
+    "operationsCount": 1,
+    "pendingOperations": Array [],
+    "polkadotResources": Object {
+      "controller": null,
+      "lockedBalance": "0",
+      "nonce": 0,
+      "stash": null,
+      "unlockedBalance": "0",
+      "unlockingBalance": "0",
+    },
+    "seedIdentifier": "7001f89e1fccbbd92e6c5fc9b6ae4f442d791450eb8d03c1e42392dda5f1d408",
+    "spendableBalance": "12000000000",
+    "starred": false,
+    "swapHistory": Array [],
+    "unitMagnitude": 10,
+  },
+  Object {
+    "balance": "0",
+    "currencyId": "polkadot",
+    "derivationMode": "polkadotbip44",
+    "freshAddress": "15LRaoxzU31uNYP9gtNDmKBCm2d8iq8172HMvzyJeovPY6Pp",
+    "freshAddressPath": "44'/354'/7'/0'/0'",
+    "freshAddresses": Array [
+      Object {
+        "address": "15LRaoxzU31uNYP9gtNDmKBCm2d8iq8172HMvzyJeovPY6Pp",
+        "derivationPath": "44'/354'/7'/0'/0'",
+      },
+    ],
+    "id": "js:2:polkadot:15LRaoxzU31uNYP9gtNDmKBCm2d8iq8172HMvzyJeovPY6Pp:polkadotbip44",
+    "index": 7,
+    "name": "Polkadot 8",
     "operationsCount": 0,
     "pendingOperations": Array [],
     "polkadotResources": Object {
@@ -62731,6 +62762,27 @@ Array [
     },
     Object {
       "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
+      "blockHeight": 2925727,
+      "extra": Object {
+        "palletMethod": "balances.transferKeepAlive",
+        "transferAmount": "12000000000",
+      },
+      "fee": "155000000",
+      "hasFailed": false,
+      "hash": "0x301d6a68c9fcb3ec3359dfda9e8dd651cfd9dff7e773e459b2d34f5dbbc0f3d1",
+      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0x301d6a68c9fcb3ec3359dfda9e8dd651cfd9dff7e773e459b2d34f5dbbc0f3d1-OUT",
+      "recipients": Array [
+        "12DPyNwTpzEyEbUo8sZ1s5ZQF9gvwDdmbDmBZop9BwjMs7nN",
+      ],
+      "senders": Array [
+        "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
+      ],
+      "transactionSequenceNumber": 80,
+      "type": "OUT",
+      "value": "12155000000",
+    },
+    Object {
+      "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
       "blockHeight": 1504737,
       "extra": Object {
         "palletMethod": "balances.transferKeepAlive",
@@ -62927,6 +62979,27 @@ Array [
       "transactionSequenceNumber": 48,
       "type": "OUT",
       "value": "10154000000",
+    },
+    Object {
+      "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
+      "blockHeight": 2936000,
+      "extra": Object {
+        "palletMethod": "balances.transferKeepAlive",
+        "transferAmount": "10000000",
+      },
+      "fee": "153000000",
+      "hasFailed": false,
+      "hash": "0x4081b9d182978bde80635a4147f60ce02855dcbff4a0ecfd7db0efb795b88fb2",
+      "id": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44-0x4081b9d182978bde80635a4147f60ce02855dcbff4a0ecfd7db0efb795b88fb2-OUT",
+      "recipients": Array [
+        "13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6",
+      ],
+      "senders": Array [
+        "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
+      ],
+      "transactionSequenceNumber": 81,
+      "type": "OUT",
+      "value": "163000000",
     },
     Object {
       "accountId": "js:2:polkadot:12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS:polkadotbip44",
@@ -64692,6 +64765,27 @@ Array [
     },
     Object {
       "accountId": "js:2:polkadot:13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6:polkadotbip44",
+      "blockHeight": 2936000,
+      "extra": Object {
+        "palletMethod": "balances.transferKeepAlive",
+        "transferAmount": "10000000",
+      },
+      "fee": "153000000",
+      "hasFailed": false,
+      "hash": "0x4081b9d182978bde80635a4147f60ce02855dcbff4a0ecfd7db0efb795b88fb2",
+      "id": "js:2:polkadot:13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6:polkadotbip44-0x4081b9d182978bde80635a4147f60ce02855dcbff4a0ecfd7db0efb795b88fb2-IN",
+      "recipients": Array [
+        "13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6",
+      ],
+      "senders": Array [
+        "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
+      ],
+      "transactionSequenceNumber": undefined,
+      "type": "IN",
+      "value": "10000000",
+    },
+    Object {
+      "accountId": "js:2:polkadot:13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6:polkadotbip44",
       "blockHeight": 2405412,
       "extra": Object {
         "palletMethod": "balances.transferKeepAlive",
@@ -65452,6 +65546,29 @@ Array [
       "transactionSequenceNumber": undefined,
       "type": "IN",
       "value": "22000000000",
+    },
+  ],
+  Array [
+    Object {
+      "accountId": "js:2:polkadot:12DPyNwTpzEyEbUo8sZ1s5ZQF9gvwDdmbDmBZop9BwjMs7nN:polkadotbip44",
+      "blockHeight": 2925727,
+      "extra": Object {
+        "palletMethod": "balances.transferKeepAlive",
+        "transferAmount": "12000000000",
+      },
+      "fee": "155000000",
+      "hasFailed": false,
+      "hash": "0x301d6a68c9fcb3ec3359dfda9e8dd651cfd9dff7e773e459b2d34f5dbbc0f3d1",
+      "id": "js:2:polkadot:12DPyNwTpzEyEbUo8sZ1s5ZQF9gvwDdmbDmBZop9BwjMs7nN:polkadotbip44-0x301d6a68c9fcb3ec3359dfda9e8dd651cfd9dff7e773e459b2d34f5dbbc0f3d1-IN",
+      "recipients": Array [
+        "12DPyNwTpzEyEbUo8sZ1s5ZQF9gvwDdmbDmBZop9BwjMs7nN",
+      ],
+      "senders": Array [
+        "12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",
+      ],
+      "transactionSequenceNumber": undefined,
+      "type": "IN",
+      "value": "12000000000",
     },
   ],
   Array [],

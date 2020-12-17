@@ -25,7 +25,7 @@ export default () => {
         },
       };
 
-      expect(canUnbond(account)).toBeTrue();
+      expect(canUnbond(account)).toBeTruthy();
     });
     test("can't unbond because unlockings is too much", () => {
       const account: $Shape<Account> = {
@@ -46,7 +46,7 @@ export default () => {
         },
       };
 
-      expect(canUnbond(account)).toBeFalse();
+      expect(canUnbond(account)).toBeFalsy();
     });
 
     test("can't unbond because not enough lockedBalance", () => {
@@ -68,7 +68,7 @@ export default () => {
         },
       };
 
-      expect(canUnbond(account)).toBeFalse();
+      expect(canUnbond(account)).toBeFalsy();
     });
   });
 };
