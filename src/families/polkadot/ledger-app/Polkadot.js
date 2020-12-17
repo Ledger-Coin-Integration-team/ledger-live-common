@@ -72,12 +72,16 @@ export class Polkadot {
       )
       .then((response) => {
         const errorCodeData = response.slice(-2);
-        const errorCode = errorCodeData[0] * 256 + errorCodeData[1];
+        const returnCode = errorCodeData[0] * 256 + errorCodeData[1];
+
+        if (returnCode === SW_CANCEL) {
+          throw new UserRefusedOnDevice();
+        }
 
         return {
           pubKey: response.slice(0, 32).toString("hex"),
           address: response.slice(32, response.length - 2).toString("ascii"),
-          return_code: errorCode,
+          return_code: returnCode,
         };
       });
   }

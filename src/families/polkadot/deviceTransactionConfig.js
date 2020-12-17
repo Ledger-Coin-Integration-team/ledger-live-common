@@ -4,9 +4,10 @@ import type { AccountLike, Account, TransactionStatus } from "../../types";
 import type { Transaction } from "./types";
 import type { DeviceTransactionField } from "../../transaction";
 import { getMainAccount } from "../../account";
-import { getAccountUnit } from "../../account";
-import { formatCurrencyUnit } from "../../currencies";
+import { formatCurrencyUnit, getCryptoCurrencyById } from "../../currencies";
 import { isStash } from "./logic";
+
+const currency = getCryptoCurrencyById("polkadot");
 
 export type ExtraDeviceTransactionField = {
   type: "polkadot.validators",
@@ -15,10 +16,7 @@ export type ExtraDeviceTransactionField = {
 
 const getSendFields = ({
   status: { amount },
-  account,
 }: {
-  account: AccountLike,
-  parentAccount: ?Account,
   transaction: Transaction,
   status: TransactionStatus,
 }) => {
@@ -33,8 +31,8 @@ const getSendFields = ({
   fields.push({
     type: "text",
     label: "Value",
-    value: formatCurrencyUnit(getAccountUnit(account), amount, {
-      showCode: false,
+    value: formatCurrencyUnit(currency.units[0], amount, {
+      showCode: true,
       disableRounding: true,
       showAllDigits: true,
     }),
@@ -65,8 +63,6 @@ function getDeviceTransactionConfig({
       fields = getSendFields({
         transaction,
         status,
-        parentAccount,
-        account,
       });
       break;
 
@@ -100,8 +96,8 @@ function getDeviceTransactionConfig({
         fields.push({
           type: "text",
           label: "Value",
-          value: formatCurrencyUnit(getAccountUnit(account), amount, {
-            showCode: false,
+          value: formatCurrencyUnit(currency.units[0], amount, {
+            showCode: true,
             disableRounding: true,
             showAllDigits: true,
           }),
@@ -122,8 +118,8 @@ function getDeviceTransactionConfig({
         fields.push({
           type: "text",
           label: "Max additional",
-          value: formatCurrencyUnit(getAccountUnit(account), amount, {
-            showCode: false,
+          value: formatCurrencyUnit(currency.units[0], amount, {
+            showCode: true,
             disableRounding: true,
             showAllDigits: true,
           }),
@@ -142,8 +138,8 @@ function getDeviceTransactionConfig({
       fields.push({
         type: "text",
         label: "Value",
-        value: formatCurrencyUnit(getAccountUnit(account), amount, {
-          showCode: false,
+        value: formatCurrencyUnit(currency.units[0], amount, {
+          showCode: true,
           disableRounding: true,
           showAllDigits: true,
         }),
@@ -160,8 +156,8 @@ function getDeviceTransactionConfig({
       fields.push({
         type: "text",
         label: "Value",
-        value: formatCurrencyUnit(getAccountUnit(account), amount, {
-          showCode: false,
+        value: formatCurrencyUnit(currency.units[0], amount, {
+          showCode: true,
           disableRounding: true,
           showAllDigits: true,
         }),
