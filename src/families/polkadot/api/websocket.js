@@ -1,19 +1,18 @@
 // @flow
+/* istanbul ignore file */
+
 import uniq from "lodash/uniq";
 import compact from "lodash/compact";
 
 import { BigNumber } from "bignumber.js";
-import { getEnv } from "../../env";
+import { getEnv } from "../../../env";
 import { WsProvider, ApiPromise } from "@polkadot/api";
 import { u8aToString } from "@polkadot/util";
 
 import { AccountId, Registration } from "@polkadot/types/interfaces";
 import { Data, Option } from "@polkadot/types";
 import type { ITuple } from "@polkadot/types/types";
-import type {
-  PolkadotValidator,
-  PolkadotStakingProgress,
-} from "../../families/polkadot/types";
+import type { PolkadotValidator, PolkadotStakingProgress } from "../types";
 
 type AsyncApiFunction = (api: typeof ApiPromise) => Promise<any>;
 

@@ -57,6 +57,10 @@ export class Polkadot {
     return buf;
   }
 
+  /**
+   * @param {string} path
+   * @param {boolean} requireConfirmation - if true, user must valid if the address is correct on the device
+   */
   async getAddress(path: string, requireConfirmation: boolean = false) {
     const bipPath = BIPPath.fromString(path).toPathArray();
     const bip44Path = this.serializePath(bipPath);
@@ -99,6 +103,12 @@ export class Polkadot {
     return Promise.resolve().then(() => iterate(0, arr, []));
   }
 
+  /**
+   * Sign a payload
+   * @param {*} path
+   * @param {string} message - payload
+   * @returns {string} - signed payload to be broadcasted
+   */
   async sign(path: string, message: string) {
     const bipPath = BIPPath.fromString(path).toPathArray();
     const serializedPath = this.serializePath(bipPath);

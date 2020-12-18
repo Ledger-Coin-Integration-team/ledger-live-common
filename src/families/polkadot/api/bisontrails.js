@@ -1,25 +1,47 @@
 //@flow
-import network from "../../network";
+import network from "../../../network";
 import querystring from "querystring";
 
 import { BigNumber } from "bignumber.js";
-import { encodeOperationId } from "../../operation";
+import { encodeOperationId } from "../../../operation";
 
-import { getEnv } from "../../env";
+import { getEnv } from "../../../env";
 import { getOperationType } from "./common";
+import type { OperationType, Operation } from "../../../types";
 
 const LIMIT = 200;
 
+/**
+ * Return the url of the indexer
+ * @returns {string}
+ */
 const getBaseApiUrl = () => getEnv("API_POLKADOT_INDEXER");
 
-const getAccountOperationUrl = (addr, offset, startAt, limit = LIMIT) =>
+/**
+ * fetch operation lists from indexer
+ * @param {string} addr
+ * @param {number} offset
+ * @param {number} startAt
+ * @param {number} limit
+ */
+const getAccountOperationUrl = (
+  addr: string,
+  offset: number,
+  startAt: number,
+  limit: number = LIMIT
+) =>
   `${getBaseApiUrl()}/accounts/${addr}/operations?${querystring.stringify({
     limit,
     offset,
     startAt,
   })}`;
 
-const getExtra = (type, extrinsic) => {
+/**
+ * add Extra info for operation details
+ * @param {OperationType} type
+ * @param {*} extrinsic
+ */
+const getExtra = (type: OperationType, extrinsic: *) => {
   let extra = {
     palletMethod: `${extrinsic.section}.${extrinsic.method}`,
   };
@@ -69,7 +91,11 @@ const getExtra = (type, extrinsic) => {
   return extra;
 };
 
-const getValue = (extrinsic, type) => {
+/**
+ * @param {*} extrinsic
+ * @param {OperationType} type
+ */
+const getValue = (extrinsic, type: OperationType) => {
   if (!extrinsic.isSuccess) {
     return type === "IN" ? BigNumber(0) : BigNumber(extrinsic.partialFee || 0);
   }
@@ -88,7 +114,17 @@ const getValue = (extrinsic, type) => {
   }
 };
 
-const extrinsicToOperation = (addr, accountId, extrinsic) => {
+/**
+ * Map extrinsic into the live-operation format
+ * @param {string} addr
+ * @param {string} accountId
+ * @param {*} extrinsic
+ */
+const extrinsicToOperation = (
+  addr: string,
+  accountId: string,
+  extrinsic
+): $Shape<Operation> | null => {
   let type = getOperationType(extrinsic.section, extrinsic.method);
   if (
     type === "OUT" &&
@@ -122,7 +158,17 @@ const extrinsicToOperation = (addr, accountId, extrinsic) => {
   };
 };
 
-const rewardToOperation = (addr, accountId, reward) => {
+/**
+ * Map reward to live operation type
+ * @param {string} addr
+ * @param {string} accountId
+ * @param {*} reward
+ */
+const rewardToOperation = (
+  addr: string,
+  accountId: string,
+  reward
+): $Shape<Operation> => {
   const hash = reward.extrinsicHash;
   const type = "REWARD_PAYOUT";
 
@@ -141,7 +187,17 @@ const rewardToOperation = (addr, accountId, reward) => {
   };
 };
 
-const slashToOperation = (addr, accountId, slash) => {
+/**
+ * Map slash to live operation type
+ * @param {string} addr
+ * @param {string} accountId
+ * @param {*} slash
+ */
+const slashToOperation = (
+  addr: string,
+  accountId: string,
+  slash
+): $Shape<Operation> => {
   const hash = `${slash.blockNumber}`;
   const type = "SLASH";
 
@@ -160,12 +216,20 @@ const slashToOperation = (addr, accountId, slash) => {
   };
 };
 
+/**
+ * loop to fetch multiple operations per page / offsite / start
+ * @param {string} accountId
+ * @param {string} addr
+ * @param {number} startAt
+ * @param {number} offset
+ * @param {Operation[]} prevOperations
+ */
 const fetchOperationList = async (
-  accountId,
-  addr,
-  startAt,
-  offset = 0,
-  prevOperations = []
+  accountId: string,
+  addr: string,
+  startAt: number,
+  offset: number = 0,
+  prevOperations: Operation[] = []
 ) => {
   const { data } = await network({
     method: "GET",
@@ -203,6 +267,14 @@ const fetchOperationList = async (
   );
 };
 
+/**
+ * Fetch indexer and transform it into a Operation type
+ *
+ * @param {string} accountId
+ * @param {string} addr
+ * @param {number} startAt - blockHeight after which you fetch this op (included)
+ * @return {Operation[]}
+ */
 export const getOperations = async (
   accountId: string,
   addr: string,

@@ -2,21 +2,31 @@
 import { BigNumber } from "bignumber.js";
 import querystring from "querystring";
 
-import { getEnv } from "../../env";
-import network from "../../network";
+import { getEnv } from "../../../env";
+import network from "../../../network";
 
 import type {
   PolkadotValidator,
   PolkadotStakingProgress,
-} from "../../families/polkadot/types";
+} from "../types";
 
+/**
+ * get base url
+ */
 const getBaseSidecarUrl = () => getEnv("API_POLKADOT_SIDECAR");
 
+/**
+ *
+ * @param {*} route
+ */
 const getSidecarUrl = (route) => `${getBaseSidecarUrl()}${route || ""}`;
 
 const VALIDATOR_COMISSION_RATIO = 1000000000;
 
-// Fetch data
+/**
+ * fetchBalance from the api
+ * @param {string} addr
+ */
 const fetchBalanceInfo = async (addr: string) => {
   const { data } = await network({
     method: "GET",
@@ -26,6 +36,9 @@ const fetchBalanceInfo = async (addr: string) => {
   return data;
 };
 
+/**
+ * @param {string} addr
+ */
 const fetchStashAddr = async (addr: string) => {
   const { data } = await network({
     method: "GET",
@@ -35,6 +48,9 @@ const fetchStashAddr = async (addr: string) => {
   return data.value?.stash;
 };
 
+/**
+ * @param {string} addr
+ */
 const fetchControllerAddr = async (addr: string) => {
   const { data } = await network({
     method: "GET",
@@ -44,6 +60,9 @@ const fetchControllerAddr = async (addr: string) => {
   return data.value;
 };
 
+/**
+ * @param {string} addr
+ */
 const fetchStakingInfo = async (addr: string) => {
   const { data } = await network({
     method: "GET",
@@ -53,6 +72,9 @@ const fetchStakingInfo = async (addr: string) => {
   return data;
 };
 
+/**
+ * @param {string} addr
+ */
 const fetchNominations = async (addr: string) => {
   const { data } = await network({
     method: "GET",
@@ -80,6 +102,11 @@ const fetchActiveEra = async () => {
   return data;
 };
 
+/**
+ *
+ * @param {string} status
+ * @param {string[]} addresses
+ */
 const fetchValidators = async (
   status: string = "all",
   addresses?: string[]

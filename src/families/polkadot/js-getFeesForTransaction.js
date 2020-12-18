@@ -8,7 +8,7 @@ import type { Transaction } from "./types";
 import type { CacheRes } from "../../cache";
 import getTxInfo from "./js-getTransactionInfo";
 import { makeLRUCache } from "../../cache";
-import { paymentInfo } from "../../api/polkadot";
+import { paymentInfo } from "./api";
 import buildTransaction from "./js-buildTransaction";
 
 export const calculateFees: CacheRes<
