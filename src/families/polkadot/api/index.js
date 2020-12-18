@@ -1,6 +1,8 @@
-// export { getOperations } from "./subscan";
+/**
+ * They are alternative in case of we need a fallback
+ */
 
-export { getOperations } from "./bisontrails";
+// export { getOperations } from "./subscan";
 
 // export {
 // isElectionClosed,
@@ -16,7 +18,8 @@ export { getOperations } from "./bisontrails";
 // disconnect,
 // } from "./websocket";
 
-// commented until we got a sidecar public url
+export { getOperations } from "./bisontrails";
+
 export {
   isElectionClosed,
   isNewAccount,

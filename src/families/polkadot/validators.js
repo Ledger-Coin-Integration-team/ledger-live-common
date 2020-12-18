@@ -1,3 +1,3 @@
-import { getValidators, getStakingProgress } from "../../api/polkadot";
+import { getValidators, getStakingProgress } from "../../families/polkadot/api";
 
 export { getValidators, getStakingProgress };

@@ -1,6 +1,6 @@
 // @flow
 import { getRegistry } from "@substrate/txwrapper";
-import { getTransactionParams } from "../../api/polkadot";
+import { getTransactionParams } from "./api";
 import type { Account } from "../../types";
 
 const ERA_PERIOD = 64; // number of blocks from checkpoint that transaction is valid

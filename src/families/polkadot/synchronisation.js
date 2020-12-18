@@ -3,7 +3,7 @@
 import type { GetAccountShape } from "../../bridge/jsHelpers";
 import { mergeOps } from "../../bridge/jsHelpers";
 
-import { getAccount, getOperations } from "../../api/polkadot";
+import { getAccount, getOperations } from "./api";
 
 export const getAccountShape: GetAccountShape = async (info) => {
   const { id, address, initialAccount } = info;

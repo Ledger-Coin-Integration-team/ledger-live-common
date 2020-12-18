@@ -30,7 +30,7 @@ import {
   isNewAccount,
   isControllerAddress,
   verifyValidatorAddresses,
-} from "../../api/polkadot";
+} from "./api";
 
 import type { Transaction } from "./types";
 import {
