@@ -1,14 +1,16 @@
 // @flow
+/* istanbul ignore file */
+
 import uniqBy from "lodash/uniqBy";
 import camelCase from "lodash/camelCase";
-import type { Operation } from "../../types";
+import type { Operation } from "../../../types";
 
-import network from "../../network";
+import network from "../../../network";
 import { BigNumber } from "bignumber.js";
-import { getEnv } from "../../env";
+import { getEnv } from "../../../env";
 import { encodeAddress } from "@polkadot/util-crypto";
 import { getOperationType } from "./common";
-import type { PolkadotValidator } from "../../families/polkadot/types";
+import type { PolkadotValidator } from "../types";
 
 const getBaseApiUrl = () => getEnv("API_POLKADOT_INDEXER");
 

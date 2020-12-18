@@ -2,9 +2,14 @@
 
 import { log } from "@ledgerhq/logs";
 
-// camelCase is for BisonTrails
-// snake_case for Subscan
-
+/**
+ * get the operation type by using his palletMethod
+ * the method case depends from which indexer you are using
+ * - camelCase for BisonTrails
+ * - snake_case for Subscan
+ * @param {*} pallet
+ * @param {*} palletMethod
+ */
 export const getOperationType = (pallet: string, palletMethod: string) => {
   switch (palletMethod) {
     case "transfer":

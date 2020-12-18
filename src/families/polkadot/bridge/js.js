@@ -14,7 +14,7 @@ import {
   makeAccountBridgeReceive,
 } from "../../../bridge/jsHelpers";
 import { PRELOAD_MAX_AGE } from "../logic";
-import { submitExtrinsic } from "../../../api/polkadot";
+import { submitExtrinsic } from "../api";
 import { getAccountShape } from "../synchronisation";
 
 import getTransactionStatus from "../js-getTransactionStatus";
@@ -38,6 +38,10 @@ const scanAccounts = makeScanAccounts(getAccountShape);
 
 const sync = makeSync(getAccountShape, postSync);
 
+/**
+ * create an empty transaction
+ * @returns {Transaction}
+ */
 export const createTransaction = (): Transaction => ({
   family: "polkadot",
   mode: "send",
@@ -54,7 +58,12 @@ const updateTransaction = (t, patch) => ({ ...t, ...patch });
 
 const sameFees = (a, b) => (!a || !b ? a === b : a.eq(b));
 
-const prepareTransaction = async (a, t) => {
+/**
+ * Calculate fees for the current transaction
+ * @param {Account} a
+ * @param {Transaction} t
+ */
+const prepareTransaction = async (a: Account, t: Transaction) => {
   let fees = t.fees;
 
   fees = await calculateFees({
@@ -73,6 +82,10 @@ const prepareTransaction = async (a, t) => {
   return t;
 };
 
+/**
+ * Broadcast the signed transaction
+ * @param {signature: string, operation: string} signedOperation
+ */
 const broadcast = async ({
   signedOperation: { signature, operation },
 }: {
@@ -83,6 +96,10 @@ const broadcast = async ({
   return patchOperationWithHash(operation, hash);
 };
 
+/**
+ * load max cache time for the validators
+ * @param {*} _currency
+ */
 const getPreloadStrategy = (_currency) => ({
   preloadMaxAge: PRELOAD_MAX_AGE,
 });
