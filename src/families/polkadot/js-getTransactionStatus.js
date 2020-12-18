@@ -21,7 +21,7 @@ import {
   PolkadotBondAllFundsWarning,
   PolkadotBondMinimumAmount,
   PolkadotMaxUnbonding,
-} from "../../errors";
+} from "./errors";
 
 import { formatCurrencyUnit } from "../../currencies";
 

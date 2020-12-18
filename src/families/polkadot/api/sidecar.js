@@ -5,10 +5,7 @@ import querystring from "querystring";
 import { getEnv } from "../../../env";
 import network from "../../../network";
 
-import type {
-  PolkadotValidator,
-  PolkadotStakingProgress,
-} from "../types";
+import type { PolkadotValidator, PolkadotStakingProgress } from "../types";
 
 /**
  * get base url

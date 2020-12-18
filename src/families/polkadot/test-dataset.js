@@ -14,7 +14,7 @@ import {
   PolkadotUnauthorizedOperation,
   PolkadotNotValidator,
   PolkadotBondMinimumAmount,
-} from "../../errors";
+} from "./errors";
 
 import type { DatasetTest } from "../../types";
 import { fromTransactionRaw } from "./transaction";
