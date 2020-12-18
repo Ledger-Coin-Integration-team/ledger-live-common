@@ -59,7 +59,7 @@ const envDefinitions = {
   },
   API_POLKADOT_INDEXER: {
     parser: stringParser,
-    def: "https://polkadot.coin.ledger-stg.com",
+    def: "https://polkadot.coin.ledger.com",
     // def: "https://polkadot.subscan.io",
     desc: "Explorer API for polkadot",
   },
@@ -70,7 +70,7 @@ const envDefinitions = {
   },
   API_POLKADOT_SIDECAR: {
     parser: stringParser,
-    def: "https://polkadot-sidecar.coin.ledger-stg.com",
+    def: "https://polkadot-sidecar.coin.ledger.com",
     desc: "Polkadot Sidecar API url",
   },
   API_TEZOS_BAKER: {
