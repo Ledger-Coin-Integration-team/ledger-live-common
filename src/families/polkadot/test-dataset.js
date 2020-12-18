@@ -32,7 +32,7 @@ const dataset: DatasetTest<Transaction> = {
       FIXME_ignoreAccountFields: [
         "polkadotResources.unlockings", // Due to completion date that change everyday (estimated time)
         "polkadotResources.nominations", // TODO: try to only ignore status
-        "polkadotResources.unlockedBalance" // It moved when an unbond is finished
+        "polkadotResources.unlockedBalance", // It moved when an unbond is finished
       ],
       scanAccounts: [
         {

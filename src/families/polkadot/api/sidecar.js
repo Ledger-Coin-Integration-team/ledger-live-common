@@ -8,7 +8,7 @@ import network from "../../../network";
 import type {
   PolkadotValidator,
   PolkadotStakingProgress,
-} from "../../../families/polkadot/types";
+} from "../types";
 
 /**
  * get base url
