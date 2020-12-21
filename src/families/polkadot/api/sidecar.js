@@ -19,6 +19,7 @@ const getBaseSidecarUrl = () => getEnv("API_POLKADOT_SIDECAR");
 const getSidecarUrl = (route) => `${getBaseSidecarUrl()}${route || ""}`;
 
 const VALIDATOR_COMISSION_RATIO = 1000000000;
+const ELECTION_STATUS_OPTIMISTIC_THRESHOLD = 25; // blocks = 2 minutes 30
 
 /**
  * fetchBalance from the api
@@ -405,10 +406,31 @@ export const getValidators = async (
  * Get Active Era progress
  */
 export const getStakingProgress = async (): Promise<PolkadotStakingProgress> => {
-  const progress = await fetchStakingProgress();
+  const [progress, consts] = await Promise.all([
+    fetchStakingProgress(),
+    fetchConstants(),
+  ]);
+
+  const activeEra = Number(progress.activeEra);
+  const toggleEstimate = Number(progress.electionStatus?.toggleEstimate);
+  const electionClosed = !progress.electionStatus?.status?.Open;
+
+  // Consider election open if in the THERSHOLD blocks before the real expected change
+  // It disables staking flows that are subject to fail or block because of election status
+  // update while user is signing
+  const optimisticElectionClosed =
+    electionClosed &&
+    activeEra &&
+    toggleEstimate &&
+    activeEra >= toggleEstimate - ELECTION_STATUS_OPTIMISTIC_THRESHOLD
+      ? false
+      : electionClosed;
 
   return {
-    activeEra: Number(progress.activeEra),
-    electionClosed: !progress.electionStatus?.status?.Open,
+    activeEra,
+    electionClosed: optimisticElectionClosed,
+    maxNominatorRewardedPerValidator:
+      Number(consts.staking.maxNominatorRewardedPerValidator) || 128,
+    bondingDuration: Number(consts.staking.bondingDuration) || 28,
   };
 };

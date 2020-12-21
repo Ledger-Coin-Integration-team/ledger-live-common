@@ -100,6 +100,8 @@ export type PolkadotNominationInfo = string;
 export type PolkadotStakingProgress = {|
   activeEra: number,
   electionClosed: boolean,
+  maxNominatorRewardedPerValidator: number,
+  bondingDuration: number,
 |};
 
 export type PolkadotPreloadData = {|
