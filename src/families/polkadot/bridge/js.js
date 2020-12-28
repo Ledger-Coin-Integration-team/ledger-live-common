@@ -4,7 +4,6 @@ import { BigNumber } from "bignumber.js";
 // import invariant from "invariant";
 import type { Account, Operation, SignedOperation } from "../../../types";
 import type { Transaction } from "../types";
-import { getAbandonSeedAddress } from "@ledgerhq/cryptoassets";
 
 import type { AccountBridge, CurrencyBridge } from "../../../types";
 // import { isInvalidRecipient } from "../../../bridge/mockHelpers";
@@ -18,14 +17,12 @@ import { submitExtrinsic } from "../api";
 import { getAccountShape } from "../synchronisation";
 
 import getTransactionStatus from "../js-getTransactionStatus";
-import estimateMaxSpendable, {
-  estimateAmount,
-} from "../js-estimateMaxSpendable";
+import estimateMaxSpendable from "../js-estimateMaxSpendable";
 import signOperation from "../js-signOperation";
 
 import { preload, hydrate } from "../preload";
 
-import { calculateFees } from "../js-getFeesForTransaction";
+import { calculateFees } from "../cache";
 import { patchOperationWithHash } from "../../../operation";
 
 const receive = makeAccountBridgeReceive();
@@ -66,14 +63,7 @@ const sameFees = (a, b) => (!a || !b ? a === b : a.eq(b));
 const prepareTransaction = async (a: Account, t: Transaction) => {
   let fees = t.fees;
 
-  fees = await calculateFees({
-    a,
-    t: {
-      ...t,
-      recipient: getAbandonSeedAddress(a.currency.id),
-      amount: estimateAmount({ a, t }),
-    },
-  });
+  fees = await calculateFees({ a, t });
 
   if (!sameFees(t.fees, fees)) {
     return { ...t, fees };
