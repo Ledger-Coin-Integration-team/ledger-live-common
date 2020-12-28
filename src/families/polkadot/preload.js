@@ -43,12 +43,19 @@ export function fromHydratePreloadData(data: mixed): PolkadotPreloadData {
     }
 
     if (data.staking !== null && typeof data.staking === "object") {
+      const {
+        electionClosed,
+        activeEra,
+        maxNominatorRewardedPerValidator,
+        bondingDuration,
+      } = data.staking;
+
       staking = {
-        electionClosed: !!data.staking.electionClosed,
-        activeEra: Number(data.staking.activeEra),
+        electionClosed: !!electionClosed,
+        activeEra: Number(activeEra),
         maxNominatorRewardedPerValidator:
-          Number(data.staking.maxNominatorRewardedPerValidator) || 128,
-        bondingDuration: Number(data.staking.bondingDuration) || 28,
+          Number(maxNominatorRewardedPerValidator) || 128,
+        bondingDuration: Number(bondingDuration) || 28,
       };
     }
   }

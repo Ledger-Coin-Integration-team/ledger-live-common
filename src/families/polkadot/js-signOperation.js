@@ -13,7 +13,7 @@ import { encodeOperationId } from "../../operation";
 import { Polkadot } from "./ledger-app/Polkadot";
 
 import { buildTransaction } from "./js-buildTransaction";
-import { estimateAmount } from "./js-estimateMaxSpendable";
+import { calculateAmount } from "./js-estimateMaxSpendable";
 
 const MODE_TO_TYPE = {
   send: "OUT",
@@ -116,19 +116,14 @@ export const signExtrinsic = async (
  * @param registry - Registry used for constructing the payload.
  */
 export const fakeSignExtrinsic = async (
-  unsigned: any,
+  unsigned: Object,
   registry: typeof TypeRegistry
 ) => {
   const fakeSignature = u8aConcat(
     new Uint8Array([1]),
     new Uint8Array(64).fill(0x42)
   );
-
-  const extrinsic = registry.createType("Extrinsic", unsigned, {
-    version: unsigned.version,
-  });
-  extrinsic.addSignature(unsigned.address, fakeSignature, unsigned);
-  return extrinsic.toHex();
+  return signExtrinsic(unsigned, fakeSignature, registry);
 };
 
 /**
@@ -149,15 +144,15 @@ const signOperation = ({
       try {
         o.next({ type: "device-signature-requested" });
 
-        // Sign by device
-        const transactionToSign = {
-          ...transaction,
-          amount: estimateAmount({ a: account, t: transaction }),
-        };
-
-        if (!transactionToSign.fees) {
+        if (!transaction.fees) {
           throw new FeeNotLoaded();
         }
+
+        // Ensure amount is filled when useAllAmount
+        const transactionToSign = {
+          ...transaction,
+          amount: calculateAmount({ a: account, t: transaction }),
+        };
 
         const { unsigned, registry } = await buildTransaction(
           account,
@@ -170,6 +165,7 @@ const signOperation = ({
           })
           .toU8a({ method: true });
 
+        // Sign by device
         const polkadot = new Polkadot(transport);
         const r = await polkadot.sign(account.freshAddressPath, payload);
 
