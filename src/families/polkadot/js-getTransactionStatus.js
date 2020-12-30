@@ -21,6 +21,7 @@ import {
   PolkadotBondAllFundsWarning,
   PolkadotBondMinimumAmount,
   PolkadotMaxUnbonding,
+  PolkadotValidatorsRequired,
 } from "./errors";
 
 import { formatCurrencyUnit } from "../../currencies";
@@ -211,7 +212,7 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
       if (!isController(a)) {
         errors.staking = new PolkadotUnauthorizedOperation();
       } else if (!t.validators || t.validators?.length === 0) {
-        errors.staking = new PolkadotUnauthorizedOperation();
+        errors.staking = new PolkadotValidatorsRequired();
       } else {
         const notValidators = await verifyValidatorAddresses(
           t.validators || []
