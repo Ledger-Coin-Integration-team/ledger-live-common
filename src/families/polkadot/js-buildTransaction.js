@@ -30,7 +30,8 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
             pallet: 'staking',
             name: 'bond',
             args: {
-              controller: !!t.recipient ? t.recipient : a.freshAddress,
+              // Spec choice: we always set the account as both the stash and its controller
+              controller: a.freshAddress,
               value: t.amount.toString(),
               // The rewards destination. Can be "Stash", "Staked", "Controller" or "{ Account: accountId }"".
               payee: t.rewardDestination || "Stash",
