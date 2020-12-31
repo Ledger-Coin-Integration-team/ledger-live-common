@@ -13,22 +13,24 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
   switch (t.mode) {
     case "send":
       // Construct a balance transfer transaction offline.
-      transaction = createTransactionPayload({
+      transaction = createTransactionPayload(
+        {
           args: {
             dest: t.recipient,
             value: t.amount.toString(),
           },
-          name: 'transferKeepAlive',
-          pallet: 'balances',
+          name: "transferKeepAlive",
+          pallet: "balances",
         }, txInfo);
       break;
 
     case "bond":
-      transaction = isFirstBond(a)
+      transaction = isFirstBond(a) ?
         // Construct a transaction to bond funds and create a Stash account.
-        ? createTransactionPayload({
-            pallet: 'staking',
-            name: 'bond',
+        createTransactionPayload(
+          {
+            pallet: "staking",
+            name: "bond",
             args: {
               // Spec choice: we always set the account as both the stash and its controller
               controller: a.freshAddress,
@@ -40,9 +42,10 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
         :
         // Add some extra amount from the stash's `free_balance` into the staking balance.
         // Can only be called when `EraElectionStatus` is `Closed`.
-        createTransactionPayload({
-            pallet: 'staking',
-            name: 'bondExtra',
+        createTransactionPayload(
+          {
+            pallet: "staking",
+            name: "bondExtra",
             args: { maxAdditional: t.amount.toString() },
           }, txInfo)
       break;
@@ -50,9 +53,10 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
     case "unbond":
       // Construct a transaction to unbond funds from a Stash account.
       // Must be signed by the controller, and can be only called when `EraElectionStatus` is `Closed`.
-      transaction = createTransactionPayload({
-          pallet: 'staking',
-          name: 'unbond',
+      transaction = createTransactionPayload(
+        {
+          pallet: "staking",
+          name: "unbond",
           args: { value: t.amount.toString() },
         }, txInfo);
       break;
@@ -60,9 +64,10 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
     case "rebond":
       // Rebond a portion of the stash scheduled to be unlocked.
       // Must be signed by the controller, and can be only called when `EraElectionStatus` is `Closed`.
-      transaction = createTransactionPayload({
-          pallet: 'staking',
-          name: 'rebond',
+      transaction = createTransactionPayload(
+        {
+          pallet: "staking",
+          name: "rebond",
           args: { value: t.amount.toNumber() },
         }, txInfo);
       break;
@@ -70,9 +75,10 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
     case "withdrawUnbonded":
       // Remove any unbonded chunks from the `unbonding` queue from our management
       // Must be signed by the controller, and can be only called when `EraElectionStatus` is `Closed`.
-      transaction = createTransactionPayload({
-          pallet: 'staking',
-          name: 'withdrawUnbonded',
+      transaction = createTransactionPayload(
+        {
+          pallet: "staking",
+          name: "withdrawUnbonded",
           args: { numSlashingSpans: 0},
         }, txInfo);
       break;
@@ -80,9 +86,10 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
     case "nominate":
       // Construct a transaction to nominate validators.
       // Must be signed by the controller, and can be only called when `EraElectionStatus` is `Closed`.
-      transaction = createTransactionPayload({
-          pallet: 'staking',
-          name: 'nominate',
+      transaction = createTransactionPayload(
+        {
+          pallet: "staking",
+          name: "nominate",
           args: { targets: t.validators },
         }, txInfo);
       break;
@@ -90,9 +97,10 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
     case "chill":
       // Declare the desire to cease validating or nominating. Does not unbond funds.
       // Must be signed by the controller, and can be only called when `EraElectionStatus` is `Closed`.
-      transaction = createTransactionPayload({
-          pallet: 'staking',
-          name: 'chill',
+      transaction = createTransactionPayload(
+        {
+          pallet: "staking",
+          name: "chill",
           args: {},
         }, txInfo);
       break;
@@ -101,9 +109,10 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
       // Pay out all the stakers behind a single validator for a single era.
       // Any account can call this function, even if it is not one of the stakers.
       // Can only be called when `EraElectionStatus` is `Closed`.
-      transaction = createTransactionPayload({
-          pallet: 'staking',
-          name: 'payoutStakers',
+      transaction = createTransactionPayload(
+        {
+          pallet: "staking",
+          name: "payoutStakers",
           args: { validatorStash: validator, era: t.era },
         }, txInfo);
       break;
