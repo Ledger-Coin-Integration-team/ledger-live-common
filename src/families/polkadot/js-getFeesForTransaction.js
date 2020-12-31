@@ -24,7 +24,7 @@ const getEstimatedFees = async (
   const transaction = {
     ...t,
     recipient: getAbandonSeedAddress(a.currency.id), // Always use a fake recipient to estimate fees
-    amount: calculateAmount({ a, t: { ...t, fees: null } }), // Remove fees if present since we are fetching fees
+    amount: calculateAmount({ a, t: { ...t, fees: BigNumber(0) } }), // Remove fees if present since we are fetching fees
   };
 
   const { unsigned, registry } = await buildTransaction(a, transaction);

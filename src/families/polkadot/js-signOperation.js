@@ -13,7 +13,7 @@ import { encodeOperationId } from "../../operation";
 import { Polkadot } from "./ledger-app/Polkadot";
 
 import { buildTransaction } from "./js-buildTransaction";
-import { calculateAmount } from "./logic";
+import { calculateAmount, getNonce } from "./logic";
 
 const MODE_TO_TYPE = {
   send: "OUT",
@@ -156,7 +156,8 @@ const signOperation = ({
 
         const { unsigned, registry } = await buildTransaction(
           account,
-          transactionToSign
+          transactionToSign,
+          true
         );
 
         const payload = registry
@@ -177,7 +178,7 @@ const signOperation = ({
           account,
           transactionToSign,
           transactionToSign.fees ?? BigNumber(0),
-          unsigned.nonce
+          getNonce(account)
         );
 
         o.next({
