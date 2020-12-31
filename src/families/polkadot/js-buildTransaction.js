@@ -21,33 +21,37 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
           },
           name: "transferKeepAlive",
           pallet: "balances",
-        }, txInfo);
+        },
+        txInfo);
       break;
 
     case "bond":
-      transaction = isFirstBond(a) ?
-        // Construct a transaction to bond funds and create a Stash account.
-        createTransactionPayload(
-          {
-            pallet: "staking",
-            name: "bond",
-            args: {
-              // Spec choice: we always set the account as both the stash and its controller
-              controller: a.freshAddress,
-              value: t.amount.toString(),
-              // The rewards destination. Can be "Stash", "Staked", "Controller" or "{ Account: accountId }"".
-              payee: t.rewardDestination || "Stash",
+      transaction = isFirstBond(a)
+        ?
+          // Construct a transaction to bond funds and create a Stash account.
+          createTransactionPayload(
+            {
+              pallet: "staking",
+              name: "bond",
+              args: {
+                // Spec choice: we always set the account as both the stash and its controller
+                controller: a.freshAddress,
+                value: t.amount.toString(),
+                // The rewards destination. Can be "Stash", "Staked", "Controller" or "{ Account: accountId }"".
+                payee: t.rewardDestination || "Stash",
+              },
             },
-          }, txInfo)
+            txInfo)
         :
-        // Add some extra amount from the stash's `free_balance` into the staking balance.
-        // Can only be called when `EraElectionStatus` is `Closed`.
-        createTransactionPayload(
-          {
-            pallet: "staking",
-            name: "bondExtra",
-            args: { maxAdditional: t.amount.toString() },
-          }, txInfo)
+          // Add some extra amount from the stash's `free_balance` into the staking balance.
+          // Can only be called when `EraElectionStatus` is `Closed`.
+          createTransactionPayload(
+            {
+              pallet: "staking",
+              name: "bondExtra",
+              args: { maxAdditional: t.amount.toString() },
+            },
+            txInfo)
       break;
 
     case "unbond":
@@ -58,7 +62,8 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
           pallet: "staking",
           name: "unbond",
           args: { value: t.amount.toString() },
-        }, txInfo);
+        },
+        txInfo);
       break;
 
     case "rebond":
@@ -69,7 +74,8 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
           pallet: "staking",
           name: "rebond",
           args: { value: t.amount.toNumber() },
-        }, txInfo);
+        },
+        txInfo);
       break;
 
     case "withdrawUnbonded":
@@ -80,7 +86,8 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
           pallet: "staking",
           name: "withdrawUnbonded",
           args: { numSlashingSpans: 0},
-        }, txInfo);
+        },
+        txInfo);
       break;
 
     case "nominate":
@@ -91,7 +98,8 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
           pallet: "staking",
           name: "nominate",
           args: { targets: t.validators },
-        }, txInfo);
+        },
+        txInfo);
       break;
 
     case "chill":
@@ -102,7 +110,8 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
           pallet: "staking",
           name: "chill",
           args: {},
-        }, txInfo);
+        },
+        txInfo);
       break;
 
     case "claimReward":
@@ -114,7 +123,8 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
           pallet: "staking",
           name: "payoutStakers",
           args: { validatorStash: validator, era: t.era },
-        }, txInfo);
+        },
+        txInfo);
       break;
 
     default:
