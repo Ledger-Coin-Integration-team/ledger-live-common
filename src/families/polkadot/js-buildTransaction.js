@@ -1,12 +1,89 @@
 // @flow
 
+import { stringCamelCase } from '@polkadot/util';
+
 import type { Transaction } from "./types";
 import type { Account } from "../../types";
 
-import { createTransactionPayload } from "./transactions";
 import { isFirstBond } from "./logic";
+import { createDecoratedTxs } from './registry';
 
-const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
+const EXTRINSIC_VERSION = 4;
+
+// Default values for tx parameters, if the user doesn't specify any
+const DEFAULTS = {
+  tip: 0,
+  eraPeriod: 64,
+};
+
+/**
+ * Serialize an unsigned transaction in a format that can be signed.
+ *
+ * @param unsigned - The JSON representing the unsigned transaction.
+ * @param registry - Registry used for constructing the payload.
+ */
+export const createSerializedUnsignedTx = (unsigned: any, registry: any) => {
+  const payload = registry.createType("ExtrinsicPayload", unsigned, { version: unsigned.version });
+  return payload.toU8a({ method: true });
+}
+
+/**
+* Serialize a signed transaction in a format that can be submitted over the
+* Node RPC Interface from the signing payload and signature produced by the
+* remote signer.
+*
+* @param unsigned - The JSON representing the unsigned transaction.
+* @param signature - Signature of the signing payload produced by the remote signer.
+* @param registry - Registry used for constructing the payload.
+*/
+export const createSerializedSignedTx = (unsigned: any, signature: any, registry: any) => {
+  const extrinsic = registry.createType('Extrinsic', { method: unsigned.method }, { version: unsigned.version });
+  extrinsic.addSignature(unsigned.address, signature, unsigned);
+  return extrinsic.toHex();
+}
+
+/**
+ * Helper function to construct an offline method.
+ *
+ * @param params - Parameters required to construct the transaction.
+ * @param info - Registry and metadata used for constructing the method.
+ */
+const createTransactionPayload = (params: any, info: any) => {
+  const { metadataRpc, registry } = info;
+  const metadata = createDecoratedTxs(registry, metadataRpc);
+  const methodFunction = metadata[params.pallet][params.name];
+  const method = methodFunction(...methodFunction.meta.args.map((arg) => {
+      if (params.args[stringCamelCase(arg.name.toString())] === undefined) {
+          throw new Error(`Method ${params.pallet}::${params.name} expects argument ${arg.toString()}, but got undefined`);
+      }
+      return params.args[stringCamelCase(arg.name.toString())];
+  })).toHex();
+
+  return {
+      address: info.address,
+      blockHash: info.blockHash,
+      blockNumber: registry.createType('BlockNumber', info.blockNumber).toHex(),
+      era: registry
+          .createType('ExtrinsicEra', {
+              current: info.blockNumber,
+              period: DEFAULTS.eraPeriod,
+          }).toHex(),
+      genesisHash: info.genesisHash,
+      method,
+      nonce: registry.createType('Compact<Index>', info.nonce).toHex(),
+      signedExtensions: registry.signedExtensions,
+      specVersion: registry.createType('u32', info.specVersion).toHex(),
+      tip: registry
+          .createType('Compact<Balance>', info.tip || DEFAULTS.tip)
+          .toHex(),
+      transactionVersion: registry
+          .createType('u32', info.transactionVersion)
+          .toHex(),
+      version: EXTRINSIC_VERSION,
+  };
+}
+
+export const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
   const validator = t.validators ? t.validators[0] : null;
 
   let transaction;
@@ -26,8 +103,7 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
       break;
 
     case "bond":
-      transaction = isFirstBond(a)
-        ?
+      transaction = isFirstBond(a) ?
           // Construct a transaction to bond funds and create a Stash account.
           createTransactionPayload(
             {
@@ -41,7 +117,8 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
                 payee: t.rewardDestination || "Stash",
               },
             },
-            txInfo)
+            txInfo
+          )
         :
           // Add some extra amount from the stash's `free_balance` into the staking balance.
           // Can only be called when `EraElectionStatus` is `Closed`.
@@ -51,7 +128,8 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
               name: "bondExtra",
               args: { maxAdditional: t.amount.toString() },
             },
-            txInfo)
+            txInfo
+          )
       break;
 
     case "unbond":
@@ -63,7 +141,8 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
           name: "unbond",
           args: { value: t.amount.toString() },
         },
-        txInfo);
+        txInfo
+      );
       break;
 
     case "rebond":
@@ -75,7 +154,8 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
           name: "rebond",
           args: { value: t.amount.toNumber() },
         },
-        txInfo);
+        txInfo
+      );
       break;
 
     case "withdrawUnbonded":
@@ -87,7 +167,8 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
           name: "withdrawUnbonded",
           args: { numSlashingSpans: 0},
         },
-        txInfo);
+        txInfo
+      );
       break;
 
     case "nominate":
@@ -99,7 +180,8 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
           name: "nominate",
           args: { targets: t.validators },
         },
-        txInfo);
+        txInfo
+      );
       break;
 
     case "chill":
@@ -111,7 +193,8 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
           name: "chill",
           args: {},
         },
-        txInfo);
+        txInfo
+      );
       break;
 
     case "claimReward":
@@ -124,7 +207,8 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
           name: "payoutStakers",
           args: { validatorStash: validator, era: t.era },
         },
-        txInfo);
+        txInfo
+      );
       break;
 
     default:
@@ -133,5 +217,3 @@ const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
 
   return transaction;
 };
-
-export default buildTransaction;

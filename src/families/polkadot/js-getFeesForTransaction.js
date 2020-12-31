@@ -8,8 +8,7 @@ import type { CacheRes } from "../../cache";
 import getTxInfo from "./js-getTransactionInfo";
 import { makeLRUCache } from "../../cache";
 import { paymentInfo } from "./api";
-import buildTransaction from "./js-buildTransaction";
-import { createSerializedSignedTx } from "./transactions";
+import { buildTransaction, createSerializedSignedTx } from "./js-buildTransaction";
 
 export const calculateFees: CacheRes<
   Array<{ a: Account, t: Transaction }>,
@@ -28,35 +27,6 @@ export const calculateFees: CacheRes<
 );
 
 /**
- * Fetch transactions fees for an unsigned extrinsic.
- * Note: we need to add a fake signature for the paymentInfo to be retrieved.
- * So we add a signature filled with any bytes.
- *
- * @param {*} a - the account
- * @param {*} unsignedTx
- * @param {*} txInfo
- */
-export const getEstimatedFeesFromUnsignedTx = async (
-  a: Account,
-  unsignedTx: string,
-  txInfo: any
-): Promise<BigNumber> => {
-
-  const signature = u8aConcat(
-    new Uint8Array([1]),
-    new Uint8Array(64).fill(0x42)
-  );
-
-  const fakeSignedTx = createSerializedSignedTx(unsignedTx, signature, txInfo.registry);
-
-  const payment = await paymentInfo(fakeSignedTx);
-
-  const fee = BigNumber(payment.partialFee);
-
-  return fee;
-};
-
-/**
  * Fetch the transaction fees for a transaction
  *
  * @param {Account} a
@@ -68,9 +38,19 @@ const getEstimatedFees = async (
   t: Transaction,
   txInfo: any
 ): Promise<BigNumber> => {
-  return getEstimatedFeesFromUnsignedTx(
-    a,
-    await buildTransaction(a, t, txInfo),
-    txInfo
+
+  const txPayload = await buildTransaction(a, t, txInfo);
+
+  const fakeSignature = u8aConcat(
+    new Uint8Array([1]),
+    new Uint8Array(64).fill(0x42)
   );
+
+  const fakeSignedTx = createSerializedSignedTx(txPayload, fakeSignature, txInfo.registry);
+
+  const payment = await paymentInfo(fakeSignedTx);
+
+  const fee = BigNumber(payment.partialFee);
+
+  return fee;
 };

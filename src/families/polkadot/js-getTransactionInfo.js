@@ -23,30 +23,16 @@ const getNonce = (a: Account): number => {
 };
 
 const getTxInfo = async (a: Account) => {
-  const {
-    blockHash,
-    blockNumber,
-    genesisHash,
-    specName,
-    specVersion,
-    transactionVersion,
-    metadataRpc,
-  } = await getTransactionParams();
+  const params = await getTransactionParams();
 
-  const registry = getRegistry(specName, specVersion, metadataRpc);
+  const registry = getRegistry(params);
 
   return {
+    ...params,
     address: a.freshAddress,
     nonce: getNonce(a),
     tip: DEFAULTS.tip,
     eraPeriod: DEFAULTS.eraPeriod,
-    blockHash,
-    blockNumber,
-    genesisHash,
-    specName,
-    specVersion,
-    transactionVersion,
-    metadataRpc,
     registry,
   };
 };

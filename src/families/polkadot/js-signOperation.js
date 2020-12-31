@@ -1,7 +1,6 @@
 // @flow
 import { BigNumber } from "bignumber.js";
 import { Observable } from "rxjs";
-import { createSerializedUnsignedTx, createSerializedSignedTx } from "./transactions";
 import type { Transaction } from "./types";
 import type { Account, Operation, SignOperationEvent } from "../../types";
 
@@ -12,8 +11,7 @@ import { encodeOperationId } from "../../operation";
 import { Polkadot } from "./ledger-app/Polkadot";
 
 import getTxInfo from "./js-getTransactionInfo";
-import { getEstimatedFeesFromUnsignedTx } from "./js-getFeesForTransaction";
-import buildTransaction from "./js-buildTransaction";
+import { createSerializedUnsignedTx, createSerializedSignedTx, buildTransaction } from "./js-buildTransaction";
 import { estimateAmount } from "./js-estimateMaxSpendable";
 
 const MODE_TO_TYPE = {
@@ -138,16 +136,10 @@ const signOperation = ({
 
         o.next({ type: "device-signature-granted" });
 
-        const fee = await getEstimatedFeesFromUnsignedTx(
-          account,
-          rawPayload,
-          txInfo
-        );
-
         const operation = buildOptimisticOperation(
           account,
           tmpTransaction,
-          fee,
+          tmpTransaction.fees,
           txInfo.nonce
         );
 
