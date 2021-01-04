@@ -1,21 +1,18 @@
 // @flow
 import { BigNumber } from "bignumber.js";
 import { Observable } from "rxjs";
+import { TypeRegistry } from "@polkadot/types";
+import { u8aConcat } from "@polkadot/util";
+import { FeeNotLoaded } from "@ledgerhq/errors";
+
 import type { Transaction } from "./types";
 import type { Account, Operation, SignOperationEvent } from "../../types";
-
-import { FeeNotLoaded } from "@ledgerhq/errors";
 
 import { open, close } from "../../hw";
 import { encodeOperationId } from "../../operation";
 import { Polkadot } from "./ledger-app/Polkadot";
 
-import getTxInfo from "./js-getTransactionInfo";
-import {
-  createSerializedUnsignedTx,
-  createSerializedSignedTx,
-  buildTransaction,
-} from "./js-buildTransaction";
+import { buildTransaction } from "./js-buildTransaction";
 import { estimateAmount } from "./js-estimateMaxSpendable";
 
 const MODE_TO_TYPE = {
@@ -91,6 +88,52 @@ const buildOptimisticOperation = (
   return operation;
 };
 
+/**
+ * Serialize a signed transaction in a format that can be submitted over the
+ * Node RPC Interface from the signing payload and signature produced by the
+ * remote signer.
+ *
+ * @param unsigned - The JSON representing the unsigned transaction.
+ * @param signature - Signature of the signing payload produced by the remote signer.
+ * @param registry - Registry used for constructing the payload.
+ */
+export const signExtrinsic = async (
+  unsigned: Object,
+  signature: any,
+  registry: typeof TypeRegistry
+) => {
+  const extrinsic = registry.createType("Extrinsic", unsigned, {
+    version: unsigned.version,
+  });
+  extrinsic.addSignature(unsigned.address, signature, unsigned);
+  return extrinsic.toHex();
+};
+
+/**
+ * Sign Extrinsic with a fake signature (for fees estimation).
+ *
+ * @param unsigned - The JSON representing the unsigned transaction.
+ * @param registry - Registry used for constructing the payload.
+ */
+export const fakeSignExtrinsic = async (
+  unsigned: any,
+  registry: typeof TypeRegistry
+) => {
+  const fakeSignature = u8aConcat(
+    new Uint8Array([1]),
+    new Uint8Array(64).fill(0x42)
+  );
+
+  const extrinsic = registry.createType("Extrinsic", unsigned, {
+    version: unsigned.version,
+  });
+  extrinsic.addSignature(unsigned.address, fakeSignature, unsigned);
+  return extrinsic.toHex();
+};
+
+/**
+ * Sign Transaction with Ledger hardware
+ */
 const signOperation = ({
   account,
   deviceId,
@@ -107,54 +150,45 @@ const signOperation = ({
         o.next({ type: "device-signature-requested" });
 
         // Sign by device
-
-        const txInfo = await getTxInfo(account);
-        const tmpTransaction = {
+        const transactionToSign = {
           ...transaction,
           amount: estimateAmount({ a: account, t: transaction }),
         };
 
-        if (!transaction.fees) {
+        if (!transactionToSign.fees) {
           throw new FeeNotLoaded();
         }
 
-        const rawPayload = await buildTransaction(
+        const { unsigned, registry } = await buildTransaction(
           account,
-          tmpTransaction,
-          txInfo
+          transactionToSign
         );
 
-        const serializedUnsignedPayload = createSerializedUnsignedTx(
-          rawPayload,
-          txInfo.registry
-        );
+        const payload = registry
+          .createType("ExtrinsicPayload", unsigned, {
+            version: unsigned.version,
+          })
+          .toU8a({ method: true });
 
         const polkadot = new Polkadot(transport);
-        const r = await polkadot.sign(
-          account.freshAddressPath,
-          serializedUnsignedPayload
-        );
+        const r = await polkadot.sign(account.freshAddressPath, payload);
 
-        const serializedSignedPayload = createSerializedSignedTx(
-          rawPayload,
-          r.signature,
-          txInfo.registry
-        );
+        const signed = await signExtrinsic(unsigned, r.signature, registry);
 
         o.next({ type: "device-signature-granted" });
 
         const operation = buildOptimisticOperation(
           account,
-          tmpTransaction,
-          tmpTransaction.fees,
-          txInfo.nonce
+          transactionToSign,
+          transactionToSign.fees ?? BigNumber(0),
+          unsigned.nonce
         );
 
         o.next({
           type: "signed",
           signedOperation: {
             operation,
-            signature: serializedSignedPayload,
+            signature: signed,
             expirationDate: null,
           },
         });

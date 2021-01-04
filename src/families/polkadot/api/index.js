@@ -15,6 +15,7 @@
 // paymentInfo,
 // getValidators,
 // getStakingProgress,
+// getRegistry,
 // disconnect,
 // } from "./websocket";
 
@@ -31,5 +32,6 @@ export {
   paymentInfo,
   getValidators,
   getStakingProgress,
+  getRegistry,
   disconnect,
 } from "./sidecar";

@@ -1,25 +1,20 @@
 // @flow
 import { BigNumber } from "bignumber.js";
-import { u8aConcat } from "@polkadot/util";
 
 import type { Account } from "../../types";
 import type { Transaction } from "./types";
 import type { CacheRes } from "../../cache";
-import getTxInfo from "./js-getTransactionInfo";
 import { makeLRUCache } from "../../cache";
 import { paymentInfo } from "./api";
-import {
-  buildTransaction,
-  createSerializedSignedTx,
-} from "./js-buildTransaction";
+import { buildTransaction } from "./js-buildTransaction";
+import { fakeSignExtrinsic } from "./js-signOperation";
 
 export const calculateFees: CacheRes<
   Array<{ a: Account, t: Transaction }>,
   BigNumber
 > = makeLRUCache(
   async ({ a, t }): Promise<BigNumber> => {
-    const txInfo = await getTxInfo(a);
-    return await getEstimatedFees(a, t, txInfo);
+    return await getEstimatedFees(a, t);
   },
   ({ a, t }) =>
     `${a.id}_${t.amount.toString()}_${t.recipient}_${String(t.useAllAmount)}_${
@@ -38,21 +33,11 @@ export const calculateFees: CacheRes<
  */
 const getEstimatedFees = async (
   a: Account,
-  t: Transaction,
-  txInfo: any
+  t: Transaction
 ): Promise<BigNumber> => {
-  const txPayload = await buildTransaction(a, t, txInfo);
+  const { unsigned, registry } = await buildTransaction(a, t);
 
-  const fakeSignature = u8aConcat(
-    new Uint8Array([1]),
-    new Uint8Array(64).fill(0x42)
-  );
-
-  const fakeSignedTx = createSerializedSignedTx(
-    txPayload,
-    fakeSignature,
-    txInfo.registry
-  );
+  const fakeSignedTx = await fakeSignExtrinsic(unsigned, registry);
 
   const payment = await paymentInfo(fakeSignedTx);
 
