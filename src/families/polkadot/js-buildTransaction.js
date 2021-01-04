@@ -1,12 +1,12 @@
 // @flow
 
-import { stringCamelCase } from '@polkadot/util';
+import { stringCamelCase } from "@polkadot/util";
 
 import type { Transaction } from "./types";
 import type { Account } from "../../types";
 
 import { isFirstBond } from "./logic";
-import { createDecoratedTxs } from './registry';
+import { createDecoratedTxs } from "./registry";
 
 const EXTRINSIC_VERSION = 4;
 
@@ -23,24 +23,34 @@ const DEFAULTS = {
  * @param registry - Registry used for constructing the payload.
  */
 export const createSerializedUnsignedTx = (unsigned: any, registry: any) => {
-  const payload = registry.createType("ExtrinsicPayload", unsigned, { version: unsigned.version });
+  const payload = registry.createType("ExtrinsicPayload", unsigned, {
+    version: unsigned.version,
+  });
   return payload.toU8a({ method: true });
-}
+};
 
 /**
-* Serialize a signed transaction in a format that can be submitted over the
-* Node RPC Interface from the signing payload and signature produced by the
-* remote signer.
-*
-* @param unsigned - The JSON representing the unsigned transaction.
-* @param signature - Signature of the signing payload produced by the remote signer.
-* @param registry - Registry used for constructing the payload.
-*/
-export const createSerializedSignedTx = (unsigned: any, signature: any, registry: any) => {
-  const extrinsic = registry.createType('Extrinsic', { method: unsigned.method }, { version: unsigned.version });
+ * Serialize a signed transaction in a format that can be submitted over the
+ * Node RPC Interface from the signing payload and signature produced by the
+ * remote signer.
+ *
+ * @param unsigned - The JSON representing the unsigned transaction.
+ * @param signature - Signature of the signing payload produced by the remote signer.
+ * @param registry - Registry used for constructing the payload.
+ */
+export const createSerializedSignedTx = (
+  unsigned: any,
+  signature: any,
+  registry: any
+) => {
+  const extrinsic = registry.createType(
+    "Extrinsic",
+    { method: unsigned.method },
+    { version: unsigned.version }
+  );
   extrinsic.addSignature(unsigned.address, signature, unsigned);
   return extrinsic.toHex();
-}
+};
 
 /**
  * Helper function to construct an offline method.
@@ -52,38 +62,49 @@ const createTransactionPayload = (params: any, info: any) => {
   const { metadataRpc, registry } = info;
   const metadata = createDecoratedTxs(registry, metadataRpc);
   const methodFunction = metadata[params.pallet][params.name];
-  const method = methodFunction(...methodFunction.meta.args.map((arg) => {
+  const method = methodFunction(
+    ...methodFunction.meta.args.map((arg) => {
       if (params.args[stringCamelCase(arg.name.toString())] === undefined) {
-          throw new Error(`Method ${params.pallet}::${params.name} expects argument ${arg.toString()}, but got undefined`);
+        throw new Error(
+          `Method ${params.pallet}::${
+            params.name
+          } expects argument ${arg.toString()}, but got undefined`
+        );
       }
       return params.args[stringCamelCase(arg.name.toString())];
-  })).toHex();
+    })
+  ).toHex();
 
   return {
-      address: info.address,
-      blockHash: info.blockHash,
-      blockNumber: registry.createType('BlockNumber', info.blockNumber).toHex(),
-      era: registry
-          .createType('ExtrinsicEra', {
-              current: info.blockNumber,
-              period: DEFAULTS.eraPeriod,
-          }).toHex(),
-      genesisHash: info.genesisHash,
-      method,
-      nonce: registry.createType('Compact<Index>', info.nonce).toHex(),
-      signedExtensions: registry.signedExtensions,
-      specVersion: registry.createType('u32', info.specVersion).toHex(),
-      tip: registry
-          .createType('Compact<Balance>', info.tip || DEFAULTS.tip)
-          .toHex(),
-      transactionVersion: registry
-          .createType('u32', info.transactionVersion)
-          .toHex(),
-      version: EXTRINSIC_VERSION,
+    address: info.address,
+    blockHash: info.blockHash,
+    blockNumber: registry.createType("BlockNumber", info.blockNumber).toHex(),
+    era: registry
+      .createType("ExtrinsicEra", {
+        current: info.blockNumber,
+        period: DEFAULTS.eraPeriod,
+      })
+      .toHex(),
+    genesisHash: info.genesisHash,
+    method,
+    nonce: registry.createType("Compact<Index>", info.nonce).toHex(),
+    signedExtensions: registry.signedExtensions,
+    specVersion: registry.createType("u32", info.specVersion).toHex(),
+    tip: registry
+      .createType("Compact<Balance>", info.tip || DEFAULTS.tip)
+      .toHex(),
+    transactionVersion: registry
+      .createType("u32", info.transactionVersion)
+      .toHex(),
+    version: EXTRINSIC_VERSION,
   };
-}
+};
 
-export const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
+export const buildTransaction = async (
+  a: Account,
+  t: Transaction,
+  txInfo: any
+) => {
   const validator = t.validators ? t.validators[0] : null;
 
   let transaction;
@@ -99,12 +120,13 @@ export const buildTransaction = async (a: Account, t: Transaction, txInfo: any) 
           name: "transferKeepAlive",
           pallet: "balances",
         },
-        txInfo);
+        txInfo
+      );
       break;
 
     case "bond":
-      transaction = isFirstBond(a) ?
-          // Construct a transaction to bond funds and create a Stash account.
+      transaction = isFirstBond(a)
+        ? // Construct a transaction to bond funds and create a Stash account.
           createTransactionPayload(
             {
               pallet: "staking",
@@ -119,8 +141,7 @@ export const buildTransaction = async (a: Account, t: Transaction, txInfo: any) 
             },
             txInfo
           )
-        :
-          // Add some extra amount from the stash's `free_balance` into the staking balance.
+        : // Add some extra amount from the stash's `free_balance` into the staking balance.
           // Can only be called when `EraElectionStatus` is `Closed`.
           createTransactionPayload(
             {
@@ -129,7 +150,7 @@ export const buildTransaction = async (a: Account, t: Transaction, txInfo: any) 
               args: { maxAdditional: t.amount.toString() },
             },
             txInfo
-          )
+          );
       break;
 
     case "unbond":
@@ -165,7 +186,7 @@ export const buildTransaction = async (a: Account, t: Transaction, txInfo: any) 
         {
           pallet: "staking",
           name: "withdrawUnbonded",
-          args: { numSlashingSpans: 0},
+          args: { numSlashingSpans: 0 },
         },
         txInfo
       );

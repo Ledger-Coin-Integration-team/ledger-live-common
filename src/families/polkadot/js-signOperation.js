@@ -11,7 +11,11 @@ import { encodeOperationId } from "../../operation";
 import { Polkadot } from "./ledger-app/Polkadot";
 
 import getTxInfo from "./js-getTransactionInfo";
-import { createSerializedUnsignedTx, createSerializedSignedTx, buildTransaction } from "./js-buildTransaction";
+import {
+  createSerializedUnsignedTx,
+  createSerializedSignedTx,
+  buildTransaction,
+} from "./js-buildTransaction";
 import { estimateAmount } from "./js-estimateMaxSpendable";
 
 const MODE_TO_TYPE = {
@@ -120,7 +124,10 @@ const signOperation = ({
           txInfo
         );
 
-        const serializedUnsignedPayload = createSerializedUnsignedTx(rawPayload, txInfo.registry);
+        const serializedUnsignedPayload = createSerializedUnsignedTx(
+          rawPayload,
+          txInfo.registry
+        );
 
         const polkadot = new Polkadot(transport);
         const r = await polkadot.sign(

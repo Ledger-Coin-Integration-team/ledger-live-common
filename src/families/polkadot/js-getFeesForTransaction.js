@@ -8,7 +8,10 @@ import type { CacheRes } from "../../cache";
 import getTxInfo from "./js-getTransactionInfo";
 import { makeLRUCache } from "../../cache";
 import { paymentInfo } from "./api";
-import { buildTransaction, createSerializedSignedTx } from "./js-buildTransaction";
+import {
+  buildTransaction,
+  createSerializedSignedTx,
+} from "./js-buildTransaction";
 
 export const calculateFees: CacheRes<
   Array<{ a: Account, t: Transaction }>,
@@ -38,7 +41,6 @@ const getEstimatedFees = async (
   t: Transaction,
   txInfo: any
 ): Promise<BigNumber> => {
-
   const txPayload = await buildTransaction(a, t, txInfo);
 
   const fakeSignature = u8aConcat(
@@ -46,7 +48,11 @@ const getEstimatedFees = async (
     new Uint8Array(64).fill(0x42)
   );
 
-  const fakeSignedTx = createSerializedSignedTx(txPayload, fakeSignature, txInfo.registry);
+  const fakeSignedTx = createSerializedSignedTx(
+    txPayload,
+    fakeSignature,
+    txInfo.registry
+  );
 
   const payment = await paymentInfo(fakeSignedTx);
 
