@@ -15,6 +15,8 @@ import { Polkadot } from "./ledger-app/Polkadot";
 import { buildTransaction } from "./js-buildTransaction";
 import { estimateAmount } from "./js-estimateMaxSpendable";
 
+import { isFirstBond } from "./logic";
+
 const MODE_TO_TYPE = {
   send: "OUT",
   bond: "BOND",
@@ -30,6 +32,7 @@ const MODE_TO_TYPE = {
 const MODE_TO_PALLET_METHOD = {
   send: "balances.transferKeepAlive",
   bond: "staking.bond",
+  bondExtra: "staking.bondExtra",
   unbond: "staking.unbond",
   rebond: "staking.rebond",
   withdrawUnbonded: "staking.withdrawUnbonded",
@@ -40,7 +43,14 @@ const MODE_TO_PALLET_METHOD = {
 
 const getExtra = (type: string, account: Account, transaction: Transaction) => {
   const extra = MODE_TO_PALLET_METHOD[transaction.mode]
-    ? { palletMethod: MODE_TO_PALLET_METHOD[transaction.mode] }
+    ? {
+        palletMethod:
+          MODE_TO_PALLET_METHOD[
+            transaction.mode === "bond" && !isFirstBond(account)
+              ? "bondExtra"
+              : transaction.mode
+          ],
+      }
     : {};
 
   switch (type) {
@@ -56,11 +66,18 @@ const getExtra = (type: string, account: Account, transaction: Transaction) => {
   return extra;
 };
 
+/**
+ *
+ * @param {Account} account
+ * @param {Transaction} transaction
+ * @param {BigNumber} fee
+ * @param {string} nonce - we get this one in hex
+ */
 const buildOptimisticOperation = (
   account: Account,
   transaction: Transaction,
   fee: BigNumber,
-  nonce: number
+  nonce: string
 ): Operation => {
   const type = MODE_TO_TYPE[transaction.mode] ?? MODE_TO_TYPE.default;
 
@@ -78,9 +95,9 @@ const buildOptimisticOperation = (
     blockHash: null,
     blockHeight: null,
     senders: [account.freshAddress],
-    recipients: [transaction.recipient],
+    recipients: [transaction.recipient].filter(Boolean),
     accountId: account.id,
-    transactionSequenceNumber: nonce,
+    transactionSequenceNumber: parseInt(nonce),
     date: new Date(),
     extra,
   };
