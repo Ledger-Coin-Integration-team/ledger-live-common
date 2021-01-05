@@ -2,6 +2,11 @@
 import { BigNumber } from "bignumber.js";
 import querystring from "querystring";
 
+import { TypeRegistry } from "@polkadot/types";
+import { getSpecTypes } from "@polkadot/types-known";
+import { Metadata } from "@polkadot/metadata";
+import { extrinsicsFromMeta } from "@polkadot/metadata/decorate";
+
 import { getEnv } from "../../../env";
 import network from "../../../network";
 
@@ -131,6 +136,27 @@ const fetchStakingProgress = async () => {
   const { data } = await network({
     method: "GET",
     url: getSidecarUrl("/pallets/staking/progress"),
+  });
+
+  return data;
+};
+
+const fetchTransactionMaterial = async (withMetadata = false) => {
+  // By default we don't want any metadata.
+  const params = withMetadata ? "" : "?noMeta=true";
+
+  const { data } = await network({
+    method: "GET",
+    url: getSidecarUrl(`/transaction/material${params}`),
+  });
+
+  return data;
+};
+
+const fetchChainSpec = async () => {
+  const { data } = await network({
+    method: "GET",
+    url: getSidecarUrl("/runtime/spec"),
   });
 
   return data;
@@ -319,20 +345,16 @@ export const getNominations = async (addr: string) => {
  * Returns all the params from the chain to build an extrinsic (a transaction on Substrate)
  */
 export const getTransactionParams = async () => {
-  const { data } = await network({
-    method: "GET",
-    url: getSidecarUrl("/transaction/material"),
-  });
+  const material = await fetchTransactionMaterial();
 
   return {
-    blockHash: data.at.hash,
-    blockNumber: data.at.height,
-    chainName: data.chainName,
-    genesisHash: data.genesisHash,
-    specName: data.specName,
-    transactionVersion: data.txVersion,
-    specVersion: data.specVersion,
-    metadataRpc: data.metadata,
+    blockHash: material.at.hash,
+    blockNumber: material.at.height,
+    chainName: material.chainName,
+    genesisHash: material.genesisHash,
+    specName: material.specName,
+    transactionVersion: material.txVersion,
+    specVersion: material.specVersion,
   };
 };
 
@@ -433,4 +455,42 @@ export const getStakingProgress = async (): Promise<PolkadotStakingProgress> => 
       Number(consts.staking.maxNominatorRewardedPerValidator) || 128,
     bondingDuration: Number(consts.staking.bondingDuration) || 28,
   };
+};
+
+/**
+ * Create a new Registry for creating Polkadot.JS types (or any Substrate)
+ */
+export const getRegistry = async () => {
+  const [material, spec] = await Promise.all([
+    fetchTransactionMaterial(true),
+    fetchChainSpec(),
+  ]);
+
+  const registry = new TypeRegistry();
+  const metadata = new Metadata(registry, material.metadata);
+
+  // Register types specific to chain/runtimeVersion
+  registry.register(
+    getSpecTypes(
+      registry,
+      material.chainName,
+      material.specName,
+      material.specVersion
+    )
+  );
+
+  // Register the chain properties for this registry
+  registry.setChainProperties(
+    registry.createType("ChainProperties", {
+      ss58Format: Number(spec.properties.ss58Format),
+      tokenDecimals: Number(spec.properties.tokenDecimals),
+      tokenSymbol: spec.properties.tokenSymbol,
+    })
+  );
+
+  registry.setMetadata(metadata);
+
+  const extrinsics = extrinsicsFromMeta(registry, metadata);
+
+  return { registry, extrinsics };
 };

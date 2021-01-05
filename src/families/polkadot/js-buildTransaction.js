@@ -1,101 +1,177 @@
 // @flow
 
+import { stringCamelCase } from "@polkadot/util";
+
 import type { Transaction } from "./types";
 import type { Account } from "../../types";
 
-import { methods } from "@substrate/txwrapper";
-import { isFirstBond } from "./logic";
+import { getRegistry } from "./cache";
+import { getTransactionParams } from "./api";
+import { isFirstBond, getNonce } from "./logic";
 
-const buildTransaction = async (a: Account, t: Transaction, txInfo: any) => {
-  const { txBaseInfo, txOptions } = txInfo;
+const EXTRINSIC_VERSION = 4;
+
+// Default values for tx parameters, if the user doesn't specify any
+const DEFAULTS = {
+  tip: 0,
+  eraPeriod: 64,
+};
+
+const getExtrinsicParams = (a: Account, t: Transaction) => {
   const validator = t.validators ? t.validators[0] : null;
 
-  let transaction;
   switch (t.mode) {
     case "send":
-      transaction = methods.balances.transferKeepAlive(
-        {
+      // Construct a balance transfer transaction offline.
+      return {
+        args: {
           dest: t.recipient,
           value: t.amount.toString(),
         },
-        txBaseInfo,
-        txOptions
-      );
-      break;
-
-    // still not sure about this rule should get more info about that
+        name: "transferKeepAlive",
+        pallet: "balances",
+      };
     case "bond":
-      transaction = isFirstBond(a)
-        ? methods.staking.bond(
-            {
-              controller: t.recipient,
-              value: t.amount.toString(),
-              /**
-               * The rewards destination. Can be "Stash", "Staked", "Controller" or "{ Account: accountId }"".
-               */
-              payee: t.rewardDestination || "Stash",
-            },
-            txBaseInfo,
-            txOptions
-          )
-        : methods.staking.bondExtra(
-            {
-              maxAdditional: t.amount.toString(),
-            },
-            txBaseInfo,
-            txOptions
-          );
-      break;
-
+      if (isFirstBond(a)) {
+        return {
+          pallet: "staking",
+          name: "bond",
+          args: {
+            // Spec choice: we always set the account as both the stash and its controller
+            controller: a.freshAddress,
+            value: t.amount.toString(),
+            // The rewards destination. Can be "Stash", "Staked", "Controller" or "{ Account: accountId }"".
+            payee: t.rewardDestination || "Stash",
+          },
+        };
+      } else {
+        // Add some extra amount from the stash's `free_balance` into the staking balance.
+        // Can only be called when `EraElectionStatus` is `Closed`.
+        return {
+          pallet: "staking",
+          name: "bondExtra",
+          args: { maxAdditional: t.amount.toString() },
+        };
+      }
     case "unbond":
-      transaction = methods.staking.unbond(
-        { value: t.amount.toString() },
-        txBaseInfo,
-        txOptions
-      );
-      break;
+      // Construct a transaction to unbond funds from a Stash account.
+      // Must be signed by the controller, and can be only called when `EraElectionStatus` is `Closed`.
+      return {
+        pallet: "staking",
+        name: "unbond",
+        args: { value: t.amount.toString() },
+      };
 
     case "rebond":
-      transaction = methods.staking.rebond(
-        { value: t.amount.toNumber() },
-        txBaseInfo,
-        txOptions
-      );
-      break;
+      // Rebond a portion of the stash scheduled to be unlocked.
+      // Must be signed by the controller, and can be only called when `EraElectionStatus` is `Closed`.
+      return {
+        pallet: "staking",
+        name: "rebond",
+        args: { value: t.amount.toNumber() },
+      };
 
     case "withdrawUnbonded":
-      transaction = methods.staking.withdrawUnbonded(
-        { numSlashingSpans: 0 },
-        txBaseInfo,
-        txOptions
-      );
-      break;
+      // Remove any unbonded chunks from the `unbonding` queue from our management
+      // Must be signed by the controller, and can be only called when `EraElectionStatus` is `Closed`.
+      return {
+        pallet: "staking",
+        name: "withdrawUnbonded",
+        args: { numSlashingSpans: 0 },
+      };
 
     case "nominate":
-      transaction = methods.staking.nominate(
-        { targets: t.validators },
-        txBaseInfo,
-        txOptions
-      );
-      break;
+      // Construct a transaction to nominate validators.
+      // Must be signed by the controller, and can be only called when `EraElectionStatus` is `Closed`.
+      return {
+        pallet: "staking",
+        name: "nominate",
+        args: { targets: t.validators },
+      };
 
     case "chill":
-      transaction = methods.staking.chill({}, txBaseInfo, txOptions);
-      break;
+      // Declare the desire to cease validating or nominating. Does not unbond funds.
+      // Must be signed by the controller, and can be only called when `EraElectionStatus` is `Closed`.
+      return {
+        pallet: "staking",
+        name: "chill",
+        args: {},
+      };
 
     case "claimReward":
-      transaction = methods.staking.payoutStakers(
-        { validatorStash: validator, era: t.era },
-        txBaseInfo,
-        txOptions
-      );
-      break;
+      // Pay out all the stakers behind a single validator for a single era.
+      // Any account can call this function, even if it is not one of the stakers.
+      // Can only be called when `EraElectionStatus` is `Closed`.
+      return {
+        pallet: "staking",
+        name: "payoutStakers",
+        args: { validatorStash: validator, era: t.era },
+      };
 
     default:
       throw new Error("Unknown mode in transaction");
   }
-
-  return transaction;
 };
 
-export default buildTransaction;
+export const buildTransaction = async (a: Account, t: Transaction) => {
+  const { extrinsics, registry } = await getRegistry();
+  const info = await getTransactionParams();
+
+  // Get the correct extrinsics params depending on transaction
+  const extrinsicParams = getExtrinsicParams(a, t);
+
+  const address = a.freshAddress;
+  const { blockHash, genesisHash } = info;
+  const blockNumber = registry
+    .createType("BlockNumber", info.blockNumber)
+    .toHex();
+  const era = registry
+    .createType("ExtrinsicEra", {
+      current: info.blockNumber,
+      period: DEFAULTS.eraPeriod,
+    })
+    .toHex();
+  const nonce = registry.createType("Compact<Index>", getNonce(a)).toHex();
+  const specVersion = registry.createType("u32", info.specVersion).toHex();
+  const tip = registry
+    .createType("Compact<Balance>", info.tip || DEFAULTS.tip)
+    .toHex();
+  const transactionVersion = registry
+    .createType("u32", info.transactionVersion)
+    .toHex();
+
+  const methodFunction =
+    extrinsics[extrinsicParams.pallet][extrinsicParams.name];
+  const methodArgs = methodFunction.meta.args;
+  const method = methodFunction(
+    ...methodArgs.map((arg) => {
+      if (
+        extrinsicParams.args[stringCamelCase(arg.name.toString())] === undefined
+      ) {
+        throw new Error(
+          `Method ${extrinsicParams.pallet}::${
+            extrinsicParams.name
+          } expects argument ${arg.toString()}, but got undefined`
+        );
+      }
+      return extrinsicParams.args[stringCamelCase(arg.name.toString())];
+    })
+  ).toHex();
+
+  const unsigned = {
+    address,
+    blockHash,
+    blockNumber,
+    era,
+    genesisHash,
+    method,
+    nonce,
+    signedExtensions: registry.signedExtensions,
+    specVersion,
+    tip,
+    transactionVersion,
+    version: EXTRINSIC_VERSION,
+  };
+
+  return { registry, unsigned };
+};

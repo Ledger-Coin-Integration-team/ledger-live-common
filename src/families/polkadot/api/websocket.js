@@ -326,7 +326,6 @@ export const getTransactionParams = async () =>
     const blockHash = await api.rpc.chain.getFinalizedHead();
     const genesisHash = await api.rpc.chain.getBlockHash(0);
     const { number } = await api.rpc.chain.getHeader(blockHash);
-    const metadataRpc = await api.rpc.state.getMetadata(blockHash);
     const {
       specName,
       specVersion,
@@ -341,7 +340,6 @@ export const getTransactionParams = async () =>
       specName: specName.toString(),
       specVersion,
       transactionVersion,
-      metadataRpc,
     };
   });
 
@@ -559,5 +557,16 @@ export const getStakingProgress = async (): Promise<PolkadotStakingProgress> =>
     return {
       activeEra: activeEra.toNumber(),
       electionClosed: !!status.isClose,
+    };
+  });
+
+/**
+ * Return TypeRegistry and decorated extrinsics from client
+ */
+export const getRegistry = async () =>
+  withApi(async (api: typeof ApiPromise) => {
+    return {
+      registry: api.registry,
+      extrinsics: api.tx,
     };
   });

@@ -73,3 +73,16 @@ export const isFirstBond = (a: Account): boolean => !isStash(a);
 // return true if some BOND operation is pending and not yet synchronized
 export const hasPendingBond = (a: Account): boolean =>
   a.pendingOperations?.some((op) => op.type === "BOND") ?? false;
+
+export const getNonce = (a: Account): number => {
+  const lastPendingOp = a.pendingOperations[0];
+
+  const nonce = Math.max(
+    a.polkadotResources?.nonce || 0,
+    lastPendingOp && typeof lastPendingOp.transactionSequenceNumber === "number"
+      ? lastPendingOp.transactionSequenceNumber + 1
+      : 0
+  );
+
+  return nonce;
+};
