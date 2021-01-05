@@ -13,23 +13,27 @@ const LIMIT = 200;
 
 /**
  * Return the url of the indexer
+ *
  * @returns {string}
  */
-const getBaseApiUrl = () => getEnv("API_POLKADOT_INDEXER");
+const getBaseApiUrl = (): string => getEnv("API_POLKADOT_INDEXER");
 
 /**
- * fetch operation lists from indexer
+ * Fetch operation lists from indexer
+ *
  * @param {string} addr
  * @param {number} offset
  * @param {number} startAt
  * @param {number} limit
+ *
+ * @returns {string}
  */
 const getAccountOperationUrl = (
   addr: string,
   offset: number,
   startAt: number,
   limit: number = LIMIT
-) =>
+): string =>
   `${getBaseApiUrl()}/accounts/${addr}/operations?${querystring.stringify({
     limit,
     offset,
@@ -38,10 +42,13 @@ const getAccountOperationUrl = (
 
 /**
  * add Extra info for operation details
+ *
  * @param {OperationType} type
  * @param {*} extrinsic
+ *
+ * @returns {Object}
  */
-const getExtra = (type: OperationType, extrinsic: *) => {
+const getExtra = (type: OperationType, extrinsic: *): Object => {
   let extra = {
     palletMethod: `${extrinsic.section}.${extrinsic.method}`,
   };
@@ -92,10 +99,14 @@ const getExtra = (type: OperationType, extrinsic: *) => {
 };
 
 /**
+ * Returns the operation value (amount if relevant + fees) depending on type
+ *
  * @param {*} extrinsic
  * @param {OperationType} type
+ *
+ * @returns {BigNumber}
  */
-const getValue = (extrinsic, type: OperationType) => {
+const getValue = (extrinsic, type: OperationType): BigNumber => {
   if (!extrinsic.isSuccess) {
     return type === "IN" ? BigNumber(0) : BigNumber(extrinsic.partialFee || 0);
   }
@@ -115,10 +126,13 @@ const getValue = (extrinsic, type: OperationType) => {
 };
 
 /**
- * Map extrinsic into the live-operation format
+ * Map extrinsic into the live operation type
+ *
  * @param {string} addr
  * @param {string} accountId
  * @param {*} extrinsic
+ *
+ * @returns {Operation | null}
  */
 const extrinsicToOperation = (
   addr: string,
@@ -160,9 +174,12 @@ const extrinsicToOperation = (
 
 /**
  * Map reward to live operation type
+ *
  * @param {string} addr
  * @param {string} accountId
  * @param {*} reward
+ *
+ * @returns {Operation | null}
  */
 const rewardToOperation = (
   addr: string,
@@ -189,9 +206,12 @@ const rewardToOperation = (
 
 /**
  * Map slash to live operation type
+ *
  * @param {string} addr
  * @param {string} accountId
  * @param {*} slash
+ *
+ * @returns {Operation | null}
  */
 const slashToOperation = (
   addr: string,
@@ -217,11 +237,13 @@ const slashToOperation = (
 };
 
 /**
- * loop to fetch multiple operations per page / offsite / start
+ * Fetch loop with multiple operations per page / offsite / start
+ *
  * @param {string} accountId
  * @param {string} addr
  * @param {number} startAt
  * @param {number} offset
+ *
  * @param {Operation[]} prevOperations
  */
 const fetchOperationList = async (
@@ -268,11 +290,12 @@ const fetchOperationList = async (
 };
 
 /**
- * Fetch indexer and transform it into a Operation type
+ * Fetch all operations for a single account from indexer
  *
  * @param {string} accountId
  * @param {string} addr
  * @param {number} startAt - blockHeight after which you fetch this op (included)
+ *
  * @return {Operation[]}
  */
 export const getOperations = async (

@@ -1,16 +1,21 @@
 // @flow
 
 import { log } from "@ledgerhq/logs";
+import type { OperationType } from "../../../types";
 
 /**
- * get the operation type by using his palletMethod
+ * Returns the operation type by using his palletMethod
  * the method case depends from which indexer you are using
- * - camelCase for BisonTrails
- * - snake_case for Subscan
+ *
  * @param {*} pallet
  * @param {*} palletMethod
+ *
+ * @returns {string} - OperationType
  */
-export const getOperationType = (pallet: string, palletMethod: string) => {
+export const getOperationType = (
+  pallet: string,
+  palletMethod: string
+): OperationType => {
   switch (palletMethod) {
     case "transfer":
     case "transferKeepAlive":
@@ -37,7 +42,10 @@ export const getOperationType = (pallet: string, palletMethod: string) => {
       return "FEES";
 
     default:
-      log("polkadot/api", `Unhandled operation type ${pallet}.${palletMethod}`);
+      log(
+        "polkadot/api",
+        `Unknown operation type ${pallet}.${palletMethod} - fallback to FEES`
+      );
       return "FEES";
   }
 };
