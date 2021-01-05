@@ -6,7 +6,7 @@ import type { Account } from "../../types";
 import type { Transaction } from "./types";
 
 import { paymentInfo } from "./api";
-import { calculateAmount } from "./js-estimateMaxSpendable";
+import { calculateAmount } from "./logic";
 import { buildTransaction } from "./js-buildTransaction";
 import { fakeSignExtrinsic } from "./js-signOperation";
 

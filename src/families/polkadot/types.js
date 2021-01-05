@@ -1,5 +1,4 @@
 // @flow
-
 import type { BigNumber } from "bignumber.js";
 import type {
   TransactionCommon,
@@ -15,7 +14,6 @@ export type CoreAccountSpecifics = {};
 export type CoreOperationSpecifics = {};
 
 export type CoreCurrencySpecifics = {};
-
 
 export type PolkadotNominationStatus = "active" | "inactive" | "waiting" | null;
 

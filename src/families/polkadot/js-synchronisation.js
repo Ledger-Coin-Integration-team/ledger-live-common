@@ -1,11 +1,11 @@
 //@flow
-
+import type { Account } from "../../types";
 import type { GetAccountShape } from "../../bridge/jsHelpers";
-import { mergeOps } from "../../bridge/jsHelpers";
+import { makeSync, makeScanAccounts, mergeOps } from "../../bridge/jsHelpers";
 
 import { getAccount, getOperations } from "./api";
 
-export const getAccountShape: GetAccountShape = async (info) => {
+const getAccountShape: GetAccountShape = async (info) => {
   const { id, address, initialAccount } = info;
   const oldOperations = initialAccount?.operations || [];
   const startAt = oldOperations.length
@@ -48,3 +48,11 @@ export const getAccountShape: GetAccountShape = async (info) => {
 
   return { ...shape, operations };
 };
+
+const postSync = (initial: Account, parent: Account) => {
+  return parent;
+};
+
+export const scanAccounts = makeScanAccounts(getAccountShape);
+
+export const sync = makeSync(getAccountShape, postSync);

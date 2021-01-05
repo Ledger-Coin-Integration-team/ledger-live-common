@@ -47,6 +47,16 @@ const hashTransactionParams = (a: Account, t: Transaction) => {
   }
 };
 
+export const getFees: CacheRes<
+  Array<{ a: Account, t: Transaction }>,
+  BigNumber
+> = makeLRUCache(
+  async ({ a, t }): Promise<BigNumber> => {
+    return await getEstimatedFees(a, t);
+  },
+  ({ a, t }) => hashTransactionParams(a, t)
+);
+
 export const getRegistry: CacheRes<Array<void>, Object> = makeLRUCache(
   async (): Promise<{
     registry: typeof TypeRegistry,
@@ -58,16 +68,6 @@ export const getRegistry: CacheRes<Array<void>, Object> = makeLRUCache(
   {
     maxAge: 60 * 60 * 1000, // 1 hour - could be Infinity
   }
-);
-
-export const calculateFees: CacheRes<
-  Array<{ a: Account, t: Transaction }>,
-  BigNumber
-> = makeLRUCache(
-  async ({ a, t }): Promise<BigNumber> => {
-    return await getEstimatedFees(a, t);
-  },
-  ({ a, t }) => hashTransactionParams(a, t)
 );
 
 export const isNewAccount: CacheRes<Array<string>, boolean> = makeLRUCache(
