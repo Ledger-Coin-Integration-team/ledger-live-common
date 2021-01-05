@@ -15,7 +15,7 @@ import { Polkadot } from "./ledger-app/Polkadot";
 import { buildTransaction } from "./js-buildTransaction";
 import { estimateAmount } from "./js-estimateMaxSpendable";
 
-import { isFirstBond } from "./logic";
+import { isFirstBond, getNonce } from "./logic";
 
 const MODE_TO_TYPE = {
   send: "OUT",
@@ -66,18 +66,10 @@ const getExtra = (type: string, account: Account, transaction: Transaction) => {
   return extra;
 };
 
-/**
- *
- * @param {Account} account
- * @param {Transaction} transaction
- * @param {BigNumber} fee
- * @param {string} nonce - we get this one in hex
- */
 const buildOptimisticOperation = (
   account: Account,
   transaction: Transaction,
-  fee: BigNumber,
-  nonce: string
+  fee: BigNumber
 ): Operation => {
   const type = MODE_TO_TYPE[transaction.mode] ?? MODE_TO_TYPE.default;
 
@@ -97,7 +89,7 @@ const buildOptimisticOperation = (
     senders: [account.freshAddress],
     recipients: [transaction.recipient].filter(Boolean),
     accountId: account.id,
-    transactionSequenceNumber: parseInt(nonce),
+    transactionSequenceNumber: getNonce(account),
     date: new Date(),
     extra,
   };
@@ -197,8 +189,7 @@ const signOperation = ({
         const operation = buildOptimisticOperation(
           account,
           transactionToSign,
-          transactionToSign.fees ?? BigNumber(0),
-          unsigned.nonce
+          transactionToSign.fees ?? BigNumber(0)
         );
 
         o.next({

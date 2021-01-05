@@ -131,7 +131,7 @@ export const buildTransaction = async (a: Account, t: Transaction) => {
       period: DEFAULTS.eraPeriod,
     })
     .toHex();
-  const nonce = registry.createType("Compact<Index>", getNonce(a));
+  const nonce = registry.createType("Compact<Index>", getNonce(a)).toHex();
   const specVersion = registry.createType("u32", info.specVersion).toHex();
   const tip = registry
     .createType("Compact<Balance>", info.tip || DEFAULTS.tip)
