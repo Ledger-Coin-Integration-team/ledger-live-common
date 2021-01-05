@@ -11,6 +11,9 @@ import {
   FeeNotLoaded,
 } from "@ledgerhq/errors";
 import type { Account, TransactionStatus } from "../../types";
+import { formatCurrencyUnit } from "../../currencies";
+
+import type { Transaction } from "./types";
 import {
   PolkadotUnauthorizedOperation,
   PolkadotElectionClosed,
@@ -23,25 +26,19 @@ import {
   PolkadotMaxUnbonding,
   PolkadotValidatorsRequired,
 } from "./errors";
-
-import { formatCurrencyUnit } from "../../currencies";
-
 import { verifyValidatorAddresses } from "./api";
-
-import type { Transaction } from "./types";
 import {
+  EXISTENTIAL_DEPOSIT,
+  MINIMUM_BOND_AMOUNT,
   isValidAddress,
   isFirstBond,
   isController,
-  EXISTENTIAL_DEPOSIT,
-  MINIMUM_BOND_AMOUNT,
-  haveEnoughLockedBalance,
-  haveMaxUnlockings,
-} from "./logic.js";
-
+  hasLockedBalance,
+  hasMaxUnlockings,
+  calculateAmount,
+} from "./logic";
 import { getCurrentPolkadotPreloadData } from "./preload";
 import { isControllerAddress, isNewAccount, isElectionClosed } from "./cache";
-import { calculateAmount } from "./js-estimateMaxSpendable";
 
 // Should try to refacto
 const getSendTransactionStatus = async (
@@ -157,11 +154,11 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
       break;
 
     case "unbond":
-      if (!isController(a) || !haveEnoughLockedBalance(a)) {
+      if (!isController(a) || !hasLockedBalance(a)) {
         errors.staking = new PolkadotUnauthorizedOperation();
       }
 
-      if (!haveMaxUnlockings(a)) {
+      if (hasMaxUnlockings(a)) {
         errors.unbondings = new PolkadotMaxUnbonding();
       }
 

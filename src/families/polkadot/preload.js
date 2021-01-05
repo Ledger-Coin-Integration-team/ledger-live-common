@@ -4,6 +4,7 @@ import { BigNumber } from "bignumber.js";
 import { Observable, Subject } from "rxjs";
 import { log } from "@ledgerhq/logs";
 
+import { PRELOAD_MAX_AGE } from "./logic";
 import type { PolkadotPreloadData, PolkadotValidator } from "./types";
 import { getStakingProgress, getValidators } from "./validators";
 
@@ -29,11 +30,7 @@ function fromHydrateValidator(validatorRaw: Object): PolkadotValidator {
   };
 }
 
-const shouldRefreshValidators = (previousState, currentState) => {
-  return !previousState || currentState.activeEra !== previousState.activeEra;
-};
-
-export function fromHydratePreloadData(data: mixed): PolkadotPreloadData {
+function fromHydratePreloadData(data: mixed): PolkadotPreloadData {
   let validators = [];
   let staking = null;
 
@@ -83,6 +80,17 @@ export function setPolkadotPreloadData(data: PolkadotPreloadData) {
 export function getPolkadotPreloadDataUpdates(): Observable<PolkadotPreloadData> {
   return updates.asObservable();
 }
+
+/**
+ * load max cache time for the validators
+ */
+export const getPreloadStrategy = () => ({
+  preloadMaxAge: PRELOAD_MAX_AGE,
+});
+
+const shouldRefreshValidators = (previousState, currentState) => {
+  return !previousState || currentState.activeEra !== previousState.activeEra;
+};
 
 export const preload = async (): Promise<PolkadotPreloadData> => {
   const currentStakingProgress = await getStakingProgress();

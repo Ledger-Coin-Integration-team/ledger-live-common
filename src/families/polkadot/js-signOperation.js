@@ -13,7 +13,7 @@ import { encodeOperationId } from "../../operation";
 import { Polkadot } from "./ledger-app/Polkadot";
 
 import { buildTransaction } from "./js-buildTransaction";
-import { calculateAmount } from "./js-estimateMaxSpendable";
+import { calculateAmount } from "./logic";
 
 const MODE_TO_TYPE = {
   send: "OUT",
