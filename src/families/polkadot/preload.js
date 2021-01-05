@@ -5,6 +5,7 @@ import { Observable, Subject } from "rxjs";
 import { log } from "@ledgerhq/logs";
 
 import { PRELOAD_MAX_AGE } from "./logic";
+import { getRegistry } from "./cache";
 import type { PolkadotPreloadData, PolkadotValidator } from "./types";
 import { getStakingProgress, getValidators } from "./validators";
 
@@ -93,6 +94,7 @@ const shouldRefreshValidators = (previousState, currentState) => {
 };
 
 export const preload = async (): Promise<PolkadotPreloadData> => {
+  await getRegistry(); // ensure registry is already in cache.
   const currentStakingProgress = await getStakingProgress();
 
   const {
