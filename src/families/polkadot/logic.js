@@ -10,7 +10,7 @@ export const MINIMUM_BOND_AMOUNT = BigNumber(10000000000);
 export const MAX_NOMINATIONS = 16;
 export const MAX_UNLOCKINGS = 32;
 export const PRELOAD_MAX_AGE = 60 * 1000;
-export const MAX_AMOUNT_INPUT = 18446744072;
+export const MAX_AMOUNT_INPUT = 0xffffffffffffffff;
 
 /**
  * Returns true if address is valid, false if it's invalid (can't parse or wrong checksum)
@@ -197,10 +197,6 @@ export const calculateAmount = ({
   a: Account,
   t: Transaction,
 }): BigNumber => {
-  if (t.amount.gt(MAX_AMOUNT_INPUT)) {
-    return BigNumber(MAX_AMOUNT_INPUT);
-  }
-
   if (t.useAllAmount) {
     switch (t.mode) {
       case "send":
@@ -215,6 +211,8 @@ export const calculateAmount = ({
       default:
         return a.spendableBalance.minus(t.fees || 0);
     }
+  } else if (t.amount.gt(MAX_AMOUNT_INPUT)) {
+    return BigNumber(MAX_AMOUNT_INPUT);
   }
 
   return t.amount;

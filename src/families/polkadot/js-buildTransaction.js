@@ -67,7 +67,7 @@ const getExtrinsicParams = (a: Account, t: Transaction) => {
       return {
         pallet: "staking",
         name: "rebond",
-        args: { value: t.amount.toNumber() },
+        args: { value: t.amount.toString() },
       };
 
     case "withdrawUnbonded":
