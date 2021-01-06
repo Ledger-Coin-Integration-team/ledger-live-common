@@ -1,28 +1,14 @@
 // @flow
 import { BigNumber } from "bignumber.js";
+import { getAbandonSeedAddress } from "@ledgerhq/cryptoassets";
 
 import type { Account } from "../../types";
 import type { Transaction } from "./types";
-import type { CacheRes } from "../../cache";
-import { makeLRUCache } from "../../cache";
+
 import { paymentInfo } from "./api";
+import { calculateAmount } from "./logic";
 import { buildTransaction } from "./js-buildTransaction";
 import { fakeSignExtrinsic } from "./js-signOperation";
-
-export const calculateFees: CacheRes<
-  Array<{ a: Account, t: Transaction }>,
-  BigNumber
-> = makeLRUCache(
-  async ({ a, t }): Promise<BigNumber> => {
-    return await getEstimatedFees(a, t);
-  },
-  ({ a, t }) =>
-    `${a.id}_${t.amount.toString()}_${t.recipient}_${String(t.useAllAmount)}_${
-      t.mode
-    }_${t.validators?.join("-") || ""}_${t.rewardDestination || ""}_${
-      t.era || ""
-    }`
-);
 
 /**
  * Fetch the transaction fees for a transaction
@@ -35,13 +21,17 @@ const getEstimatedFees = async (
   a: Account,
   t: Transaction
 ): Promise<BigNumber> => {
-  const { unsigned, registry } = await buildTransaction(a, t);
+  const transaction = {
+    ...t,
+    recipient: getAbandonSeedAddress(a.currency.id), // Always use a fake recipient to estimate fees
+    amount: calculateAmount({ a, t: { ...t, fees: BigNumber(0) } }), // Remove fees if present since we are fetching fees
+  };
 
+  const { unsigned, registry } = await buildTransaction(a, transaction);
   const fakeSignedTx = await fakeSignExtrinsic(unsigned, registry);
-
   const payment = await paymentInfo(fakeSignedTx);
 
-  const fee = BigNumber(payment.partialFee);
-
-  return fee;
+  return BigNumber(payment.partialFee);
 };
+
+export default getEstimatedFees;

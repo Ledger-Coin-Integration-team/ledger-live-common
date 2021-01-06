@@ -8,9 +8,12 @@ import {
   InvalidAddressBecauseDestinationIsAlsoSource,
   AmountRequired,
   NotEnoughBalanceBecauseDestinationNotCreated,
+  FeeNotLoaded,
 } from "@ledgerhq/errors";
-
 import type { Account, TransactionStatus } from "../../types";
+import { formatCurrencyUnit } from "../../currencies";
+
+import type { Transaction } from "./types";
 import {
   PolkadotUnauthorizedOperation,
   PolkadotElectionClosed,
@@ -23,28 +26,19 @@ import {
   PolkadotMaxUnbonding,
   PolkadotValidatorsRequired,
 } from "./errors";
-
-import { formatCurrencyUnit } from "../../currencies";
-
+import { verifyValidatorAddresses } from "./api";
 import {
-  isElectionClosed,
-  isNewAccount,
-  isControllerAddress,
-  verifyValidatorAddresses,
-} from "./api";
-
-import type { Transaction } from "./types";
-import {
+  EXISTENTIAL_DEPOSIT,
+  MINIMUM_BOND_AMOUNT,
   isValidAddress,
   isFirstBond,
   isController,
-  EXISTENTIAL_DEPOSIT,
-  MINIMUM_BOND_AMOUNT,
-  haveEnoughLockedBalance,
-  haveMaxUnlockings,
-} from "./logic.js";
-import { estimateAmount } from "./js-estimateMaxSpendable";
-import { calculateFees } from "./js-getFeesForTransaction";
+  hasLockedBalance,
+  hasMaxUnlockings,
+  calculateAmount,
+} from "./logic";
+import { getCurrentPolkadotPreloadData } from "./preload";
+import { isControllerAddress, isNewAccount, isElectionClosed } from "./cache";
 
 // Should try to refacto
 const getSendTransactionStatus = async (
@@ -53,7 +47,10 @@ const getSendTransactionStatus = async (
 ): Promise<TransactionStatus> => {
   const errors = {};
   const warnings = {};
-  const useAllAmount = !!t.useAllAmount;
+
+  if (!t.fees) {
+    errors.fees = new FeeNotLoaded();
+  }
 
   if (!t.recipient) {
     errors.recipient = new RecipientRequired("");
@@ -63,21 +60,9 @@ const getSendTransactionStatus = async (
     errors.recipient = new InvalidAddress("");
   }
 
-  let estimatedFees = BigNumber(0);
-  if (!errors.recipient) {
-    estimatedFees = await calculateFees({
-      a,
-      t: { ...t, amount: estimateAmount({ a, t }) },
-    });
-  }
-
-  const totalSpent = useAllAmount
-    ? a.spendableBalance
-    : BigNumber(t.amount).plus(estimatedFees);
-
-  const amount = useAllAmount
-    ? a.spendableBalance.minus(estimatedFees)
-    : BigNumber(t.amount);
+  const estimatedFees = t.fees || BigNumber(0);
+  const amount = calculateAmount({ a, t });
+  const totalSpent = amount.plus(estimatedFees);
 
   if (amount.lte(0) && !t.useAllAmount) {
     errors.amount = new AmountRequired();
@@ -89,8 +74,8 @@ const getSendTransactionStatus = async (
 
   if (
     !errors.recipient &&
-    (await isNewAccount(t.recipient)) &&
-    amount.lt(EXISTENTIAL_DEPOSIT)
+    amount.lt(EXISTENTIAL_DEPOSIT) &&
+    (await isNewAccount(t.recipient))
   ) {
     errors.amount = new NotEnoughBalanceBecauseDestinationNotCreated("", {
       minimalAmount: formatCurrencyUnit(
@@ -113,17 +98,21 @@ const getSendTransactionStatus = async (
 const getTransactionStatus = async (a: Account, t: Transaction) => {
   const errors = {};
   const warnings = {};
+  const { staking, validators } = getCurrentPolkadotPreloadData();
 
   if (t.mode === "send") {
     return await getSendTransactionStatus(a, t);
   }
 
-  if (await !isElectionClosed()) {
+  if (
+    (staking && !staking.electionClosed) || // Preloaded
+    (!staking && (await !isElectionClosed())) // Fallback
+  ) {
     errors.staking = new PolkadotElectionClosed();
   }
 
-  const useAllAmount = !!t.useAllAmount;
-  let amount = estimateAmount({ a, t });
+  const amount = calculateAmount({ a, t });
+
   const unlockingBalance =
     a.polkadotResources?.unlockingBalance || BigNumber(0);
 
@@ -165,11 +154,11 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
       break;
 
     case "unbond":
-      if (!isController(a) || !haveEnoughLockedBalance(a)) {
+      if (!isController(a) || !hasLockedBalance(a)) {
         errors.staking = new PolkadotUnauthorizedOperation();
       }
 
-      if (!haveMaxUnlockings(a)) {
+      if (hasMaxUnlockings(a)) {
         errors.unbondings = new PolkadotMaxUnbonding();
       }
 
@@ -214,15 +203,29 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
       } else if (!t.validators || t.validators?.length === 0) {
         errors.staking = new PolkadotValidatorsRequired();
       } else {
-        const notValidators = await verifyValidatorAddresses(
-          t.validators || []
-        );
+        if (validators && validators.length) {
+          // Validate directly with preloaded data
+          const notValidators = t.validators?.filter(
+            (address) => !validators.find((v) => v.address === address)
+          );
 
-        if (notValidators.length) {
-          errors.staking = new PolkadotNotValidator(null, {
-            validators: notValidators,
-          });
-          break;
+          if (notValidators && notValidators.length) {
+            errors.staking = new PolkadotNotValidator(null, {
+              validators: notValidators,
+            });
+          }
+        } else {
+          // Fallback with api call
+          const notValidators = await verifyValidatorAddresses(
+            t.validators || []
+          );
+
+          if (notValidators.length) {
+            errors.staking = new PolkadotNotValidator(null, {
+              validators: notValidators,
+            });
+            break;
+          }
         }
       }
       break;
@@ -236,34 +239,15 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
       break;
   }
 
-  // Estimated fees and totalSpent should be at the end
-  // We can't manage error like incorrect recipient in the transaction builder
-  const estimatedFees =
-    !errors.staking && !errors.amount && !errors.recipient
-      ? await calculateFees({
-          a,
-          t: { ...t, amount },
-        })
-      : BigNumber(0);
-  let totalSpent = estimatedFees;
+  const estimatedFees = t.fees || BigNumber(0);
 
-  if (t.mode === "bond") {
-    amount = useAllAmount
-      ? a.spendableBalance.minus(estimatedFees)
-      : BigNumber(t.amount);
+  let totalSpent =
+    t.mode === "bond" ? amount.plus(estimatedFees) : estimatedFees;
 
-    totalSpent = useAllAmount
-      ? a.spendableBalance
-      : BigNumber(t.amount).plus(estimatedFees);
-
-    if (amount.lte(0) && !useAllAmount) {
+  if (t.mode === "bond" || t.mode === "unbond" || t.mode === "rebond") {
+    if (amount.lte(0)) {
       errors.amount = new AmountRequired();
     }
-    if (amount.gt(a.spendableBalance)) {
-      errors.amount = new NotEnoughBalance();
-    }
-  } else if (t.mode === "unbond" || t.mode === "rebond") {
-    amount = estimateAmount({ a, t });
   }
 
   if (totalSpent.gt(a.spendableBalance)) {

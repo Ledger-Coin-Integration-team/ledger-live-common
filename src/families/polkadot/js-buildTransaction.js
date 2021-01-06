@@ -5,8 +5,7 @@ import { stringCamelCase } from "@polkadot/util";
 import type { Transaction } from "./types";
 import type { Account } from "../../types";
 
-import { getRegistry } from "./cache";
-import { getTransactionParams } from "./api";
+import { getRegistry, getTransactionParams } from "./cache";
 import { isFirstBond, getNonce } from "./logic";
 
 const EXTRINSIC_VERSION = 4;
@@ -113,9 +112,21 @@ const getExtrinsicParams = (a: Account, t: Transaction) => {
   }
 };
 
-export const buildTransaction = async (a: Account, t: Transaction) => {
+/**
+ *
+ * @param {Account} a
+ * @param {Transaction} t
+ * @param {boolean} forceLatestParams - forces the use of latest transaction params
+ */
+export const buildTransaction = async (
+  a: Account,
+  t: Transaction,
+  forceLatestParams: boolean = false
+) => {
   const { extrinsics, registry } = await getRegistry();
-  const info = await getTransactionParams();
+  const info = forceLatestParams
+    ? await getTransactionParams.force()
+    : await getTransactionParams();
 
   // Get the correct extrinsics params depending on transaction
   const extrinsicParams = getExtrinsicParams(a, t);

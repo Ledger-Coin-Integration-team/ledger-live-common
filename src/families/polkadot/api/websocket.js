@@ -1,4 +1,11 @@
+/*
+THIS FILE IS UNUSED AND PROVIDED AS EXAMPLE FOR USING POLKADOT'S WEBSOCKET API DIRECTLY
+
+POLKADOT.JS API VERSION 2.5.1
+*/
+
 // @flow
+/* eslint-disable */
 /* istanbul ignore file */
 
 import uniq from "lodash/uniq";
@@ -6,6 +13,7 @@ import compact from "lodash/compact";
 
 import { BigNumber } from "bignumber.js";
 import { getEnv } from "../../../env";
+//$FlowFixMe
 import { WsProvider, ApiPromise } from "@polkadot/api";
 import { u8aToString } from "@polkadot/util";
 

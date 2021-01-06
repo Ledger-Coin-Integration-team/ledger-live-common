@@ -1,4 +1,11 @@
+/*
+
+THIS FILE IS UNUSED AND PROVIDED AS EXAMPLE FOR USING SUBSCAN INDEXER.
+
+*/
+
 // @flow
+/* eslint-disable */
 /* istanbul ignore file */
 
 import uniqBy from "lodash/uniqBy";

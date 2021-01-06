@@ -4,6 +4,8 @@ import { BigNumber } from "bignumber.js";
 import { Observable, Subject } from "rxjs";
 import { log } from "@ledgerhq/logs";
 
+import { PRELOAD_MAX_AGE } from "./logic";
+import { getRegistry } from "./cache";
 import type { PolkadotPreloadData, PolkadotValidator } from "./types";
 import { getStakingProgress, getValidators } from "./validators";
 
@@ -29,11 +31,7 @@ function fromHydrateValidator(validatorRaw: Object): PolkadotValidator {
   };
 }
 
-const shouldRefreshValidators = (previousState, currentState) => {
-  return !previousState || currentState.activeEra !== previousState.activeEra;
-};
-
-export function fromHydratePreloadData(data: mixed): PolkadotPreloadData {
+function fromHydratePreloadData(data: mixed): PolkadotPreloadData {
   let validators = [];
   let staking = null;
 
@@ -43,12 +41,19 @@ export function fromHydratePreloadData(data: mixed): PolkadotPreloadData {
     }
 
     if (data.staking !== null && typeof data.staking === "object") {
+      const {
+        electionClosed,
+        activeEra,
+        maxNominatorRewardedPerValidator,
+        bondingDuration,
+      } = data.staking;
+
       staking = {
-        electionClosed: !!data.staking.electionClosed,
-        activeEra: Number(data.staking.activeEra),
+        electionClosed: !!electionClosed,
+        activeEra: Number(activeEra),
         maxNominatorRewardedPerValidator:
-          Number(data.staking.maxNominatorRewardedPerValidator) || 128,
-        bondingDuration: Number(data.staking.bondingDuration) || 28,
+          Number(maxNominatorRewardedPerValidator) || 128,
+        bondingDuration: Number(bondingDuration) || 28,
       };
     }
   }
@@ -77,7 +82,19 @@ export function getPolkadotPreloadDataUpdates(): Observable<PolkadotPreloadData>
   return updates.asObservable();
 }
 
+/**
+ * load max cache time for the validators
+ */
+export const getPreloadStrategy = () => ({
+  preloadMaxAge: PRELOAD_MAX_AGE,
+});
+
+const shouldRefreshValidators = (previousState, currentState) => {
+  return !previousState || currentState.activeEra !== previousState.activeEra;
+};
+
 export const preload = async (): Promise<PolkadotPreloadData> => {
+  await getRegistry(); // ensure registry is already in cache.
   const currentStakingProgress = await getStakingProgress();
 
   const {
