@@ -13,9 +13,7 @@ import { encodeOperationId } from "../../operation";
 import { Polkadot } from "./ledger-app/Polkadot";
 
 import { buildTransaction } from "./js-buildTransaction";
-import { calculateAmount, getNonce } from "./logic";
-
-import { isFirstBond, getNonce } from "./logic";
+import { calculateAmount, getNonce, isFirstBond } from "./logic";
 
 const MODE_TO_TYPE = {
   send: "OUT",
