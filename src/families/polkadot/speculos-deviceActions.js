@@ -2,6 +2,7 @@
 import type { DeviceAction } from "../../bot/types";
 import type { Transaction } from "./types";
 import { deviceActionFlow } from "../../bot/specs";
+import { formatCurrencyUnit } from "../../currencies";
 
 const acceptTransaction: DeviceAction<Transaction, *> = deviceActionFlow({
   steps: [
@@ -21,7 +22,11 @@ const acceptTransaction: DeviceAction<Transaction, *> = deviceActionFlow({
     {
       title: "Value",
       button: "Rr",
-      // expectedValue: ({transaction}) => To redo when nano is update today formating is weird
+      expectedValue: ({ account, transaction }) =>
+        formatCurrencyUnit(account.unit, transaction.amount, {
+          disableRounding: true,
+          showAllDigits: true, // Should be removed once we got a new app
+        }),
     },
     {
       title: "Chain",

@@ -15,6 +15,8 @@ import { Polkadot } from "./ledger-app/Polkadot";
 import { buildTransaction } from "./js-buildTransaction";
 import { calculateAmount, getNonce } from "./logic";
 
+import { isFirstBond, getNonce } from "./logic";
+
 const MODE_TO_TYPE = {
   send: "OUT",
   bond: "BOND",
@@ -30,6 +32,7 @@ const MODE_TO_TYPE = {
 const MODE_TO_PALLET_METHOD = {
   send: "balances.transferKeepAlive",
   bond: "staking.bond",
+  bondExtra: "staking.bondExtra",
   unbond: "staking.unbond",
   rebond: "staking.rebond",
   withdrawUnbonded: "staking.withdrawUnbonded",
@@ -40,7 +43,14 @@ const MODE_TO_PALLET_METHOD = {
 
 const getExtra = (type: string, account: Account, transaction: Transaction) => {
   const extra = MODE_TO_PALLET_METHOD[transaction.mode]
-    ? { palletMethod: MODE_TO_PALLET_METHOD[transaction.mode] }
+    ? {
+        palletMethod:
+          MODE_TO_PALLET_METHOD[
+            transaction.mode === "bond" && !isFirstBond(account)
+              ? "bondExtra"
+              : transaction.mode
+          ],
+      }
     : {};
 
   switch (type) {
@@ -59,8 +69,7 @@ const getExtra = (type: string, account: Account, transaction: Transaction) => {
 const buildOptimisticOperation = (
   account: Account,
   transaction: Transaction,
-  fee: BigNumber,
-  nonce: number
+  fee: BigNumber
 ): Operation => {
   const type = MODE_TO_TYPE[transaction.mode] ?? MODE_TO_TYPE.default;
 
@@ -78,9 +87,9 @@ const buildOptimisticOperation = (
     blockHash: null,
     blockHeight: null,
     senders: [account.freshAddress],
-    recipients: [transaction.recipient],
+    recipients: [transaction.recipient].filter(Boolean),
     accountId: account.id,
-    transactionSequenceNumber: nonce,
+    transactionSequenceNumber: getNonce(account),
     date: new Date(),
     extra,
   };
@@ -177,8 +186,7 @@ const signOperation = ({
         const operation = buildOptimisticOperation(
           account,
           transactionToSign,
-          transactionToSign.fees ?? BigNumber(0),
-          getNonce(account)
+          transactionToSign.fees ?? BigNumber(0)
         );
 
         o.next({

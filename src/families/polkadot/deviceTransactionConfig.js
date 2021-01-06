@@ -34,7 +34,6 @@ const getSendFields = ({
     value: formatCurrencyUnit(currency.units[0], amount, {
       showCode: true,
       disableRounding: true,
-      showAllDigits: true,
     }),
   });
 
@@ -99,7 +98,6 @@ function getDeviceTransactionConfig({
           value: formatCurrencyUnit(currency.units[0], amount, {
             showCode: true,
             disableRounding: true,
-            showAllDigits: true,
           }),
         });
 
@@ -121,7 +119,6 @@ function getDeviceTransactionConfig({
           value: formatCurrencyUnit(currency.units[0], amount, {
             showCode: true,
             disableRounding: true,
-            showAllDigits: true,
           }),
         });
       }
@@ -141,7 +138,6 @@ function getDeviceTransactionConfig({
         value: formatCurrencyUnit(currency.units[0], amount, {
           showCode: true,
           disableRounding: true,
-          showAllDigits: true,
         }),
       });
       break;
@@ -159,7 +155,6 @@ function getDeviceTransactionConfig({
         value: formatCurrencyUnit(currency.units[0], amount, {
           showCode: true,
           disableRounding: true,
-          showAllDigits: true,
         }),
       });
       break;
