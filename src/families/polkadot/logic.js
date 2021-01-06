@@ -10,6 +10,7 @@ export const MINIMUM_BOND_AMOUNT = BigNumber(10000000000);
 export const MAX_NOMINATIONS = 16;
 export const MAX_UNLOCKINGS = 32;
 export const PRELOAD_MAX_AGE = 60 * 1000;
+export const MAX_AMOUNT_INPUT = 18446744072;
 
 /**
  * Returns true if address is valid, false if it's invalid (can't parse or wrong checksum)
@@ -173,6 +174,18 @@ const calculateMaxRebond = (a: Account): BigNumber => {
 };
 
 /**
+ * Calculate the real spendable
+ *
+ * @param {*} a
+ */
+const calculateMaxSend = (a: Account, t: Transaction): BigNumber => {
+  const amount = isFirstBond(a)
+    ? a.spendableBalance.minus(EXISTENTIAL_DEPOSIT).minus(t.fees || 0)
+    : a.spendableBalance.minus(t.fees || 0);
+  return amount.lt(0) ? BigNumber(0) : amount;
+};
+
+/**
  * Calculates correct amount if useAllAmount
  *
  * @param {*} param
@@ -184,8 +197,15 @@ export const calculateAmount = ({
   a: Account,
   t: Transaction,
 }): BigNumber => {
+  if (t.amount.gt(MAX_AMOUNT_INPUT)) {
+    return BigNumber(MAX_AMOUNT_INPUT);
+  }
+
   if (t.useAllAmount) {
     switch (t.mode) {
+      case "send":
+        return calculateMaxSend(a, t);
+
       case "unbond":
         return calculateMaxUnbond(a);
 
