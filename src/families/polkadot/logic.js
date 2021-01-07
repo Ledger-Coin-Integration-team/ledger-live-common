@@ -202,15 +202,19 @@ export const calculateAmount = ({
     switch (t.mode) {
       case "send":
         amount = calculateMaxSend(a, t);
+        break;
 
       case "unbond":
         amount = calculateMaxUnbond(a);
+        break;
 
       case "rebond":
         amount = calculateMaxRebond(a);
+        break;
 
       default:
         amount = a.spendableBalance.minus(t.fees || 0);
+        break;
     }
   } else if (t.amount.gt(MAX_AMOUNT_INPUT)) {
     return BigNumber(MAX_AMOUNT_INPUT);
