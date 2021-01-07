@@ -48,6 +48,7 @@ export type PolkadotResources = {|
   unlockingBalance: BigNumber,
   unlockings: ?PolkadotUnlocking[],
   nominations: ?PolkadotNomination[],
+  numSlashingSpans: number,
 |};
 
 export type PolkadotResourcesRaw = {|

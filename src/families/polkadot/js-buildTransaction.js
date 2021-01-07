@@ -76,7 +76,7 @@ const getExtrinsicParams = (a: Account, t: Transaction) => {
       return {
         pallet: "staking",
         name: "withdrawUnbonded",
-        args: { numSlashingSpans: 0 },
+        args: { numSlashingSpans: a.polkadotResources?.numSlashingSpans || 0 },
       };
 
     case "nominate":

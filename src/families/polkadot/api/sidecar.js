@@ -428,6 +428,7 @@ export const getStakingInfo = async (addr: string) => {
     (sum, lock) => sum.plus(lock.amount),
     BigNumber(0)
   );
+  const numSlashingSpans = Number(stakingInfo?.numSlashingSpans || 0);
 
   return {
     controller: controller || null,
@@ -435,6 +436,7 @@ export const getStakingInfo = async (addr: string) => {
     unlockedBalance,
     unlockingBalance,
     unlockings,
+    numSlashingSpans
   };
 };
 

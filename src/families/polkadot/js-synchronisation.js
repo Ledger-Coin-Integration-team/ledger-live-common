@@ -24,6 +24,7 @@ const getAccountShape: GetAccountShape = async (info) => {
     unlockingBalance,
     unlockings,
     nominations,
+    numSlashingSpans,
   } = await getAccount(address);
   const newOperations = await getOperations(id, address, startAt);
   const operations = mergeOps(oldOperations, newOperations);
@@ -43,6 +44,7 @@ const getAccountShape: GetAccountShape = async (info) => {
       unlockingBalance,
       unlockings,
       nominations,
+      numSlashingSpans,
     },
   };
 
