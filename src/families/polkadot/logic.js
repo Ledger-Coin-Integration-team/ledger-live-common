@@ -197,23 +197,24 @@ export const calculateAmount = ({
   a: Account,
   t: Transaction,
 }): BigNumber => {
+  let amount = t.amount;
   if (t.useAllAmount) {
     switch (t.mode) {
       case "send":
-        return calculateMaxSend(a, t);
+        amount = calculateMaxSend(a, t);
 
       case "unbond":
-        return calculateMaxUnbond(a);
+        amount = calculateMaxUnbond(a);
 
       case "rebond":
-        return calculateMaxRebond(a);
+        amount = calculateMaxRebond(a);
 
       default:
-        return a.spendableBalance.minus(t.fees || 0);
+        amount = a.spendableBalance.minus(t.fees || 0);
     }
   } else if (t.amount.gt(MAX_AMOUNT_INPUT)) {
     return BigNumber(MAX_AMOUNT_INPUT);
   }
 
-  return t.amount;
+  return amount.lt(0) ? BigNumber(0) : amount;
 };
