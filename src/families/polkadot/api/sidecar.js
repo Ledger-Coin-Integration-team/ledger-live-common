@@ -436,7 +436,7 @@ export const getStakingInfo = async (addr: string) => {
     unlockedBalance,
     unlockingBalance,
     unlockings,
-    numSlashingSpans
+    numSlashingSpans,
   };
 };
 
