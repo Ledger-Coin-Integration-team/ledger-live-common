@@ -92,6 +92,7 @@ const dataset: DatasetTest<Transaction> = {
                 validators: [],
                 fees: null,
                 rewardDestination: null,
+                numSlashingSpans: 0,
               }),
               expectedStatus: {
                 amount: BigNumber("100000000"),
@@ -113,6 +114,7 @@ const dataset: DatasetTest<Transaction> = {
                 validators: [],
                 fees: null,
                 rewardDestination: null,
+                numSlashingSpans: 0,
               }),
               expectedStatus: {
                 errors: {
@@ -132,6 +134,7 @@ const dataset: DatasetTest<Transaction> = {
                 validators: [],
                 fees: null,
                 rewardDestination: null,
+                numSlashingSpans: 0,
               }),
               expectedStatus: {
                 errors: {
@@ -151,6 +154,7 @@ const dataset: DatasetTest<Transaction> = {
                 validators: [],
                 fees: null,
                 rewardDestination: null,
+                numSlashingSpans: 0,
               }),
               expectedStatus: {
                 errors: {
@@ -170,6 +174,7 @@ const dataset: DatasetTest<Transaction> = {
                 validators: [],
                 fees: null,
                 rewardDestination: null,
+                numSlashingSpans: 0,
               }),
               expectedStatus: {
                 errors: {
@@ -189,6 +194,7 @@ const dataset: DatasetTest<Transaction> = {
                 validators: [],
                 fees: null,
                 rewardDestination: null,
+                numSlashingSpans: 0,
               }),
               expectedStatus: {
                 amount: BigNumber("10000000000"),
@@ -223,6 +229,7 @@ const dataset: DatasetTest<Transaction> = {
                 ],
                 fees: null,
                 rewardDestination: null,
+                numSlashingSpans: 0,
               }),
               expectedStatus: {
                 errors: {
@@ -242,6 +249,7 @@ const dataset: DatasetTest<Transaction> = {
                 validators: [],
                 fees: null,
                 rewardDestination: null,
+                numSlashingSpans: 0,
               }),
               expectedStatus: {
                 errors: {
@@ -261,6 +269,7 @@ const dataset: DatasetTest<Transaction> = {
                 validators: null,
                 fees: null,
                 rewardDestination: null,
+                numSlashingSpans: 0,
               }),
               expectedStatus: {
                 errors: {},
@@ -279,6 +288,7 @@ const dataset: DatasetTest<Transaction> = {
                 validators: null,
                 fees: null,
                 rewardDestination: null,
+                numSlashingSpans: 0,
               }),
               expectedStatus: {
                 errors: {
@@ -298,6 +308,7 @@ const dataset: DatasetTest<Transaction> = {
                 validators: [],
                 fees: null,
                 rewardDestination: null,
+                numSlashingSpans: 0,
               }),
               expectedStatus: {
                 amount: BigNumber("10000000000"),
@@ -329,6 +340,7 @@ const dataset: DatasetTest<Transaction> = {
                 validators: [],
                 fees: null,
                 rewardDestination: null,
+                numSlashingSpans: 0,
               }),
               expectedStatus: {
                 errors: {
@@ -348,6 +360,7 @@ const dataset: DatasetTest<Transaction> = {
                 validators: [],
                 fees: null,
                 rewardDestination: null,
+                numSlashingSpans: 0,
               }),
               expectedStatus: {
                 errors: {
@@ -367,6 +380,7 @@ const dataset: DatasetTest<Transaction> = {
                 validators: [],
                 fees: null,
                 rewardDestination: null,
+                numSlashingSpans: 0,
               }),
               expectedStatus: {
                 errors: {
@@ -410,6 +424,7 @@ const dataset: DatasetTest<Transaction> = {
                 ],
                 fees: null,
                 rewardDestination: null,
+                numSlashingSpans: 0,
               }),
               expectedStatus: {
                 errors: {
@@ -429,6 +444,7 @@ const dataset: DatasetTest<Transaction> = {
                 validators: [],
                 fees: null,
                 rewardDestination: null,
+                numSlashingSpans: 0,
               }),
               expectedStatus: {
                 errors: {
@@ -448,6 +464,7 @@ const dataset: DatasetTest<Transaction> = {
                 validators: [],
                 fees: null,
                 rewardDestination: null,
+                numSlashingSpans: 0,
               }),
               expectedStatus: {
                 errors: {
@@ -467,6 +484,7 @@ const dataset: DatasetTest<Transaction> = {
                 validators: [],
                 fees: null,
                 rewardDestination: null,
+                numSlashingSpans: 0,
               }),
               expectedStatus: {
                 errors: {
@@ -508,6 +526,7 @@ const dataset: DatasetTest<Transaction> = {
                 validators: [],
                 fees: null,
                 rewardDestination: null,
+                numSlashingSpans: 0,
               }),
               expectedStatus: {
                 errors: {
@@ -527,6 +546,7 @@ const dataset: DatasetTest<Transaction> = {
                 validators: [],
                 fees: null,
                 rewardDestination: null,
+                numSlashingSpans: 0,
               }),
               expectedStatus: {
                 errors: {
@@ -546,6 +566,7 @@ const dataset: DatasetTest<Transaction> = {
                 validators: [],
                 fees: null,
                 rewardDestination: null,
+                numSlashingSpans: 0,
               }),
               expectedStatus: {
                 errors: {
@@ -567,6 +588,7 @@ const dataset: DatasetTest<Transaction> = {
                 validators: [],
                 fees: null,
                 rewardDestination: null,
+                numSlashingSpans: 0,
               }),
               expectedStatus: {
                 errors: {
@@ -586,6 +608,7 @@ const dataset: DatasetTest<Transaction> = {
                 validators: [],
                 fees: null,
                 rewardDestination: null,
+                numSlashingSpans: 0,
               }),
               expectedStatus: {
                 errors: {},
@@ -603,6 +626,7 @@ const dataset: DatasetTest<Transaction> = {
                 validators: [],
                 fees: null,
                 rewardDestination: null,
+                numSlashingSpans: 0,
               }),
               expectedStatus: {
                 errors: {

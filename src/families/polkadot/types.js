@@ -60,6 +60,7 @@ export type PolkadotResourcesRaw = {|
   unlockingBalance: string,
   unlockings: ?PolkadotUnlockingRaw[],
   nominations: ?PolkadotNominationRaw[],
+  numSlashingSpans: number,
 |};
 
 export type Transaction = {|
@@ -70,6 +71,7 @@ export type Transaction = {|
   validators: ?string[],
   era: ?string,
   rewardDestination: ?string,
+  numSlashingSpans: ?number,
 |};
 
 export type TransactionRaw = {|
@@ -80,6 +82,7 @@ export type TransactionRaw = {|
   validators: ?string[],
   era: ?string,
   rewardDestination: ?string,
+  numSlashingSpans: ?number,
 |};
 
 export type PolkadotValidator = {|

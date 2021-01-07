@@ -17,6 +17,7 @@ const createTransaction = (): Transaction => ({
   validators: [],
   era: null,
   rewardDestination: null,
+  numSlashingSpans: Number(0),
 });
 
 export default createTransaction;

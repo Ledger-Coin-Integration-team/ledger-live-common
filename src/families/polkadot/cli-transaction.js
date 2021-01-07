@@ -150,6 +150,7 @@ function inferTransactions(
       validators,
       era: opts.era || null,
       rewardDestination: opts.rewardDestination || null,
+      numSlashingSpans: account.polkadotResources?.numSlashingSpans,
     };
   });
 }

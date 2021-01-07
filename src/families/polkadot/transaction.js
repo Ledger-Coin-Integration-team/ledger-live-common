@@ -38,6 +38,7 @@ export const fromTransactionRaw = (tr: TransactionRaw): Transaction => {
     validators: tr.validators,
     era: tr.era,
     rewardDestination: tr.rewardDestination,
+    numSlashingSpans: tr.numSlashingSpans,
   };
 };
 
@@ -51,6 +52,7 @@ export const toTransactionRaw = (t: Transaction): TransactionRaw => {
     validators: t.validators,
     era: t.era,
     rewardDestination: t.rewardDestination,
+    numSlashingSpans: t.numSlashingSpans,
   };
 };
 
