@@ -74,8 +74,7 @@ const getSendTransactionStatus = async (
   }
 
   if (
-    (isFirstBond(a) ||
-      a.polkadotResources.lockedBalance.lt(EXISTENTIAL_DEPOSIT)) &&
+    isFirstBond(a) &&
     a.spendableBalance.lt(totalSpent.plus(EXISTENTIAL_DEPOSIT))
   ) {
     errors.amount = new NotEnoughSpendableBalance(null, {
