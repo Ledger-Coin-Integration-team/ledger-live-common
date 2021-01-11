@@ -9,6 +9,7 @@ import {
   AmountRequired,
   NotEnoughBalanceBecauseDestinationNotCreated,
   FeeNotLoaded,
+  NotEnoughSpendableBalance,
 } from "@ledgerhq/errors";
 import type { Account, TransactionStatus } from "../../types";
 import { formatCurrencyUnit } from "../../currencies";
@@ -36,6 +37,7 @@ import {
   hasLockedBalance,
   hasMaxUnlockings,
   calculateAmount,
+  getExistentialDeposit,
 } from "./logic";
 import { getCurrentPolkadotPreloadData } from "./preload";
 import { isControllerAddress, isNewAccount, isElectionClosed } from "./cache";
@@ -70,6 +72,20 @@ const getSendTransactionStatus = async (
 
   if (totalSpent.gt(a.spendableBalance)) {
     errors.amount = new NotEnoughBalance();
+  }
+
+  if (a.spendableBalance.lt(totalSpent.plus(getExistentialDeposit(a)))) {
+    errors.amount = new NotEnoughSpendableBalance(null, {
+      minimumAmount: formatCurrencyUnit(
+        a.currency.units[0],
+        getExistentialDeposit(a),
+        {
+          disableRounding: true,
+          useGrouping: false,
+          showCode: true,
+        }
+      ),
+    });
   }
 
   if (
