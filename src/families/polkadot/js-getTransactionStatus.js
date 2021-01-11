@@ -37,6 +37,7 @@ import {
   hasLockedBalance,
   hasMaxUnlockings,
   calculateAmount,
+  getExistentialDeposit,
 } from "./logic";
 import { getCurrentPolkadotPreloadData } from "./preload";
 import { isControllerAddress, isNewAccount, isElectionClosed } from "./cache";
@@ -73,14 +74,11 @@ const getSendTransactionStatus = async (
     errors.amount = new NotEnoughBalance();
   }
 
-  if (
-    isFirstBond(a) &&
-    a.spendableBalance.lt(totalSpent.plus(EXISTENTIAL_DEPOSIT))
-  ) {
+  if (a.spendableBalance.lt(totalSpent.plus(getExistentialDeposit(a)))) {
     errors.amount = new NotEnoughSpendableBalance(null, {
       minimumAmount: formatCurrencyUnit(
         a.currency.units[0],
-        EXISTENTIAL_DEPOSIT,
+        getExistentialDeposit(a),
         {
           disableRounding: true,
           useGrouping: false,
