@@ -24,9 +24,9 @@ ${mode.toUpperCase()} ${
           showCode: true,
           disableRounding: true,
         })
-  }
-TO ${recipient}
-${!validators ? "" : validators.join("\n")}`;
+  }${recipient ? `\nTO ${recipient}` : ""}${
+    !validators ? "" : validators.join("\n")
+  }`;
 
 export const fromTransactionRaw = (tr: TransactionRaw): Transaction => {
   const common = fromTransactionCommonRaw(tr);
