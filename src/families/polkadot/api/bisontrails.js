@@ -56,19 +56,19 @@ const getExtra = (type: OperationType, extrinsic: *): Object => {
   switch (type) {
     case "IN":
     case "OUT":
-      if (extrinsic.amount) {
+      if (extrinsic.amount || extrinsic.amount === 0) {
         extra = { ...extra, transferAmount: BigNumber(extrinsic.amount) };
       }
       break;
 
     case "BOND":
-      if (extrinsic.amount) {
+      if (extrinsic.amount || extrinsic.amount === 0) {
         extra = { ...extra, bondedAmount: BigNumber(extrinsic.amount) };
       }
       break;
 
     case "UNBOND":
-      if (extrinsic.amount) {
+      if (extrinsic.amount || extrinsic.amount === 0) {
         extra = {
           ...extra,
           unbondedAmount: BigNumber(extrinsic.amount),
@@ -88,9 +88,10 @@ const getExtra = (type: OperationType, extrinsic: *): Object => {
     case "NOMINATE":
       extra = {
         ...extra,
-        validators: extrinsic.staking.validators.reduce((acc, current) => {
-          return [...acc, current.address];
-        }, []),
+        validators:
+          extrinsic.staking?.validators?.reduce((acc, current) => {
+            return [...acc, current.address];
+          }, []) ?? [],
       };
       break;
   }
