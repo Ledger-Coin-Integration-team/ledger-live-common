@@ -6,7 +6,6 @@ import type { Account } from "../../types";
 
 import type { getSigners } from "../api";
 
-
 // TODO: Move to cache
 export const checkRecipientExist: CacheRes<
   Array<{ account: Account, recipient: string }>,
@@ -105,5 +104,5 @@ export const addressExists = async (address: string): boolean => {
     });
   }
   */
- return true;
-}
+  return true;
+};
