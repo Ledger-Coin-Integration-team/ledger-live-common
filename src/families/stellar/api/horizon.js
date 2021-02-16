@@ -207,8 +207,8 @@ const formatOperation = (
   accountId: string,
   addr: string
 ): Operation => {
-  const value = getValue(rawOperation);
   const type = getOperationType(rawOperation, addr);
+  const value = getValue(rawOperation, transaction, type);
   const recipients = getRecipients(rawOperation);
 
   return {
@@ -229,14 +229,33 @@ const formatOperation = (
   };
 };
 
-const getValue = (operation: RawOperation): BigNumber => {
-  if (operation.type === "create_account") {
-    return parseCurrencyUnit(currency.units[0], operation.starting_balance);
+const getValue = (
+  operation: RawOperation,
+  transaction: RawTransaction,
+  type: OperationType
+): BigNumber => {
+  let value = BigNumber(0);
+
+  if (!operation.transaction_successful) {
+    return type === "IN" ? value : BigNumber(transaction.fee_charged || 0);
   }
 
-  if (operation.type === "payment" && operation.asset_type === "native") {
-    return parseCurrencyUnit(currency.units[0], operation.amount);
-  }
+  switch (operation.type) {
+    case "create_account":
+      value = parseCurrencyUnit(currency.units[0], operation.starting_balance);
+      if (type === "OUT") {
+        value = value.plus(transaction.fee_charged);
+      }
+      return value;
 
-  return BigNumber(0);
+    case "payment":
+      value = parseCurrencyUnit(currency.units[0], operation.amount);
+      if (type === "OUT") {
+        value = value.plus(transaction.fee_charged);
+      }
+      return value;
+
+    default:
+      return type === "OUT" ? BigNumber(transaction.fee_charged) : value;
+  }
 };
