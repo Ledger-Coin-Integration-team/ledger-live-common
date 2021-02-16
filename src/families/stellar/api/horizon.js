@@ -5,38 +5,13 @@ import StellarSdk from "stellar-sdk";
 import { getCryptoCurrencyById, parseCurrencyUnit } from "../../../currencies";
 import { encodeOperationId } from "../../../operation";
 import type { Operation, OperationType } from "../../../types";
+import type { RawAccount, RawOperation, RawTransaction } from "./horizon.types";
 
 const LIMIT = 200;
 const FALLBACK_BASE_FEE = 100;
 
 const server = new StellarSdk.Server("https://horizon.stellar.org");
 const currency = getCryptoCurrencyById("stellar");
-
-type RawAccount = {
-  subentry_count: number,
-};
-
-type RawOperation = {
-  type: string,
-  starting_balance: string,
-  asset_type: string,
-  amount: string,
-  transaction_hash: string,
-  created_at: string,
-  source_account: string,
-  transaction_successful: boolean,
-  funder?: string,
-  from?: string,
-  to: string,
-  account: string,
-};
-
-type RawTransaction = {
-  id: string,
-  fee_charged: string,
-  ledger_attr: number,
-  source_account_sequence: number,
-};
 
 const fetchBaseFee = async (): Promise<number> => {
   let baseFee;
