@@ -6,14 +6,20 @@ import { getCryptoCurrencyById, parseCurrencyUnit } from "../../../currencies";
 import { encodeOperationId } from "../../../operation";
 import type { Operation, OperationType } from "../../../types";
 import type { RawAccount, RawOperation, RawTransaction } from "./horizon.types";
+import { getEnv } from "../../../env";
 
 const LIMIT = 200;
 const FALLBACK_BASE_FEE = 100;
 
-const server = new StellarSdk.Server("https://horizon.stellar.org");
 const currency = getCryptoCurrencyById("stellar");
 
+const getSDKInstance = () => {
+  const baseAPIUrl = getEnv("API_STELLAR_HORIZON");
+  return new StellarSdk.Server(baseAPIUrl);
+};
+
 const fetchBaseFee = async (): Promise<number> => {
+  const server = getSDKInstance();
   let baseFee;
 
   try {
@@ -50,6 +56,7 @@ const getAccountSpendableBalance = async (
  * @param {*} addr
  */
 export const getAccount = async (addr: string) => {
+  const server = getSDKInstance();
   let account = {};
   let balance = {};
   try {
@@ -131,6 +138,7 @@ const fetchTransactionsList = async (
   addr: string,
   startAt: number
 ): Promise<RawTransaction[]> => {
+  const server = getSDKInstance();
   let transactions = {};
   let mergedTransactions = [];
 
@@ -164,6 +172,7 @@ const fetchOperationList = async (
   addr: string,
   transactions: RawTransaction[]
 ): Promise<Operation[]> => {
+  const server = getSDKInstance();
   let formattedMergedOp = [];
 
   for (let i = 0; i < transactions.length; i++) {
