@@ -99,7 +99,10 @@ const getOperationType = (operation, addr): OperationType => {
       return "IN";
 
     default:
-      return "NONE";
+      if (operation.source_account === addr) {
+        return "OUT";
+      }
+      return "IN";
   }
 };
 
@@ -256,6 +259,6 @@ const getValue = (
       return value;
 
     default:
-      return type === "OUT" ? BigNumber(transaction.fee_charged) : value;
+      return type !== "IN" ? BigNumber(transaction.fee_charged) : value;
   }
 };
