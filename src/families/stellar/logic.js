@@ -146,6 +146,11 @@ export const getOperationType = (
         return "OUT";
       }
       return "IN";
+    case "path_payment_strict_send":
+      return "OUT";
+
+    case "path_payment_strict_receive":
+      return "IN";
 
     default:
       if (operation.source_account === addr) {
@@ -215,7 +220,12 @@ const getValue = (
       return value;
 
     case "payment":
-      value = parseCurrencyUnit(currency.units[0], operation.amount);
+    case "path_payment_strict_send":
+    case "path_payment_strict_receive":
+      value =
+        operation.asset_type === "native"
+          ? parseCurrencyUnit(currency.units[0], operation.amount)
+          : BigNumber(0);
       if (type === "OUT") {
         value = value.plus(transaction.fee_charged);
       }
