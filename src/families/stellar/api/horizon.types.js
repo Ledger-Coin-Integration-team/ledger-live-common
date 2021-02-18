@@ -2,6 +2,7 @@
 
 export type RawAccount = {
   subentry_count: number,
+  sequence: number,
 };
 
 export type RawOperation = {

@@ -1,11 +1,10 @@
 //@flow
 
-import { BigNumber } from "bignumber.js";
 import StellarSdk from "stellar-sdk";
+import { getAccountSpendableBalance, formatOperation } from "../logic";
 import { getCryptoCurrencyById, parseCurrencyUnit } from "../../../currencies";
-import { encodeOperationId } from "../../../operation";
-import type { Operation, OperationType } from "../../../types";
-import type { RawAccount, RawOperation, RawTransaction } from "./horizon.types";
+import type { Operation } from "../../../types";
+import type { RawTransaction, RawAccount } from "./horizon.types";
 import { getEnv } from "../../../env";
 
 const LIMIT = 200;
@@ -16,7 +15,7 @@ const currency = getCryptoCurrencyById("stellar");
 const baseAPIUrl = getEnv("API_STELLAR_HORIZON");
 const server = new StellarSdk.Server(baseAPIUrl);
 
-const fetchBaseFee = async (): Promise<number> => {
+export const fetchBaseFee = async (): Promise<number> => {
   let baseFee;
 
   try {
@@ -28,24 +27,6 @@ const fetchBaseFee = async (): Promise<number> => {
   return baseFee;
 };
 
-const getMinimumBalance = (account: RawAccount): BigNumber => {
-  const baseReserve = 0.5;
-  const numberOfEntries = account.subentry_count;
-
-  const minimumBalance = (2 + numberOfEntries) * baseReserve;
-
-  return parseCurrencyUnit(currency.units[0], minimumBalance.toString());
-};
-
-const getAccountSpendableBalance = async (
-  balance: BigNumber,
-  account: RawAccount
-): Promise<BigNumber> => {
-  const minimumBalance = getMinimumBalance(account);
-  const baseFee = await fetchBaseFee();
-  return BigNumber.max(balance.minus(minimumBalance).minus(baseFee), 0);
-};
-
 /**
  * Get all account-related data
  *
@@ -53,7 +34,7 @@ const getAccountSpendableBalance = async (
  * @param {*} addr
  */
 export const getAccount = async (addr: string) => {
-  let account = {};
+  let account: RawAccount = {};
   let balance = {};
   try {
     account = await server.accounts().accountId(addr).call();
@@ -82,36 +63,6 @@ export const getAccount = async (addr: string) => {
     balance: formattedBalance,
     spendableBalance,
   };
-};
-
-const getOperationType = (operation, addr): OperationType => {
-  switch (operation.type) {
-    case "create_account":
-      return operation.funder === addr ? "OUT" : "IN";
-    case "payment":
-      if (operation.from === addr && operation.to !== addr) {
-        return "OUT";
-      }
-      return "IN";
-
-    default:
-      if (operation.source_account === addr) {
-        return "OUT";
-      }
-      return "IN";
-  }
-};
-
-const getRecipients = (operation): string[] => {
-  switch (operation.type) {
-    case "create_account":
-      return [operation.account];
-    case "payment":
-      return [operation.to];
-
-    default:
-      return [];
-  }
 };
 
 /**
@@ -196,63 +147,4 @@ const fetchOperationList = async (
   }
 
   return formattedMergedOp;
-};
-
-const formatOperation = (
-  rawOperation: RawOperation,
-  transaction: RawTransaction,
-  accountId: string,
-  addr: string
-): Operation => {
-  const type = getOperationType(rawOperation, addr);
-  const value = getValue(rawOperation, transaction, type);
-  const recipients = getRecipients(rawOperation);
-
-  return {
-    id: encodeOperationId(accountId, rawOperation.transaction_hash, type),
-    accountId,
-    fee: parseCurrencyUnit(currency.units[0], transaction.fee_charged),
-    value,
-    type: type,
-    hash: rawOperation.transaction_hash,
-    blockHeight: transaction.ledger_attr,
-    date: new Date(rawOperation.created_at),
-    senders: [rawOperation.source_account],
-    recipients,
-    transactionSequenceNumber: transaction.source_account_sequence,
-    hasFailed: !rawOperation.transaction_successful,
-    blockHash: "",
-    extra: {},
-  };
-};
-
-const getValue = (
-  operation: RawOperation,
-  transaction: RawTransaction,
-  type: OperationType
-): BigNumber => {
-  let value = BigNumber(0);
-
-  if (!operation.transaction_successful) {
-    return type === "IN" ? value : BigNumber(transaction.fee_charged || 0);
-  }
-
-  switch (operation.type) {
-    case "create_account":
-      value = parseCurrencyUnit(currency.units[0], operation.starting_balance);
-      if (type === "OUT") {
-        value = value.plus(transaction.fee_charged);
-      }
-      return value;
-
-    case "payment":
-      value = parseCurrencyUnit(currency.units[0], operation.amount);
-      if (type === "OUT") {
-        value = value.plus(transaction.fee_charged);
-      }
-      return value;
-
-    default:
-      return type !== "IN" ? BigNumber(transaction.fee_charged) : value;
-  }
 };
