@@ -9,8 +9,41 @@ import {
   getFiatCurrencyByTicker,
   getCryptoCurrencyById,
   hasCryptoCurrencyId,
+  registerCryptoCurrency,
 } from "@ledgerhq/cryptoassets";
 import { getEnv } from "../env";
+
+registerCryptoCurrency("mycoin", {
+  type: "CryptoCurrency",
+  id: "mycoin",
+  coinType: 8008, // The slip-0044 coin type if registered
+  name: "MyCoin",
+  managerAppName: "MyCoin", // name of the nano app in manager case-sensitive
+  ticker: "MYC",
+  countervalueTicker: "MYC", // depending on the counter value api
+  scheme: "mycoin",
+  color: "#6490F1", // color to be display on live-desktop and mobile
+  family: "mycoin", // folder name in the live-common / desktop and mobile
+  units: [
+    {
+      name: "MYC",
+      code: "MYC",
+      magnitude: 8,
+    },
+    {
+      name: "SmallestUnit",
+      code: "SMALLESTUNIT",
+      magnitude: 0,
+    },
+  ],
+  explorerViews: [
+    {
+      address: "https://mycoinexplorer.com/account/$address", // url for exploring an address
+      tx: "https://mycoinexplorer.com/transaction/$hash", // url for exploring a transaction
+      token: "https://mycoinexplorer.com/token/$contractAddress/?a=$address", // url for exploring a token address
+    },
+  ],
+});
 
 // set by user side effect to precise which currencies are considered supported (typically by live)
 let userSupportedCurrencies: CryptoCurrency[] = [];

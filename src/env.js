@@ -113,6 +113,11 @@ const envDefinitions = {
     def: "https://tron.coin.ledger.com",
     desc: "proxy url for trongrid API",
   },
+  MYCOIN_API_ENDPOINT: {
+    def: "https://mycoin.coin.ledger.com",
+    parser: stringParser,
+    desc: "API for mycoin",
+  },
   BASE_SOCKET_URL: {
     def: "wss://scriptrunner.api.live.ledger.com/update",
     parser: stringParser,

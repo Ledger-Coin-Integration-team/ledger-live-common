@@ -3,6 +3,7 @@ import algorand from "../families/algorand/transaction.js";
 import bitcoin from "../families/bitcoin/transaction.js";
 import cosmos from "../families/cosmos/transaction.js";
 import ethereum from "../families/ethereum/transaction.js";
+import mycoin from "../families/mycoin/transaction.js";
 import neo from "../families/neo/transaction.js";
 import polkadot from "../families/polkadot/transaction.js";
 import ripple from "../families/ripple/transaction.js";
@@ -15,6 +16,7 @@ export default {
   bitcoin,
   cosmos,
   ethereum,
+  mycoin,
   neo,
   polkadot,
   ripple,

@@ -19,7 +19,12 @@ export default {
       name: "verify",
       alias: "v",
       type: Boolean,
-      desc: "also ask verification on device",
+      desc: "ask for verification on device",
+    },
+    {
+      name: "askChainCode",
+      type: Boolean,
+      desc: "ask for chainCode",
     },
   ],
   job: (
@@ -29,22 +34,25 @@ export default {
       path: string,
       derivationMode: string,
       verify: boolean,
+      askChainCode: boolean,
     }>
   ) =>
     inferCurrency(arg).pipe(
       mergeMap((currency) => {
         if (!currency) {
-          throw new Error("no currency provided");
+          throw new Error("no currency found");
         }
         if (!arg.path) {
           throw new Error("--path is required");
         }
-        asDerivationMode(arg.derivationMode);
+        asDerivationMode(arg.derivationMode || "");
         return withDevice(arg.device || "")((t) =>
           from(
             getAddress(t, {
               currency,
               path: arg.path,
+              verify: !!arg.verify,
+              askChainCode: !!arg.askChainCode,
               derivationMode: asDerivationMode(arg.derivationMode || ""),
             })
           )

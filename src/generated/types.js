@@ -33,6 +33,13 @@ import type { Transaction as ethereumTransaction } from "../families/ethereum/ty
 import type { TransactionRaw as ethereumTransactionRaw } from "../families/ethereum/types";
 import type { NetworkInfo as ethereumNetworkInfo } from "../families/ethereum/types";
 import type { NetworkInfoRaw as ethereumNetworkInfoRaw } from "../families/ethereum/types";
+import { reflect as mycoinReflect } from "../families/mycoin/types";
+import type { CoreStatics as CoreStatics_mycoin } from "../families/mycoin/types";
+import type { CoreAccountSpecifics as CoreAccountSpecifics_mycoin } from "../families/mycoin/types";
+import type { CoreOperationSpecifics as CoreOperationSpecifics_mycoin } from "../families/mycoin/types";
+import type { CoreCurrencySpecifics as CoreCurrencySpecifics_mycoin } from "../families/mycoin/types";
+import type { Transaction as mycoinTransaction } from "../families/mycoin/types";
+import type { TransactionRaw as mycoinTransactionRaw } from "../families/mycoin/types";
 import { reflect as neoReflect } from "../families/neo/types";
 import type { CoreStatics as CoreStatics_neo } from "../families/neo/types";
 import type { CoreAccountSpecifics as CoreAccountSpecifics_neo } from "../families/neo/types";
@@ -91,6 +98,7 @@ export type SpecificStatics = {}
 & CoreStatics_bitcoin
 & CoreStatics_cosmos
 & CoreStatics_ethereum
+& CoreStatics_mycoin
 & CoreStatics_neo
 & CoreStatics_polkadot
 & CoreStatics_ripple
@@ -102,6 +110,7 @@ export type CoreAccountSpecifics = {}
 & CoreAccountSpecifics_bitcoin
 & CoreAccountSpecifics_cosmos
 & CoreAccountSpecifics_ethereum
+& CoreAccountSpecifics_mycoin
 & CoreAccountSpecifics_neo
 & CoreAccountSpecifics_polkadot
 & CoreAccountSpecifics_ripple
@@ -113,6 +122,7 @@ export type CoreOperationSpecifics = {}
 & CoreOperationSpecifics_bitcoin
 & CoreOperationSpecifics_cosmos
 & CoreOperationSpecifics_ethereum
+& CoreOperationSpecifics_mycoin
 & CoreOperationSpecifics_neo
 & CoreOperationSpecifics_polkadot
 & CoreOperationSpecifics_ripple
@@ -124,6 +134,7 @@ export type CoreCurrencySpecifics = {}
 & CoreCurrencySpecifics_bitcoin
 & CoreCurrencySpecifics_cosmos
 & CoreCurrencySpecifics_ethereum
+& CoreCurrencySpecifics_mycoin
 & CoreCurrencySpecifics_neo
 & CoreCurrencySpecifics_polkadot
 & CoreCurrencySpecifics_ripple
@@ -135,6 +146,7 @@ export type Transaction =
   | bitcoinTransaction
   | cosmosTransaction
   | ethereumTransaction
+  | mycoinTransaction
   | neoTransaction
   | polkadotTransaction
   | rippleTransaction
@@ -146,6 +158,7 @@ export type TransactionRaw =
   | bitcoinTransactionRaw
   | cosmosTransactionRaw
   | ethereumTransactionRaw
+  | mycoinTransactionRaw
   | neoTransactionRaw
   | polkadotTransactionRaw
   | rippleTransactionRaw
@@ -175,6 +188,7 @@ export const reflectSpecifics = (declare: *) => [
   bitcoinReflect(declare),
   cosmosReflect(declare),
   ethereumReflect(declare),
+  mycoinReflect(declare),
   neoReflect(declare),
   polkadotReflect(declare),
   rippleReflect(declare),

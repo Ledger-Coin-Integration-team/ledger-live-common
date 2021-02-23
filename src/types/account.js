@@ -22,6 +22,10 @@ import type {
   PolkadotResourcesRaw,
 } from "../families/polkadot/types";
 import type {
+  MyCoinResources,
+  MyCoinResourcesRaw,
+} from "../families/mycoin/types";
+import type {
   BalanceHistory,
   BalanceHistoryRaw,
   PortfolioRange,
@@ -199,6 +203,7 @@ export type Account = {
   cosmosResources?: CosmosResources,
   algorandResources?: AlgorandResources,
   polkadotResources?: PolkadotResources,
+  myCoinResources?: MyCoinResources,
 
   // Swap operations linked to this account
   swapHistory: SwapOperation[],
@@ -284,6 +289,7 @@ export type AccountRaw = {
   cosmosResources?: CosmosResourcesRaw,
   algorandResources?: AlgorandResourcesRaw,
   polkadotResources?: PolkadotResourcesRaw,
+  myCoinResources?: MyCoinResourcesRaw,
   swapHistory?: SwapOperationRaw[],
   syncHash?: string,
 };
