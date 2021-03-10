@@ -32,6 +32,7 @@ export {
   getTransactionParams,
   submitExtrinsic,
   paymentInfo,
+  getPendingRewards,
   getValidators,
   getStakingProgress,
   getRegistry,

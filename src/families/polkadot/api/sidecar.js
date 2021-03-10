@@ -17,6 +17,8 @@ import type {
   PolkadotStakingProgress,
   PolkadotUnlocking,
   PolkadotNomination,
+  PolkadotRewardFetchMode,
+  PolkadotPendingReward
 } from "../types";
 import type {
   SidecarAccountBalanceInfo,
@@ -33,6 +35,9 @@ import type {
   SidecarPaymentInfo,
   SidecarRuntimeSpec,
 } from "./sidecar.types";
+
+const POLKADOT_REWARDS_RECENT_ERAS = 7;
+const POLKADOT_REWARDS_MAXIMUM_ERAS = 84;
 
 /**
  * Get indexer base url.
@@ -524,6 +529,79 @@ export const paymentInfo = async (
   });
 
   return data;
+};
+
+/**
+ * Retrieve the pending rewards of the address for a given era and depth
+ *
+ * @async
+ * @param {*} addr
+ * @param {string} era - the starting era to look for pending rewards
+ * @param {string} depth - the number of eras before starting era to look for pending rewards
+ *
+ * @returns {SidecarPaymentInfo}
+ */
+ export const fetchPendingRewards = async (
+  addr: string,
+  era: string,
+  depth: string,
+): Promise<SidecarStakingPayouts> => {
+
+  let params = {};
+
+  if (era) {
+    params = { ...params, era };
+  }
+
+  if (depth) {
+    params = { ...params, depth };
+  }
+  
+  const { data }: { data: SidecarStakingPayouts } = await network({
+    method: "GET",
+    url: getSidecarUrl(`/accounts/${addr}/staking-payouts?${querystring.stringify(params)}`),
+  });
+
+  return data;
+};
+
+/**
+ * Retrieve the pending rewards of the address for either recent eras
+ * (faster but incomplete) or the maximum of eras (complete but very long)
+ *
+ * @async
+ * @param {*} addr
+ * @param {PolkadotRewardFetchMode} mode - used to fetch either only recent eras or the maximum number of eras
+ *
+ * @returns {PolkadotPendingReward[]}
+ */
+export const getPendingRewards = async (
+  addr: string,
+  mode: PolkadotRewardFetchMode,
+  ): Promise<PolkadotPendingReward[]> => {
+  
+  const activeEra = await fetchActiveEra();
+  const activeEraIndex = Number(activeEra.value?.index || 0);
+  const depth = mode === "recent" ? POLKADOT_REWARDS_RECENT_ERAS : POLKADOT_REWARDS_MAXIMUM_ERAS;
+
+  const pendingRewardsRaw = await fetchPendingRewards(addr, activeEraIndex - 1, depth);
+
+  const pendingRewards: Array<PolkadotPendingReward> = [];
+
+  pendingRewardsRaw.erasPayouts.forEach(ep => {
+    ep.payouts
+      .filter(p => BigNumber(p.nominatorStakingPayout).isGreaterThan(0))
+      .forEach(p => {
+        pendingRewards.push({
+          nominator: addr,
+          validator: p.validatorId,
+          era: ep.era,
+          amount: BigNumber(p.nominatorStakingPayout),
+        });
+      });
+  });
+
+  return pendingRewards;
 };
 
 /**

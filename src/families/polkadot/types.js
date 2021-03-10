@@ -5,6 +5,17 @@ import type {
   TransactionCommonRaw,
 } from "../../types/transaction";
 
+// Unused
+export type PolkadotRewardDestinationType =
+  | "Staked"
+  | "Stash"
+  | "Account"
+  | "Controller";
+
+export type PolkadotRewardFetchMode =
+  | "recent"
+  | "maximum";
+
 export type CoreStatics = {};
 
 export type CoreAccountSpecifics = {};
@@ -108,6 +119,13 @@ export type PolkadotStakingProgress = {|
   electionClosed: boolean,
   maxNominatorRewardedPerValidator: number,
   bondingDuration: number,
+|};
+
+export type PolkadotPendingReward = {|
+  nominator: string,
+  validator: string,
+  era: number,
+  amount: BigNumber,
 |};
 
 export type PolkadotPreloadData = {|

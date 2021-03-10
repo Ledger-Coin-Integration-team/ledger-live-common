@@ -7,10 +7,6 @@ Ledger Live @ https://github.com/LedgerHQ/ledger-live-common
 
 Usage: ledger-live <command> ...
 
-Usage: ledger-live tezosListBakers
-     --whitelist              : filter whitelist
-     --format <String>        : json | default
-
 Usage: ledger-live app        # Manage Ledger device's apps
      --device <String>        : provide a specific HID path of a device
  -v, --verbose                : enable verbose logs
@@ -279,6 +275,10 @@ Usage: ledger-live tezosListBakers
 Usage: ledger-live tronSuperRepresentative
      --max <Number>           : max number of super representatives to return
      --format <String>        : json | default
+
+Usage: ledger-live polkadotPendingRewards # Fetch and display Polkadot pending rewards for a given Polkadot address
+     -a, --address            : the address of the account to fetch pending rewards
+     -m, --mode               : the mode to use to fetch pending rewards (recent|maximum)
 
 Usage: ledger-live validRecipient # Validate a recipient address
  -r, --recipient <String>     : the address to validate
