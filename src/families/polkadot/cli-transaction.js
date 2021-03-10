@@ -1,7 +1,7 @@
 // @flow
 import { from, Observable } from "rxjs";
 import { map } from "rxjs/operators";
-import { getValidators } from "./validators";
+import { getValidators, getPendingRewards } from "./api";
 import invariant from "invariant";
 import flatMap from "lodash/flatMap";
 import type { Transaction, AccountLike } from "../../types";
@@ -128,6 +128,78 @@ const polkadotValidators = {
     ),
 };
 
+const polkadotPendingRewardsFormatters = {
+  json: (list) => JSON.stringify(list),
+  csv: (list) => {
+    const polkadotUnit = getCryptoCurrencyById("polkadot").units[0];
+    const csvHeader = "ADDRESS ERA PENDING_REWARD\n";
+    const csvList = list
+      .map(
+        (pr) =>
+          `${pr.validator} ${pr.era} ${formatCurrencyUnit(
+            polkadotUnit,
+            pr.amount,
+            { showCode: false, disableRounding: true, useGrouping: false }
+           )}`
+      ).join("\n");
+    return csvHeader + csvList;
+  },
+  default: (list) => {
+    const polkadotUnit = getCryptoCurrencyById("polkadot").units[0];
+    const tableList = list
+      .map(
+        (pr) =>
+          `${pr.validator} ${pr.era} ${formatCurrencyUnit(
+            polkadotUnit,
+            pr.amount,
+            { showCode: true, disableRounding: true, useGrouping: false }
+          )}`
+      ).join("\n");
+    return tableList;
+  },
+};
+
+const polkadotPendingRewards = {
+  args: [
+    {
+      name: "format",
+      desc: Object.keys(polkadotPendingRewardsFormatters).join("|"),
+      type: String,
+    },
+    {
+      name: "address",
+      alias: "a",
+      desc: "The mode to use when fetching pending rewards (recent|maximum)",
+      type: String,
+    },
+    {
+      name: "mode",
+      alias: "m",
+      desc: "The mode to use when fetching pending rewards (recent|maximum)",
+      type: String,
+    },
+  ],
+  job: ({
+    format,
+    address,
+    mode,
+  }: $Shape<{
+    format: string,
+    address: string,
+    mode: string,
+  }>): Observable<string> =>
+  from(
+    getPendingRewards(address, mode)
+  ).pipe(
+    map((pendingRewards) => {
+      const f =
+        polkadotPendingRewardsFormatters[format] ||
+        polkadotPendingRewardsFormatters.default;
+      return f(pendingRewards);
+    })
+  ),
+};
+
 function inferTransactions(
   transactions: Array<{ account: AccountLike, transaction: Transaction }>,
   opts: Object,
@@ -160,5 +232,6 @@ export default {
   inferTransactions,
   commands: {
     polkadotValidators,
+    polkadotPendingRewards,
   },
 };

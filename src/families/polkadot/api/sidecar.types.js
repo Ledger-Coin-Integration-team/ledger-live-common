@@ -85,6 +85,23 @@ interface IChainProperties {
   tokenSymbol: string;
 }
 
+interface Payout {
+  validatorId: string;
+  nominatorStakingPayout: string;
+  claimed: boolean;
+  totalValidatorRewardPoints: string;
+  validatorCommission: string;
+  totalValidatorExposure: string;
+  nominatorExposure: string;
+}
+
+interface IEraPayout {
+  era: string;
+  totalEraRewardPoints: string;
+  totalEraPayout: string;
+  payouts: IPayout[];
+}
+
 export interface SidecarAccountBalanceInfo {
   at: IAt;
   tokenSymbol: string;
@@ -183,4 +200,9 @@ export interface SidecarRuntimeSpec {
   specVersion: string;
   chainType: IChainType;
   properties: IChainProperties;
+}
+
+export interface SidecarStakingPayouts {
+  at: IAt;
+  erasPayouts: IEraPayout[];
 }
