@@ -82,9 +82,11 @@ const updates = new Subject<PolkadotPreloadData>();
 
 export function getCurrentPolkadotPreloadData(): PolkadotPreloadData {
   // Override the value with ENV for testing purpose.
+  const envMinRewarded = getEnv("POLKADOT_MINIMUM_REWARDED");
   const minRewarded =
-    getEnv("POLKADOT_MINIMUM_REWARDED") ||
-    currentPolkadotPreloadedData.minRewarded;
+    envMinRewarded && envMinRewarded.gt(0)
+      ? envMinRewarded
+      : currentPolkadotPreloadedData.minRewarded;
 
   return {
     validators: currentPolkadotPreloadedData.validators,

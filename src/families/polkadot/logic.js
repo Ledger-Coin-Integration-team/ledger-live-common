@@ -285,3 +285,36 @@ export const getMinRewarded = (validators: PolkadotValidator[]): BigNumber => {
     ) || BigNumber(0)
   );
 };
+
+/**
+ * Returns true if the total balance is sufficient to get rewards
+ *
+ * @param {Account} a
+ * @param {BigNumber | null} minRewarded - the minimum rewarded staked amount for current era
+ */
+export const hasEnoughAvailableBalanceForStaking = (
+  a: Account,
+  minRewarded?: BigNumber | null
+) => {
+  return a.balance.gt(minRewarded || 0);
+};
+
+/**
+ * Returns true if the bonded amount is sufficient to get rewards
+ *
+ * @param {Account} a
+ * @param {BigNumber | null} minRewarded - the minimum rewarded staked amount for current era
+ * @param {BigNumber?} bondExtraAmount - an additional amount that will be added to current bonded balance
+ */
+export const hasEnoughBondedBalanceForStaking = (
+  a: Account,
+  minRewarded?: BigNumber | null = null,
+  bondExtraAmount?: BigNumber = BigNumber(0)
+) => {
+  return (
+    a.polkadotResources?.lockedBalance
+      .minus(a.polkadotResources?.unlockingBalance || 0)
+      .plus(bondExtraAmount || 0)
+      .gte(minRewarded || 0) ?? true
+  );
+};

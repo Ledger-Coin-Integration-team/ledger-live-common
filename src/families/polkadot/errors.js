@@ -44,3 +44,7 @@ export const PolkadotValidatorsRequired = createCustomErrorClass(
 export const PolkadotDoMaxSendInstead = createCustomErrorClass(
   "PolkadotDoMaxSendInstead"
 );
+
+export const PolkadotNoRewardWarning = createCustomErrorClass(
+  "PolkadotNoRewardWarning"
+);

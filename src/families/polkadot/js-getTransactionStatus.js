@@ -26,6 +26,7 @@ import {
   PolkadotMaxUnbonding,
   PolkadotValidatorsRequired,
   PolkadotDoMaxSendInstead,
+  PolkadotNoRewardWarning,
 } from "./errors";
 import { verifyValidatorAddresses } from "./api";
 import {
@@ -40,6 +41,7 @@ import {
   calculateAmount,
   getMinimalLockedBalance,
   getMinimumBalance,
+  hasEnoughBondedBalanceForStaking,
 } from "./logic";
 import { getCurrentPolkadotPreloadData } from "./preload";
 import { isControllerAddress, isNewAccount, isElectionClosed } from "./cache";
@@ -120,7 +122,7 @@ const getSendTransactionStatus = async (
 const getTransactionStatus = async (a: Account, t: Transaction) => {
   const errors = {};
   const warnings = {};
-  const { staking, validators } = getCurrentPolkadotPreloadData();
+  const { staking, validators, minRewarded } = getCurrentPolkadotPreloadData();
 
   if (t.mode === "send") {
     return await getSendTransactionStatus(a, t);
@@ -177,6 +179,13 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
         });
       }
 
+      if (
+        minRewarded.gt(MINIMUM_BOND_AMOUNT) && // Do not show warning if minRewarded is not higher than the bond minimum
+        !hasEnoughBondedBalanceForStaking(a, minRewarded, amount)
+      ) {
+        warnings.amount = new PolkadotNoRewardWarning();
+      }
+
       break;
 
     case "unbond":
@@ -190,14 +199,17 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
 
       if (amount.lte(0)) {
         errors.amount = new AmountRequired();
-      } else if (
-        amount.gt(currentBonded.minus(MINIMUM_BOND_AMOUNT)) &&
-        amount.lt(currentBonded)
-      ) {
-        warnings.amount = new PolkadotLowBondedBalance();
       } else if (amount.gt(currentBonded)) {
         errors.amount = new NotEnoughBalance();
+      } else if (amount.gt(currentBonded.minus(MINIMUM_BOND_AMOUNT))) {
+        warnings.amount = new PolkadotLowBondedBalance();
+      } else if (
+        minRewarded.gt(MINIMUM_BOND_AMOUNT) && // Do not show warning if minRewarded is not higher than the bond minimum
+        !hasEnoughBondedBalanceForStaking(a, minRewarded, amount.negated())
+      ) {
+        warnings.amount = new PolkadotNoRewardWarning();
       }
+
       break;
 
     case "rebond":
@@ -217,6 +229,11 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
             { showCode: true }
           ),
         });
+      } else if (
+        minRewarded.gt(MINIMUM_BOND_AMOUNT) && // Do not show warning if minRewarded is not higher thant the bond minimum
+        !hasEnoughBondedBalanceForStaking(a, minRewarded, amount)
+      ) {
+        warnings.amount = new PolkadotNoRewardWarning();
       }
       break;
 
