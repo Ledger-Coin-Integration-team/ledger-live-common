@@ -295,6 +295,8 @@ const mapSubscanValidator = (validator, isElected): PolkadotValidator => {
     isElected,
     isOversubscribed:
       validator.count_nominators >= SUBSCAN_VALIDATOR_OVERSUBSCRIBED,
+    minRewarded: BigNumber(0), // Not implemented
+    minNominated: BigNumber(0), // Not implemented
   };
 };
 

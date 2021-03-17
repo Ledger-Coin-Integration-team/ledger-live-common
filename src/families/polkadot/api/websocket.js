@@ -500,6 +500,8 @@ const mapValidator = (
     selfBonded: BigNumber(validator.exposure.own),
     isElected: elected.includes(address),
     isOversubscribed: validator.exposure.others.length >= maxNominators,
+    minRewarded: BigNumber(0), // Not Implemented
+    minNominated: BigNumber(0), // Not Implemented
   };
 };
 

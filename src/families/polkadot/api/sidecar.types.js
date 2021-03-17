@@ -69,6 +69,8 @@ interface IValidator {
   rewardsPoints: string | null;
   isElected: boolean;
   isOversubscribed: boolean;
+  minNominated: string | null;
+  minRewarded: string | null;
 }
 
 interface IChainType {

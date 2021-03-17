@@ -562,6 +562,8 @@ export const getValidators = async (
     selfBonded: BigNumber(v.own),
     isElected: v.isElected,
     isOversubscribed: v.isOversubscribed,
+    minNominated: v.minNominated ? BigNumber(v.minNominated) : null,
+    minRewarded: v.minRewarded ? BigNumber(v.minRewarded) : null,
   }));
 };
 
@@ -572,7 +574,9 @@ export const getValidators = async (
  *
  * @returns {PolkadotStakingProgress}
  */
-export const getStakingProgress = async (): Promise<PolkadotStakingProgress> => {
+export const getStakingProgress = async (): Promise<
+  $Shape<PolkadotStakingProgress>
+> => {
   const [progress, consts] = await Promise.all([
     fetchStakingProgress(),
     getConstants(),

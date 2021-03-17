@@ -47,7 +47,7 @@ const polkadotValidatorsFormatters = {
   csv: (list) => {
     const polkadotUnit = getCryptoCurrencyById("polkadot").units[0];
     const csvHeader =
-      "ADDRESS IDENTITY TOTAL_BONDED SELF_BONDED NOMINATORS_COUNT COMMISSION REWARD_POINTS\n";
+      "ADDRESS IDENTITY TOTAL_BONDED SELF_BONDED NOMINATORS_COUNT MIN_REWARDED COMMISSION REWARD_POINTS\n";
     const csvList = list
       .map(
         (v) =>
@@ -59,9 +59,15 @@ const polkadotValidatorsFormatters = {
             showCode: false,
             disableRounding: true,
             useGrouping: false,
-          })} ${v.nominatorsCount} ${v.commission
-            .multipliedBy(100)
-            .toFixed(2)} ${v.rewardPoints}`
+          })} ${v.nominatorsCount} ${formatCurrencyUnit(
+            polkadotUnit,
+            v.minRewarded,
+            {
+              showCode: false,
+              disableRounding: true,
+              useGrouping: false,
+            }
+          )} ${v.commission.multipliedBy(100).toFixed(2)} ${v.rewardPoints}`
       )
       .join("\n");
     return csvHeader + csvList;

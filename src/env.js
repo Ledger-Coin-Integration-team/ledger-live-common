@@ -1,5 +1,6 @@
 // @flow
 // set and get environment & config variables
+import { BigNumber } from "bignumber.js";
 import { Subject } from "rxjs";
 import mapValues from "lodash/mapValues";
 
@@ -30,6 +31,9 @@ const boolParser = (v: mixed): ?boolean => {
 
 const stringParser = (v: mixed): ?string =>
   typeof v === "string" ? v : undefined;
+
+const bigNumberParser = (v: mixed): ?BigNumber =>
+  typeof v === "string" ? BigNumber(v) : undefined;
 
 const envDefinitions = {
   ANALYTICS_CONSOLE: {
@@ -349,6 +353,11 @@ const envDefinitions = {
     parser: intParser,
     desc:
       "in blocks - number of blocks before Polkadot election effectively opens to consider it as open and disable all staking features",
+  },
+  POLKADOT_MINIMUM_REWARDED: {
+    def: 0,
+    parser: bigNumberParser,
+    desc: "in PLANCK - amount above which Polkadot consensus may reward stake",
   },
   SATSTACK: {
     def: false,

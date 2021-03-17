@@ -99,6 +99,8 @@ export type PolkadotValidator = {|
   selfBonded: BigNumber,
   isElected: boolean,
   isOversubscribed: boolean,
+  minNominated: BigNumber | null,
+  minRewarded: BigNumber | null,
 |};
 
 export type PolkadotNominationInfo = string;
@@ -113,6 +115,7 @@ export type PolkadotStakingProgress = {|
 export type PolkadotPreloadData = {|
   validators: PolkadotValidator[],
   staking: PolkadotStakingProgress | null,
+  minRewarded: BigNumber,
 |};
 
 export type PolkadotSearchFilter = (

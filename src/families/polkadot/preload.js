@@ -3,8 +3,9 @@
 import { BigNumber } from "bignumber.js";
 import { Observable, Subject } from "rxjs";
 import { log } from "@ledgerhq/logs";
+import { getEnv } from "../../env";
 
-import { PRELOAD_MAX_AGE } from "./logic";
+import { PRELOAD_MAX_AGE, getMinRewarded } from "./logic";
 import { getRegistry } from "./cache";
 import type { PolkadotPreloadData, PolkadotValidator } from "./types";
 import { getStakingProgress, getValidators } from "./validators";
@@ -12,6 +13,7 @@ import { getStakingProgress, getValidators } from "./validators";
 let currentPolkadotPreloadedData: PolkadotPreloadData = {
   validators: [],
   staking: null,
+  minRewarded: BigNumber(0),
 };
 
 function fromHydrateValidator(validatorRaw: Object): PolkadotValidator {
@@ -28,12 +30,19 @@ function fromHydrateValidator(validatorRaw: Object): PolkadotValidator {
     selfBonded: BigNumber(validatorRaw.selfBonded),
     isElected: !!validatorRaw.isElected,
     isOversubscribed: !!validatorRaw.isOversubscribed,
+    minRewarded: validatorRaw.minRewarded
+      ? BigNumber(validatorRaw.minRewarded)
+      : null,
+    minNominated: validatorRaw.minNominated
+      ? BigNumber(validatorRaw.minNominated)
+      : null,
   };
 }
 
 function fromHydratePreloadData(data: mixed): PolkadotPreloadData {
   let validators = [];
   let staking = null;
+  let minRewarded = BigNumber(0);
 
   if (typeof data === "object" && data) {
     if (Array.isArray(data.validators)) {
@@ -56,18 +65,32 @@ function fromHydratePreloadData(data: mixed): PolkadotPreloadData {
         bondingDuration: Number(bondingDuration) || 28,
       };
     }
+
+    if (typeof data.minRewarded === "string") {
+      minRewarded = BigNumber(data.minRewarded);
+    }
   }
 
   return {
     validators,
     staking,
+    minRewarded,
   };
 }
 
 const updates = new Subject<PolkadotPreloadData>();
 
 export function getCurrentPolkadotPreloadData(): PolkadotPreloadData {
-  return currentPolkadotPreloadedData;
+  // Override the value with ENV for testing purpose.
+  const minRewarded =
+    getEnv("POLKADOT_MINIMUM_REWARDED") ||
+    currentPolkadotPreloadedData.minRewarded;
+
+  return {
+    validators: currentPolkadotPreloadedData.validators,
+    staking: currentPolkadotPreloadedData.staking,
+    minRewarded,
+  };
 }
 
 export function setPolkadotPreloadData(data: PolkadotPreloadData) {
@@ -100,11 +123,15 @@ export const preload = async (): Promise<PolkadotPreloadData> => {
   const {
     validators: previousValidators,
     staking: previousStakingProgress,
+    minRewarded: previousMinRewarded,
   } = currentPolkadotPreloadedData;
 
   let validators = previousValidators;
+  let minRewarded = previousMinRewarded;
 
   if (
+    !minRewarded ||
+    minRewarded.eq(0) ||
     !validators ||
     !validators.length ||
     shouldRefreshValidators(previousStakingProgress, currentStakingProgress)
@@ -112,6 +139,7 @@ export const preload = async (): Promise<PolkadotPreloadData> => {
     log("polkadot/preload", "refreshing polkadot validators...");
     try {
       validators = await getValidators("all");
+      minRewarded = getMinRewarded(validators);
     } catch (error) {
       log("polkadot/preload", "failed to fetch validators", { error });
     }
@@ -120,6 +148,7 @@ export const preload = async (): Promise<PolkadotPreloadData> => {
   return {
     validators,
     staking: currentStakingProgress,
+    minRewarded,
   };
 };
 

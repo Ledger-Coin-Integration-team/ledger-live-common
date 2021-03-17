@@ -3,7 +3,7 @@ import { BigNumber } from "bignumber.js";
 import { decodeAddress } from "@polkadot/util-crypto";
 import type { Account, OperationType } from "../../types";
 
-import type { Transaction } from "./types";
+import type { Transaction, PolkadotValidator } from "./types";
 
 export const EXISTENTIAL_DEPOSIT = BigNumber(10000000000);
 export const MINIMUM_BOND_AMOUNT = BigNumber(10000000000);
@@ -268,4 +268,20 @@ export const getMinimumBalance = (a: Account): BigNumber => {
   return lockedBalance.lte(EXISTENTIAL_DEPOSIT)
     ? EXISTENTIAL_DEPOSIT.minus(lockedBalance)
     : BigNumber(0);
+};
+
+/**
+ * Get the minimum value of minRewarded of validators
+ */
+export const getMinRewarded = (validators: PolkadotValidator[]): BigNumber => {
+  return (
+    validators.reduce(
+      (minRewarded: BigNumber | null, validator: PolkadotValidator) =>
+        validator.minRewarded &&
+        (!minRewarded || minRewarded.gt(validator.minRewarded))
+          ? validator.minRewarded
+          : minRewarded,
+      null
+    ) || BigNumber(0)
+  );
 };
