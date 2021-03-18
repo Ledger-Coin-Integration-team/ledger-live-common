@@ -12,10 +12,6 @@ export type PolkadotRewardDestinationType =
   | "Account"
   | "Controller";
 
-export type PolkadotRewardFetchMode =
-  | "recent"
-  | "maximum";
-
 export type CoreStatics = {};
 
 export type CoreAccountSpecifics = {};
@@ -123,7 +119,7 @@ export type PolkadotStakingProgress = {|
 
 export type PolkadotPendingReward = {|
   nominator: string,
-  validator: string,
+  validator: PolkadotValidator,
   era: number,
   amount: BigNumber,
 |};

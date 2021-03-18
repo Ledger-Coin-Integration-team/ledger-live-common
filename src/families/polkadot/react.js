@@ -13,6 +13,7 @@ import type {
   PolkadotValidator,
   PolkadotNomination,
   PolkadotSearchFilter,
+  PolkadotPendingReward,
 } from "./types";
 
 const SYNC_REFRESH_RATE = 6000; // 6s - block time
@@ -32,6 +33,29 @@ export const searchFilter: PolkadotSearchFilter = (query) => (validator) => {
   const terms = `${validator?.identity ?? ""} ${validator?.address ?? ""}`;
   return terms.toLowerCase().includes(query.toLowerCase().trim());
 };
+
+export function usePendingRewardsIdentities(
+  pendingRewards: PolkadotPendingReward[],
+) {
+  const { validators } = usePolkadotPreloadData();
+
+  const pendingRewardsWithIdentities = useMemo(
+    () => {
+      pendingRewards.forEach(pr => {
+        const foundValidator = validators.find(v => v.address === pr.validator);
+        
+        if (foundValidator && foundValidator.identity) {
+          pr.validator = foundValidator.identity;
+        }
+      });
+
+      return pendingRewards;
+    },
+    [pendingRewards, validators]
+  );
+
+  return pendingRewardsWithIdentities;
+}
 
 /** Hook to search and sort SR list according to initial votes and query */
 export function useSortedValidators(

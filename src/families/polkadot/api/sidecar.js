@@ -17,7 +17,6 @@ import type {
   PolkadotStakingProgress,
   PolkadotUnlocking,
   PolkadotNomination,
-  PolkadotRewardFetchMode,
   PolkadotPendingReward
 } from "../types";
 import type {
@@ -36,8 +35,7 @@ import type {
   SidecarRuntimeSpec,
 } from "./sidecar.types";
 
-const POLKADOT_REWARDS_RECENT_ERAS = 7;
-const POLKADOT_REWARDS_MAXIMUM_ERAS = 84;
+const POLKADOT_REWARDS_ERAS = 7;
 
 /**
  * Get indexer base url.
@@ -532,26 +530,22 @@ export const paymentInfo = async (
 };
 
 /**
- * Retrieve the pending rewards of the address for a given era and depth
+ * Retrieve the pending rewards of the address, for the given depth, starting from active era
  *
  * @async
  * @param {*} addr
- * @param {string} era - the starting era to look for pending rewards
  * @param {string} depth - the number of eras before starting era to look for pending rewards
  *
  * @returns {SidecarPaymentInfo}
  */
  export const fetchPendingRewards = async (
   addr: string,
-  era: string,
   depth: string,
 ): Promise<SidecarStakingPayouts> => {
 
-  let params = {};
-
-  if (era) {
-    params = { ...params, era };
-  }
+  let params = {
+    unclaimedOnly: true,
+  };
 
   if (depth) {
     params = { ...params, depth };
@@ -566,27 +560,19 @@ export const paymentInfo = async (
 };
 
 /**
- * Retrieve the pending rewards of the address for either recent eras
- * (faster but incomplete) or the maximum of eras (complete but very long)
+ * Retrieve the pending rewards of the address over the last `POLKADOT_REWARDS_ERAS` eras
  *
  * @async
  * @param {*} addr
- * @param {PolkadotRewardFetchMode} mode - used to fetch either only recent eras or the maximum number of eras
  *
  * @returns {PolkadotPendingReward[]}
  */
-export const getPendingRewards = async (
-  addr: string,
-  mode: PolkadotRewardFetchMode,
-  ): Promise<PolkadotPendingReward[]> => {
+export const getPendingRewards = async (addr: string): Promise<PolkadotPendingReward[]> => {
   
-  const activeEra = await fetchActiveEra();
-  const activeEraIndex = Number(activeEra.value?.index || 0);
-  const depth = mode === "recent" ? POLKADOT_REWARDS_RECENT_ERAS : POLKADOT_REWARDS_MAXIMUM_ERAS;
+  const pendingRewardsRaw = await fetchPendingRewards(addr, POLKADOT_REWARDS_ERAS);
 
-  const pendingRewardsRaw = await fetchPendingRewards(addr, activeEraIndex - 1, depth);
-
-  const pendingRewards: Array<PolkadotPendingReward> = [];
+  // TODO: set back as 'const'
+  let pendingRewards: Array<PolkadotPendingReward> = [];
 
   pendingRewardsRaw.erasPayouts.forEach(ep => {
     ep.payouts
@@ -594,12 +580,15 @@ export const getPendingRewards = async (
       .forEach(p => {
         pendingRewards.push({
           nominator: addr,
-          validator: p.validatorId,
+          validator: { address: p.validatorId },
           era: ep.era,
           amount: BigNumber(p.nominatorStakingPayout),
         });
       });
   });
+
+  // TODO: remove this mock data
+  pendingRewards = [{nominator:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",validator:{address:"13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6"},era:100,amount:BigNumber(1230000)},{nominator:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",validator:{address:"13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6",identity:"Dummy"},era:101,amount:BigNumber(4560000)},{nominator:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",validator:{address:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS"},era:101,amount:BigNumber(7890000)},{nominator:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",validator:{address:"13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6"},era:103,amount:BigNumber(9870000)},{nominator:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",validator:{address:"13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6"},era:104,amount:BigNumber(6540000)},{nominator:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",validator:{address:"13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6"},era:105,amount:BigNumber(3210000)},{nominator:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",validator:{address:"13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6"},era:106,amount:BigNumber(1110000)}];
 
   return pendingRewards;
 };
