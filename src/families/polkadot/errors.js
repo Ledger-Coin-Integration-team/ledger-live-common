@@ -44,3 +44,11 @@ export const PolkadotValidatorsRequired = createCustomErrorClass(
 export const PolkadotDoMaxSendInstead = createCustomErrorClass(
   "PolkadotDoMaxSendInstead"
 );
+
+export const PolkadotValidatorRequired = createCustomErrorClass(
+  "PolkadotValidatorRequired"
+);
+
+export const PolkadotEraRequired = createCustomErrorClass(
+  "PolkadotEraRequired"
+);

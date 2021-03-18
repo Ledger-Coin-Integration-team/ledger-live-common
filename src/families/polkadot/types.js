@@ -113,7 +113,7 @@ export type PolkadotStakingProgress = {|
 
 export type PolkadotPendingReward = {|
   nominator: string,
-  validator: string,
+  validator: PolkadotValidator,
   era: number,
   amount: BigNumber,
 |};

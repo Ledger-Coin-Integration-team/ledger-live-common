@@ -169,27 +169,19 @@ const polkadotPendingRewards = {
     {
       name: "address",
       alias: "a",
-      desc: "The mode to use when fetching pending rewards (recent|maximum)",
-      type: String,
-    },
-    {
-      name: "mode",
-      alias: "m",
-      desc: "The mode to use when fetching pending rewards (recent|maximum)",
+      desc: "The address for which to fetch pending rewards",
       type: String,
     },
   ],
   job: ({
     format,
     address,
-    mode,
   }: $Shape<{
     format: string,
     address: string,
-    mode: string,
   }>): Observable<string> =>
   from(
-    getPendingRewards(address, mode)
+    getPendingRewards(address)
   ).pipe(
     map((pendingRewards) => {
       const f =

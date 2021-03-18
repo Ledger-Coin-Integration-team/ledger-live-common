@@ -269,3 +269,13 @@ export const getMinimumBalance = (a: Account): BigNumber => {
     ? EXISTENTIAL_DEPOSIT.minus(lockedBalance)
     : BigNumber(0);
 };
+
+export const isTransactionComplete = (t: Transaction): boolean => {
+  switch (t.mode) {
+    case "claimReward":
+      return !!t.validators && t.validators.length === 1 && !!t.era;
+    default:
+      // TODO: perform checks for all other transaction types
+      return true;
+  }
+};
