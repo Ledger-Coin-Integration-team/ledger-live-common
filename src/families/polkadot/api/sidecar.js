@@ -571,8 +571,7 @@ export const getPendingRewards = async (addr: string): Promise<PolkadotPendingRe
   
   const pendingRewardsRaw = await fetchPendingRewards(addr, POLKADOT_REWARDS_ERAS);
 
-  // TODO: set back as 'const'
-  let pendingRewards: Array<PolkadotPendingReward> = [];
+  const pendingRewards: Array<PolkadotPendingReward> = [];
 
   pendingRewardsRaw.erasPayouts.forEach(ep => {
     ep.payouts
@@ -588,7 +587,7 @@ export const getPendingRewards = async (addr: string): Promise<PolkadotPendingRe
   });
 
   // TODO: remove this mock data
-  pendingRewards = [{nominator:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",validator:{address:"13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6"},era:100,amount:BigNumber(1230000)},{nominator:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",validator:{address:"13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6",identity:"Dummy"},era:101,amount:BigNumber(4560000)},{nominator:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",validator:{address:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS"},era:101,amount:BigNumber(7890000)},{nominator:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",validator:{address:"13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6"},era:103,amount:BigNumber(9870000)},{nominator:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",validator:{address:"13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6"},era:104,amount:BigNumber(6540000)},{nominator:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",validator:{address:"13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6"},era:105,amount:BigNumber(3210000)},{nominator:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",validator:{address:"13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6"},era:106,amount:BigNumber(1110000)}];
+  //pendingRewards = [{nominator:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",validator:{address:"13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6"},era:100,amount:BigNumber(1230000)},{nominator:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",validator:{address:"13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6",identity:"Dummy"},era:101,amount:BigNumber(4560000)},{nominator:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",validator:{address:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS"},era:101,amount:BigNumber(7890000)},{nominator:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",validator:{address:"13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6"},era:103,amount:BigNumber(9870000)},{nominator:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",validator:{address:"13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6"},era:104,amount:BigNumber(6540000)},{nominator:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",validator:{address:"13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6"},era:105,amount:BigNumber(3210000)},{nominator:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",validator:{address:"13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6"},era:106,amount:BigNumber(1110000)}];
 
   return pendingRewards;
 };
