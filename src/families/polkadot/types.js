@@ -5,7 +5,8 @@ import type {
   TransactionCommonRaw,
 } from "../../types/transaction";
 
-export type RewardDestinationType =
+// Unused
+export type PolkadotRewardDestinationType =
   | "Staked"
   | "Stash"
   | "Account"
@@ -108,6 +109,13 @@ export type PolkadotStakingProgress = {|
   electionClosed: boolean,
   maxNominatorRewardedPerValidator: number,
   bondingDuration: number,
+|};
+
+export type PolkadotPendingReward = {|
+  nominator: string,
+  validator: PolkadotValidator,
+  era: number,
+  amount: BigNumber,
 |};
 
 export type PolkadotPreloadData = {|

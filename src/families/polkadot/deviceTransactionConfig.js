@@ -179,7 +179,17 @@ function getDeviceTransactionConfig({
       fields.push({
         type: "text",
         label: "Staking",
-        value: "Payout Stakers",
+        value: "Payout stakers",
+      });
+      fields.push({
+        type: "text",
+        label: "Validator stash",
+        value: transaction.validators[0],
+      });
+      fields.push({
+        type: "text",
+        label: "Era",
+        value: transaction.era,
       });
       break;
 

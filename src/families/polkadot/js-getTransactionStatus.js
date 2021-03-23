@@ -26,6 +26,8 @@ import {
   PolkadotMaxUnbonding,
   PolkadotValidatorsRequired,
   PolkadotDoMaxSendInstead,
+  PolkadotValidatorRequired,
+  PolkadotEraRequired,
 } from "./errors";
 import { verifyValidatorAddresses } from "./api";
 import {
@@ -269,6 +271,14 @@ const getTransactionStatus = async (a: Account, t: Transaction) => {
         errors.staking = new PolkadotUnauthorizedOperation();
       } else if (!a.polkadotResources?.nominations) {
         errors.staking = new PolkadotNoNominations();
+      }
+      break;
+
+    case "claimReward":
+      if (!t.era) {
+        errors.staking = new PolkadotEraRequired();
+      } else if (!t.validators || t.validators.length !== 1) {
+        errors.staking = new PolkadotValidatorRequired();
       }
       break;
   }

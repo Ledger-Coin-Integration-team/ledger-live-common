@@ -17,6 +17,7 @@ import type {
   PolkadotStakingProgress,
   PolkadotUnlocking,
   PolkadotNomination,
+  PolkadotPendingReward
 } from "../types";
 import type {
   SidecarAccountBalanceInfo,
@@ -33,6 +34,8 @@ import type {
   SidecarPaymentInfo,
   SidecarRuntimeSpec,
 } from "./sidecar.types";
+
+const POLKADOT_REWARDS_ERAS = 7;
 
 /**
  * Get indexer base url.
@@ -524,6 +527,69 @@ export const paymentInfo = async (
   });
 
   return data;
+};
+
+/**
+ * Retrieve the pending rewards of the address, for the given depth, starting from active era
+ *
+ * @async
+ * @param {*} addr
+ * @param {string} depth - the number of eras before starting era to look for pending rewards
+ *
+ * @returns {SidecarPaymentInfo}
+ */
+ export const fetchPendingRewards = async (
+  addr: string,
+  depth: string,
+): Promise<SidecarStakingPayouts> => {
+
+  let params = {
+    unclaimedOnly: true,
+  };
+
+  if (depth) {
+    params = { ...params, depth };
+  }
+  
+  const { data }: { data: SidecarStakingPayouts } = await network({
+    method: "GET",
+    url: getSidecarUrl(`/accounts/${addr}/staking-payouts?${querystring.stringify(params)}`),
+  });
+
+  return data;
+};
+
+/**
+ * Retrieve the pending rewards of the address over the last `POLKADOT_REWARDS_ERAS` eras
+ *
+ * @async
+ * @param {*} addr
+ *
+ * @returns {PolkadotPendingReward[]}
+ */
+export const getPendingRewards = async (addr: string): Promise<PolkadotPendingReward[]> => {
+  
+  const pendingRewardsRaw = await fetchPendingRewards(addr, POLKADOT_REWARDS_ERAS);
+
+  const pendingRewards: Array<PolkadotPendingReward> = [];
+
+  pendingRewardsRaw.erasPayouts.forEach(ep => {
+    ep.payouts
+      .filter(p => BigNumber(p.nominatorStakingPayout).isGreaterThan(0))
+      .forEach(p => {
+        pendingRewards.push({
+          nominator: addr,
+          validator: { address: p.validatorId },
+          era: ep.era,
+          amount: BigNumber(p.nominatorStakingPayout),
+        });
+      });
+  });
+
+  // TODO: remove this mock data
+  //pendingRewards = [{nominator:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",validator:{address:"13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6"},era:100,amount:BigNumber(1230000)},{nominator:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",validator:{address:"13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6",identity:"Dummy"},era:101,amount:BigNumber(4560000)},{nominator:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",validator:{address:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS"},era:101,amount:BigNumber(7890000)},{nominator:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",validator:{address:"13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6"},era:103,amount:BigNumber(9870000)},{nominator:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",validator:{address:"13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6"},era:104,amount:BigNumber(6540000)},{nominator:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",validator:{address:"13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6"},era:105,amount:BigNumber(3210000)},{nominator:"12JHbw1vnXxqsD6U5yA3u9Kqvp9A7Zi3qM2rhAreZqP5zUmS",validator:{address:"13b6BF64CN7p42cU4y9N5qWKp6GKGswfzzhA8R3emiNfgAY6"},era:106,amount:BigNumber(1110000)}];
+
+  return pendingRewards;
 };
 
 /**
