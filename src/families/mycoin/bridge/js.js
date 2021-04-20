@@ -3,7 +3,7 @@ import type { AccountBridge, CurrencyBridge } from "../../../types";
 import type { Transaction } from "../types";
 import { makeAccountBridgeReceive } from "../../../bridge/jsHelpers";
 
-// import { getPreloadStrategy, preload, hydrate } from "../preload";
+import { getPreloadStrategy, preload, hydrate } from "../preload";
 
 import { sync, scanAccounts } from "../js-synchronisation";
 import {
@@ -18,17 +18,11 @@ import broadcast from "../js-broadcast";
 
 const receive = makeAccountBridgeReceive();
 
-// const currencyBridge: CurrencyBridge = {
-//   getPreloadStrategy,
-//   preload,
-//   hydrate,
-//   scanAccounts,
-// };
-
 const currencyBridge: CurrencyBridge = {
+  getPreloadStrategy,
+  preload,
+  hydrate,
   scanAccounts,
-  preload: async () => {},
-  hydrate: () => {},
 };
 
 const accountBridge: AccountBridge<Transaction> = {

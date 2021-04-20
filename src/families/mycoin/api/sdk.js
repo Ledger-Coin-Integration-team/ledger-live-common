@@ -179,3 +179,12 @@ export const submit = async (blob: string) =>
     // Transaction hash is likely to be returned
     return { hash, fees: BigNumber(fees) };
   });
+
+/**
+ * Preload currency data
+ */
+export const getPreloadedData = async (): Promise<Object> => {
+  return {
+    foo: "baz",
+  };
+};

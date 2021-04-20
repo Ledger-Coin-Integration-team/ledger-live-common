@@ -95,3 +95,12 @@ export const submit = async (blob: string) => {
   const hash = md5(blob).toString();
   return { hash, fees: BigNumber(0.1) };
 };
+
+/**
+ * Preload currency data
+ */
+export const getPreloadedData = async (): Promise<Object> => {
+  return {
+    foo: "baz",
+  };
+};
